@@ -345,7 +345,7 @@
                 else input = ui.elements.respostaResta;
 
                 if (input.value.trim() === '') {
-                    return; // No fer res si la resposta està buida
+                    return; 
                 }
 
                 respostaUsuari = parseInt(input.value);
@@ -399,14 +399,40 @@
             }
 
             function guardarEstadistiques(temps) {
-                const stats = JSON.parse(localStorage.getItem('estadistiques')) || { multiplicacions: [], sumes: [], restes: [] };
-                stats[estatJoc.tipus].push({
-                    data: new Date().toLocaleDateString(),
+                // 1. Guardar localment (com a còpia de seguretat i per rapidesa)
+                const statsLocal = JSON.parse(localStorage.getItem('estadistiques')) || { multiplicacions: [], sumes: [], restes: [] };
+                const sessioDades = {
+                    data: new Date().toLocaleDateString('ca-ES'), // Format de data local
                     errades: estatJoc.errades,
                     temps: temps,
                     encerts: estatJoc.encerts
-                });
-                localStorage.setItem('estadistiques', JSON.stringify(stats));
+                };
+                statsLocal[estatJoc.tipus].push(sessioDades);
+                localStorage.setItem('estadistiques', JSON.stringify(statsLocal));
+
+                // 2. Enviar les dades al Google Sheet
+                const URL_DE_LA_TEVA_APLICACIO_WEB = "https://script.google.com/macros/s/AKfycbw-6gIP9QUZwHRE4HwY6lgf0w4Ka2mNNwvg2lUFm4wB2dmmwcHTDQ-mN7DoT9IGa-7-/exec";
+                const CLAU_SECRETA = "dojo-secret-key-2025"; // Clau secreta per a més seguretat
+
+                const dadesPerEnviar = {
+                    secret: CLAU_SECRETA,
+                    data: sessioDades.data,
+                    tipus: estatJoc.tipus,
+                    encerts: sessioDades.encerts,
+                    errades: sessioDades.errades,
+                    temps: sessioDades.temps
+                };
+
+                fetch(URL_DE_LA_TEVA_APLICACIO_WEB, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dadesPerEnviar),
+                    redirect: 'follow'
+                })
+                .then(() => console.log("Dades enviades amb èxit a Google Sheets."))
+                .catch(error => console.error("Error en enviar les dades:", error));
             }
             
             function obtenirNivell(tipus) {
@@ -500,7 +526,7 @@
                 if (chartInstances.errors) chartInstances.errors.destroy();
                 if (chartInstances.times) chartInstances.times.destroy();
 
-                const labels = dades.map((s, i) => `${s.data} (${i+1})`);
+                const labels = dades.map((s, i) => `${s.data} (#${i+1})`);
                 const erradesData = dades.map(s => s.errades);
                 const tempsData = dades.map(s => s.temps);
 
