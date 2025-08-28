@@ -84,8 +84,11 @@
         #btn-sumes { background-color: var(--c-blue); }
         #btn-restes { background-color: var(--c-green); }
         #btn-estadistiques { background-color: var(--c-purple); }
+        
+        .btn-usuari { background-color: #fff; border: 2px solid var(--c-purple); }
+        .btn-finalitzar, #btn-canviar-usuari { background-color: #ff758f; }
 
-        input[type="number"] {
+        input[type="number"], input[type="text"] {
             width: calc(100% - 22px);
             padding: 12px;
             margin-bottom: 15px;
@@ -97,7 +100,7 @@
             transition: border-color 0.2s;
         }
         
-        input[type="number"]:focus {
+        input:focus {
             outline: none;
             border-color: var(--c-purple);
         }
@@ -113,10 +116,7 @@
             text-align: center; line-height: 30px; color: var(--c-dark);
             font-weight: 700; border-radius: 15px; transition: width 0.3s ease;
         }
-
-        .btn-finalitzar { background-color: #ff758f; }
         
-        /* Estadístiques */
         .stats-card {
             background: #fff; border-radius: 15px; padding: 15px;
             margin-bottom: 20px; box-shadow: 0 4px 15px 0 var(--c-shadow);
@@ -140,14 +140,26 @@
 </head>
 <body>
     <div id="app-container">
-        <div id="menu-principal" class="container">
-            <h1>🧠 Dojo Mental 🧠</h1>
+        
+        <div id="pantalla-login" class="container">
+            <h2>Qui està jugant?</h2>
+            <div id="usuaris-existents"></div>
+            <hr>
+            <p>o crea un usuari nou:</p>
+            <input type="text" id="nou-usuari-nom" placeholder="Escriu el teu nom">
+            <button id="btn-crear-usuari">Entrar</button>
+        </div>
+
+        <div id="menu-principal" class="container" style="display:none;">
+            <h1 id="menu-benvinguda">🧠 Dojo Mental 🧠</h1>
             <button id="btn-multiplicacions">Taules de Multiplicar</button>
             <button id="btn-sumes">Sumes</button>
             <button id="btn-restes">Restes</button>
             <button id="btn-estadistiques">📊 Estadístiques</button>
+            <button id="btn-canviar-usuari">Canviar d'Usuari</button>
         </div>
 
+        <!-- La resta de pantalles (joc, resum, estadístiques) van aquí -->
         <div id="pantalla-multiplicacions" class="container" style="display:none;">
             <h2>Taules de Multiplicar</h2>
             <div id="seleccio-taula">
@@ -209,13 +221,14 @@
                 </div>
                 <div id="historial-contingut"></div>
             </div>
-            <button id="btn-tornar-menu-stats">Tornar al Menú</button>
+            <button id="btn-tornar-menu-stats">Tornar al Menú Principal</button>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const pantallas = {
+                login: document.getElementById('pantalla-login'),
                 menuPrincipal: document.getElementById('menu-principal'),
                 multiplicacions: document.getElementById('pantalla-multiplicacions'),
                 sumes: document.getElementById('pantalla-sumes'),
@@ -226,6 +239,8 @@
 
             const ui = {
                 buttons: {
+                    crearUsuari: document.getElementById('btn-crear-usuari'),
+                    canviarUsuari: document.getElementById('btn-canviar-usuari'),
                     multiplicacions: document.getElementById('btn-multiplicacions'),
                     sumes: document.getElementById('btn-sumes'),
                     restes: document.getElementById('btn-restes'),
@@ -239,6 +254,10 @@
                     historial: document.querySelectorAll('#botons-historial button')
                 },
                 elements: {
+                    usuarisExistents: document.getElementById('usuaris-existents'),
+                    nouUsuariNom: document.getElementById('nou-usuari-nom'),
+                    menuBenvinguda: document.getElementById('menu-benvinguda'),
+                    // ... resta d'elements ...
                     numeroTaula: document.getElementById('numero-taula'),
                     seleccioTaula: document.getElementById('seleccio-taula'),
                     jocMultiplicacio: document.getElementById('joc-multiplicacio'),
@@ -263,6 +282,7 @@
                 }
             };
 
+            let usuariActual = null;
             let estatJoc = {};
             const TOTAL_PREGUNTES = 10;
             let chartInstances = { errors: null, times: null };
@@ -275,6 +295,64 @@
                 { min: 0, max: 10 }, { min: 10, max: 20 }, { min: 20, max: 30 },
                 { min: 30, max: 40 }, { min: 40, max: 50 }, { min: 50, max: 75 }, { min: 75, max: 100 }
             ];
+
+            // --- GESTIÓ D'USUARIS ---
+            function carregarUsuaris() {
+                const usuaris = JSON.parse(localStorage.getItem('dojoUsuaris')) || [];
+                ui.elements.usuarisExistents.innerHTML = '';
+                usuaris.forEach(nom => {
+                    const botoUsuari = document.createElement('button');
+                    botoUsuari.textContent = nom;
+                    botoUsuari.className = 'btn-usuari';
+                    botoUsuari.onclick = () => iniciarSessioUsuari(nom);
+                    ui.elements.usuarisExistents.appendChild(botoUsuari);
+                });
+            }
+
+            function iniciarSessioUsuari(nom) {
+                usuariActual = nom;
+                ui.elements.menuBenvinguda.textContent = `Hola, ${usuariActual}!`;
+                actualitzarBotonsNivell();
+                mostrarPantalla('menuPrincipal');
+            }
+
+            function crearUsuariNou() {
+                const nom = ui.elements.nouUsuariNom.value.trim();
+                if (!nom) {
+                    alert("Si us plau, escriu un nom.");
+                    return;
+                }
+                let usuaris = JSON.parse(localStorage.getItem('dojoUsuaris')) || [];
+                if (usuaris.includes(nom)) {
+                    alert("Aquest nom ja existeix. Tria'n un altre o selecciona'l de la llista.");
+                    return;
+                }
+                usuaris.push(nom);
+                localStorage.setItem('dojoUsuaris', JSON.stringify(usuaris));
+                ui.elements.nouUsuariNom.value = '';
+                iniciarSessioUsuari(nom);
+            }
+
+            function canviarUsuari() {
+                usuariActual = null;
+                carregarUsuaris();
+                mostrarPantalla('login');
+            }
+            
+            // --- GESTIÓ DE DADES PER USUARI ---
+            function getDadesUsuari() {
+                const dades = JSON.parse(localStorage.getItem(`dojoDades_${usuariActual}`));
+                return dades || {
+                    estadistiques: { multiplicacions: [], sumes: [], restes: [] },
+                    nivells: { sumes: 0, restes: 0 },
+                    ratxes: { sumes: 0, restes: 0 }
+                };
+            }
+
+            function setDadesUsuari(dades) {
+                localStorage.setItem(`dojoDades_${usuariActual}`, JSON.stringify(dades));
+            }
+            
 
             function mostrarPantalla(id) {
                 Object.values(pantallas).forEach(p => p.style.display = 'none');
@@ -344,9 +422,7 @@
                 else if (tipus === 'sumes') input = ui.elements.respostaSuma;
                 else input = ui.elements.respostaResta;
 
-                if (input.value.trim() === '') {
-                    return; 
-                }
+                if (input.value.trim() === '') return;
 
                 respostaUsuari = parseInt(input.value);
                 if (respostaUsuari === estatJoc.respostaCorrecta) estatJoc.encerts++;
@@ -399,23 +475,22 @@
             }
 
             function guardarEstadistiques(temps) {
-                // 1. Guardar localment (com a còpia de seguretat i per rapidesa)
-                const statsLocal = JSON.parse(localStorage.getItem('estadistiques')) || { multiplicacions: [], sumes: [], restes: [] };
+                const dadesUsuari = getDadesUsuari();
                 const sessioDades = {
-                    data: new Date().toLocaleDateString('ca-ES'), // Format de data local
+                    data: new Date().toLocaleDateString('ca-ES'),
                     errades: estatJoc.errades,
                     temps: temps,
                     encerts: estatJoc.encerts
                 };
-                statsLocal[estatJoc.tipus].push(sessioDades);
-                localStorage.setItem('estadistiques', JSON.stringify(statsLocal));
+                dadesUsuari.estadistiques[estatJoc.tipus].push(sessioDades);
+                setDadesUsuari(dadesUsuari);
 
-                // 2. Enviar les dades al Google Sheet
                 const URL_DE_LA_TEVA_APLICACIO_WEB = "https://script.google.com/macros/s/AKfycbw-6gIP9QUZwHRE4HwY6lgf0w4Ka2mNNwvg2lUFm4wB2dmmwcHTDQ-mN7DoT9IGa-7-/exec";
-                const CLAU_SECRETA = "dojo-secret-key-2025"; // Clau secreta per a més seguretat
+                const CLAU_SECRETA = "dojo-secret-key-2025";
 
                 const dadesPerEnviar = {
                     secret: CLAU_SECRETA,
+                    usuari: usuariActual,
                     data: sessioDades.data,
                     tipus: estatJoc.tipus,
                     encerts: sessioDades.encerts,
@@ -424,60 +499,52 @@
                 };
 
                 fetch(URL_DE_LA_TEVA_APLICACIO_WEB, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    cache: 'no-cache',
+                    method: 'POST', mode: 'no-cors', cache: 'no-cache',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dadesPerEnviar),
-                    redirect: 'follow'
+                    body: JSON.stringify(dadesPerEnviar), redirect: 'follow'
                 })
-                .then(() => console.log("Dades enviades amb èxit a Google Sheets."))
-                .catch(error => console.error("Error en enviar les dades:", error));
+                .then(() => console.log("Dades enviades a Google Sheets."))
+                .catch(error => console.error("Error en enviar dades:", error));
             }
             
             function obtenirNivell(tipus) {
-                const nivells = JSON.parse(localStorage.getItem('nivells')) || { sumes: 0, restes: 0 };
-                return nivells[tipus] || 0;
+                const dadesUsuari = getDadesUsuari();
+                return dadesUsuari.nivells[tipus] || 0;
             }
 
             function actualitzarNivell(tipus, senseErrades) {
                 if (tipus !== 'sumes' && tipus !== 'restes') return;
-
-                const ratxes = JSON.parse(localStorage.getItem('ratxes')) || { sumes: 0, restes: 0 };
-                let nivells = JSON.parse(localStorage.getItem('nivells')) || { sumes: 0, restes: 0 };
+                const dadesUsuari = getDadesUsuari();
                 const maxNivell = (tipus === 'sumes' ? nivellsSuma.length : nivellsResta.length) - 1;
 
                 if (senseErrades) {
-                    ratxes[tipus]++;
-                    if (ratxes[tipus] >= 3 && nivells[tipus] < maxNivell) {
-                        nivells[tipus]++;
-                        ratxes[tipus] = 0;
+                    dadesUsuari.ratxes[tipus]++;
+                    if (dadesUsuari.ratxes[tipus] >= 3 && dadesUsuari.nivells[tipus] < maxNivell) {
+                        dadesUsuari.nivells[tipus]++;
+                        dadesUsuari.ratxes[tipus] = 0;
                     }
                 } else {
-                    ratxes[tipus] = 0;
+                    dadesUsuari.ratxes[tipus] = 0;
                 }
-                localStorage.setItem('ratxes', JSON.stringify(ratxes));
-                localStorage.setItem('nivells', JSON.stringify(nivells));
+                setDadesUsuari(dadesUsuari);
             }
             
             function actualitzarBotonsNivell() {
-                const ratxes = JSON.parse(localStorage.getItem('ratxes')) || { sumes: 0, restes: 0 };
-                const nivells = JSON.parse(localStorage.getItem('nivells')) || { sumes: 0, restes: 0 };
-                
-                const progresSuma = (ratxes.sumes / 3) * 100;
-                const nivellSuma = nivells.sumes + 1;
+                const dadesUsuari = getDadesUsuari();
+                const progresSuma = (dadesUsuari.ratxes.sumes / 3) * 100;
+                const nivellSuma = dadesUsuari.nivells.sumes + 1;
                 ui.buttons.sumes.style.background = `linear-gradient(to right, #ffafcc ${progresSuma}%, var(--c-blue) ${progresSuma}%)`;
                 ui.buttons.sumes.innerHTML = `Sumes <br>(Nivell ${nivellSuma}/${nivellsSuma.length})`;
                 
-                const progresResta = (ratxes.restes / 3) * 100;
-                const nivellResta = nivells.restes + 1;
+                const progresResta = (dadesUsuari.ratxes.restes / 3) * 100;
+                const nivellResta = dadesUsuari.nivells.restes + 1;
                 ui.buttons.restes.style.background = `linear-gradient(to right, #ffafcc ${progresResta}%, var(--c-green) ${progresResta}%)`;
                 ui.buttons.restes.innerHTML = `Restes <br>(Nivell ${nivellResta}/${nivellsResta.length})`;
             }
 
             function mostrarEstadistiquesGlobals() {
-                const stats = JSON.parse(localStorage.getItem('estadistiques')) || { multiplicacions: [], sumes: [], restes: [] };
-                const totesLesSessions = [...stats.multiplicacions, ...stats.sumes, ...stats.restes];
+                const dadesUsuari = getDadesUsuari();
+                const totesLesSessions = [...dadesUsuari.estadistiques.multiplicacions, ...dadesUsuari.estadistiques.sumes, ...dadesUsuari.estadistiques.restes];
                 
                 if (totesLesSessions.length === 0) {
                     ui.elements.statsGlobals.innerHTML = "<h3>Resum General</h3><p>Encara no has completat cap sessió. Som-hi a jugar!</p>";
@@ -492,7 +559,7 @@
                 const tempsMitja = (tempsTotal / totalSessions).toFixed(1);
 
                 ui.elements.statsGlobals.innerHTML = `
-                    <h3>Resum General</h3>
+                    <h3>Resum General (${usuariActual})</h3>
                     <div class="stats-grid">
                         <div class="stat-item"><div>Sessions</div><div class="value">${totalSessions}</div></div>
                         <div class="stat-item"><div>Precisió</div><div class="value">${precisio}%</div></div>
@@ -501,8 +568,8 @@
             }
 
             function mostrarHistorial(tipus) {
-                const stats = JSON.parse(localStorage.getItem('estadistiques')) || {};
-                const historial = stats[tipus] || [];
+                const dadesUsuari = getDadesUsuari();
+                const historial = dadesUsuari.estadistiques[tipus] || [];
                 
                 ui.elements.historialTitol.textContent = `Historial de ${tipus}`;
                 ui.elements.historialContingut.innerHTML = '';
@@ -532,40 +599,25 @@
 
                 const errCtx = document.getElementById('errors-chart').getContext('2d');
                 chartInstances.errors = new Chart(errCtx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Errades per sessió',
-                            data: erradesData,
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            fill: true,
-                            tension: 0.1
-                        }]
-                    },
-                    options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                    type: 'line', data: { labels: labels, datasets: [{
+                            label: 'Errades per sessió', data: erradesData, borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)', fill: true, tension: 0.1 }]
+                    }, options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
                 });
 
                 const timesCtx = document.getElementById('times-chart').getContext('2d');
                 chartInstances.times = new Chart(timesCtx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Temps per sessió (segons)',
-                            data: tempsData,
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                            fill: true,
-                            tension: 0.1
-                        }]
-                    },
-                    options: { scales: { y: { beginAtZero: true } } }
+                    type: 'line', data: { labels: labels, datasets: [{
+                            label: 'Temps per sessió (segons)', data: tempsData, borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)', fill: true, tension: 0.1 }]
+                    }, options: { scales: { y: { beginAtZero: true } } }
                 });
             }
             
             // --- Event Listeners ---
+            ui.buttons.crearUsuari.addEventListener('click', crearUsuariNou);
+            ui.buttons.canviarUsuari.addEventListener('click', canviarUsuari);
+            
             ui.buttons.multiplicacions.addEventListener('click', () => {
                 mostrarPantalla('multiplicacions');
                 ui.elements.seleccioTaula.style.display = 'block';
@@ -598,8 +650,8 @@
             ui.buttons.historial.forEach(btn => btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipus)));
 
             // --- Inicialització ---
-            mostrarPantalla('menuPrincipal');
-            actualitzarBotonsNivell();
+            carregarUsuaris();
+            mostrarPantalla('login');
         });
     </script>
 </body>
