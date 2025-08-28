@@ -1,333 +1,513 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const pantallas = {
-        menuPrincipal: document.getElementById('menu-principal'),
-        multiplicaciones: document.getElementById('pantalla-multiplicaciones'),
-        sumas: document.getElementById('pantalla-sumas'),
-        restas: document.getElementById('pantalla-restas'),
-        resumen: document.getElementById('pantalla-resumen'),
-        estadisticas: document.getElementById('pantalla-estadisticas')
-    };
-
-    const botones = {
-        multiplicaciones: document.getElementById('btn-multiplicaciones'),
-        sumas: document.getElementById('btn-sumas'),
-        restas: document.getElementById('btn-restas'),
-        estadisticas: document.getElementById('btn-estadisticas'),
-        iniciarMultiplicacion: document.getElementById('btn-iniciar-multiplicacion'),
-        comprobarMultiplicacion: document.getElementById('btn-comprobar-multiplicacion'),
-        comprobarSuma: document.getElementById('btn-comprobar-suma'),
-        comprobarResta: document.getElementById('btn-comprobar-resta'),
-        volverMenu: document.getElementById('btn-volver-menu'),
-        volverMenuStats: document.getElementById('btn-volver-menu-stats'),
-        historial: document.querySelectorAll('#botones-historial button')
-    };
-
-    const elementos = {
-        numeroTabla: document.getElementById('numero-tabla'),
-        seleccionTabla: document.getElementById('seleccion-tabla'),
-        juegoMultiplicacion: document.getElementById('juego-multiplicacion'),
-        preguntaMultiplicacion: document.getElementById('pregunta-multiplicacion'),
-        respuestaMultiplicacion: document.getElementById('respuesta-multiplicacion'),
-        progressBarMultiplicacion: document.getElementById('progress-bar-multiplicacion'),
-        preguntaSuma: document.getElementById('pregunta-suma'),
-        respuestaSuma: document.getElementById('respuesta-suma'),
-        progressBarSuma: document.getElementById('progress-bar-suma'),
-        preguntaResta: document.getElementById('pregunta-resta'),
-        respuestaResta: document.getElementById('respuesta-resta'),
-        progressBarResta: document.getElementById('progress-bar-resta'),
-        tiempoTotal: document.getElementById('tiempo-total'),
-        aciertos: document.getElementById('aciertos'),
-        fallos: document.getElementById('fallos'),
-        mensajeFelicitacion: document.getElementById('mensaje-felicitacion'),
-        historialDetallado: document.getElementById('historial-detallado'),
-        historialTitulo: document.getElementById('historial-titulo'),
-        historialContenido: document.getElementById('historial-contenido')
-    };
-
-    let estadoJuego = {};
-    const TOTAL_PREGUNTAS = 10;
-
-    const nivelesSuma = [
-        { min: 0, max: 4 },
-        { min: 0, max: 5 },
-        { min: 0, max: 6 },
-        { min: 0, max: 7 },
-        { min: 0, max: 8 },
-        { min: 0, max: 9 },
-        { min: 0, max: 10 }
-    ];
-
-    const nivelesResta = [
-        { min: 0, max: 10 },
-        { min: 10, max: 20 },
-        { min: 20, max: 30 },
-        { min: 30, max: 40 },
-        { min: 40, max: 50 },
-        { min: 50, max: 75 },
-        { min: 75, max: 100 }
-    ];
-
-    function mostrarPantalla(id) {
-        Object.values(pantallas).forEach(p => p.style.display = 'none');
-        pantallas[id].style.display = 'block';
-    }
-
-    function iniciarJuego(tipo) {
-        estadoJuego = {
-            tipo: tipo,
-            aciertos: 0,
-            fallos: 0,
-            preguntasRespondidas: 0,
-            startTime: new Date(),
-            numerosUsados: []
-        };
-
-        if (tipo === 'multiplicaciones') {
-            estadoJuego.tabla = parseInt(elementos.numeroTabla.value);
-            elementos.seleccionTabla.style.display = 'none';
-            elementos.juegoMultiplicacion.style.display = 'block';
-            elementos.respuestaMultiplicacion.focus();
-        } else if (tipo === 'sumas') {
-            const nivel = obtenerNivel('sumas');
-            estadoJuego.nivel = nivel;
-        } else if (tipo === 'restas') {
-            const nivel = obtenerNivel('restas');
-            estadoJuego.nivel = nivel;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dojo de Cálculo Mental</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            text-align: center;
         }
 
-        actualizarProgreso();
-        siguientePregunta();
-    }
-
-    function siguientePregunta() {
-        if (estadoJuego.preguntasRespondidas >= TOTAL_PREGUNTAS) return;
-
-        let n1, n2, pregunta, respuesta;
-        const tipo = estadoJuego.tipo;
-
-        if (tipo === 'multiplicaciones') {
-            n1 = estadoJuego.tabla;
-            do {
-                n2 = Math.floor(Math.random() * 11);
-            } while (estadoJuego.numerosUsados.includes(n2));
-            estadoJuego.numerosUsados.push(n2);
-            pregunta = `${n1} x ${n2} = ?`;
-            respuesta = n1 * n2;
-            elementos.preguntaMultiplicacion.textContent = pregunta;
-            elementos.respuestaMultiplicacion.value = '';
-            elementos.respuestaMultiplicacion.focus();
-        } else if (tipo === 'sumas') {
-            const nivel = nivelesSuma[estadoJuego.nivel];
-            n1 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
-            n2 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
-            pregunta = `${n1} + ${n2} = ?`;
-            respuesta = n1 + n2;
-            elementos.preguntaSuma.textContent = pregunta;
-            elementos.respuestaSuma.value = '';
-            elementos.respuestaSuma.focus();
-        } else if (tipo === 'restas') {
-            const nivel = nivelesResta[estadoJuego.nivel];
-            n1 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
-            n2 = Math.floor(Math.random() * (n1 - nivel.min + 1)) + nivel.min; // Asegura que el resultado no sea negativo
-            pregunta = `${n1} - ${n2} = ?`;
-            respuesta = n1 - n2;
-            elementos.preguntaResta.textContent = pregunta;
-            elementos.respuestaResta.value = '';
-            elementos.respuestaResta.focus();
+        #menu-principal, .pantalla-juego, #pantalla-resumen, #pantalla-estadisticas {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
         }
 
-        estadoJuego.respuestaCorrecta = respuesta;
-    }
-
-    function comprobarRespuesta() {
-        const tipo = estadoJuego.tipo;
-        let respuestaUsuario;
-
-        if (tipo === 'multiplicaciones') {
-            respuestaUsuario = parseInt(elementos.respuestaMultiplicacion.value);
-        } else if (tipo === 'sumas') {
-            respuestaUsuario = parseInt(elementos.respuestaSuma.value);
-        } else if (tipo === 'restas') {
-            respuestaUsuario = parseInt(elementos.respuestaResta.value);
+        h1, h2 {
+            color: #333;
         }
 
-        if (respuestaUsuario === estadoJuego.respuestaCorrecta) {
-            estadoJuego.aciertos++;
-        } else {
-            estadoJuego.fallos++;
+        button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
         }
 
-        estadoJuego.preguntasRespondidas++;
-        actualizarProgreso();
-
-        if (estadoJuego.preguntasRespondidas >= TOTAL_PREGUNTAS) {
-            finalizarSesion(true);
-        } else {
-            siguientePregunta();
+        button:hover {
+            background-color: #0056b3;
         }
-    }
 
-    function actualizarProgreso() {
-        const progreso = (estadoJuego.preguntasRespondidas / TOTAL_PREGUNTAS) * 100;
-        const progressBarId = `progressBar${estadoJuego.tipo.charAt(0).toUpperCase() + estadoJuego.tipo.slice(1)}`;
-        const progressBar = document.getElementById(progressBarId.replace('es', ''));
-        if (progressBar) {
-            progressBar.style.width = `${progreso}%`;
-            progressBar.textContent = `${Math.round(progreso)}%`;
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
         }
-    }
 
-    function finalizarSesion(completada) {
-        if (completada) {
-            estadoJuego.endTime = new Date();
-            const tiempoTranscurrido = Math.round((estadoJuego.endTime - estadoJuego.startTime) / 1000);
-            
-            elementos.tiempoTotal.textContent = tiempoTranscurrido;
-            elementos.aciertos.textContent = estadoJuego.aciertos;
-            elementos.fallos.textContent = estadoJuego.fallos;
+        input[type="number"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1.2em;
+            text-align: center;
+        }
 
-            if (estadoJuego.fallos === 0) {
-                elementos.mensajeFelicitacion.style.display = 'block';
-                actualizarNivel(estadoJuego.tipo, true);
-            } else {
-                elementos.mensajeFelicitacion.style.display = 'none';
-                actualizarNivel(estadoJuego.tipo, false);
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 30px;
+            background-color: #4CAF50;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .btn-finalizar {
+            background-color: #f44336;
+        }
+
+        .btn-finalizar:hover {
+            background-color: #d32f2f;
+        }
+
+        #historial-contenido {
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        #historial-contenido p {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu-principal">
+        <h1>Dojo de Cálculo Mental</h1>
+        <button id="btn-multiplicaciones">Tablas de Multiplicar</button>
+        <button id="btn-sumas">Sumas</button>
+        <button id="btn-restas">Restas</button>
+        <button id="btn-estadisticas">Estadísticas Generales</button>
+    </div>
+
+    <div id="pantalla-multiplicaciones" class="pantalla-juego" style="display:none;">
+        <h2>Tablas de Multiplicar</h2>
+        <div id="seleccion-tabla">
+            <p>Elige una tabla de multiplicar:</p>
+            <input type="number" id="numero-tabla" min="1" max="10" inputmode="numeric">
+            <button id="btn-iniciar-multiplicacion">Siguiente</button>
+        </div>
+        <div id="juego-multiplicacion" style="display:none;">
+            <p id="pregunta-multiplicacion"></p>
+            <input type="number" id="respuesta-multiplicacion" inputmode="numeric">
+            <button id="btn-comprobar-multiplicacion" disabled>Comprobar</button>
+            <div class="progress-container">
+                <div id="progress-bar-multiplicacion" class="progress-bar"></div>
+            </div>
+            <button class="btn-finalizar">Finalizar y ver resumen</button>
+        </div>
+    </div>
+
+    <div id="pantalla-sumas" class="pantalla-juego" style="display:none;">
+        <h2>Sumas</h2>
+        <p id="pregunta-suma"></p>
+        <input type="number" id="respuesta-suma" inputmode="numeric">
+        <button id="btn-comprobar-suma" disabled>Comprobar</button>
+        <div class="progress-container">
+            <div id="progress-bar-suma" class="progress-bar"></div>
+        </div>
+        <button class="btn-finalizar">Finalizar y ver resumen</button>
+    </div>
+
+    <div id="pantalla-restas" class="pantalla-juego" style="display:none;">
+        <h2>Restas</h2>
+        <p id="pregunta-resta"></p>
+        <input type="number" id="respuesta-resta" inputmode="numeric">
+        <button id="btn-comprobar-resta" disabled>Comprobar</button>
+        <div class="progress-container">
+            <div id="progress-bar-resta" class="progress-bar"></div>
+        </div>
+        <button class="btn-finalizar">Finalizar y ver resumen</button>
+    </div>
+
+    <div id="pantalla-resumen" style="display:none;">
+        <h2>Resumen de la Sesión</h2>
+        <p>Tiempo total: <span id="tiempo-total"></span> segundos</p>
+        <p>Aciertos: <span id="aciertos"></span></p>
+        <p>Fallos: <span id="fallos"></span></p>
+        <p id="mensaje-felicitacion" style="display:none;">¡Felicidades! ¡Has completado la sesión perfectamente!</p>
+        <button id="btn-volver-menu">Volver al Menú</button>
+    </div>
+
+    <div id="pantalla-estadisticas" style="display:none;">
+        <h2>Estadísticas Generales</h2>
+        <div id="botones-historial">
+            <button data-tipo="multiplicaciones">Multiplicaciones</button>
+            <button data-tipo="sumas">Sumas</button>
+            <button data-tipo="restas">Restas</button>
+        </div>
+        <div id="historial-detallado" style="display:none;">
+            <h3 id="historial-titulo"></h3>
+            <div id="historial-contenido"></div>
+        </div>
+        <button id="btn-volver-menu-stats">Volver al Menú</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const pantallas = {
+                menuPrincipal: document.getElementById('menu-principal'),
+                multiplicaciones: document.getElementById('pantalla-multiplicaciones'),
+                sumas: document.getElementById('pantalla-sumas'),
+                restas: document.getElementById('pantalla-restas'),
+                resumen: document.getElementById('pantalla-resumen'),
+                estadisticas: document.getElementById('pantalla-estadisticas')
+            };
+
+            const botones = {
+                multiplicaciones: document.getElementById('btn-multiplicaciones'),
+                sumas: document.getElementById('btn-sumas'),
+                restas: document.getElementById('btn-restas'),
+                estadisticas: document.getElementById('btn-estadisticas'),
+                iniciarMultiplicacion: document.getElementById('btn-iniciar-multiplicacion'),
+                comprobarMultiplicacion: document.getElementById('btn-comprobar-multiplicacion'),
+                comprobarSuma: document.getElementById('btn-comprobar-suma'),
+                comprobarResta: document.getElementById('btn-comprobar-resta'),
+                volverMenu: document.getElementById('btn-volver-menu'),
+                volverMenuStats: document.getElementById('btn-volver-menu-stats'),
+                historial: document.querySelectorAll('#botones-historial button')
+            };
+
+            const elementos = {
+                numeroTabla: document.getElementById('numero-tabla'),
+                seleccionTabla: document.getElementById('seleccion-tabla'),
+                juegoMultiplicacion: document.getElementById('juego-multiplicacion'),
+                preguntaMultiplicacion: document.getElementById('pregunta-multiplicacion'),
+                respuestaMultiplicacion: document.getElementById('respuesta-multiplicacion'),
+                progressBarMultiplicacion: document.getElementById('progress-bar-multiplicacion'),
+                preguntaSuma: document.getElementById('pregunta-suma'),
+                respuestaSuma: document.getElementById('respuesta-suma'),
+                progressBarSuma: document.getElementById('progress-bar-suma'),
+                preguntaResta: document.getElementById('pregunta-resta'),
+                respuestaResta: document.getElementById('respuesta-resta'),
+                progressBarResta: document.getElementById('progress-bar-resta'),
+                tiempoTotal: document.getElementById('tiempo-total'),
+                aciertos: document.getElementById('aciertos'),
+                fallos: document.getElementById('fallos'),
+                mensajeFelicitacion: document.getElementById('mensaje-felicitacion'),
+                historialDetallado: document.getElementById('historial-detallado'),
+                historialTitulo: document.getElementById('historial-titulo'),
+                historialContenido: document.getElementById('historial-contenido')
+            };
+
+            let estadoJuego = {};
+            const TOTAL_PREGUNTAS = 10;
+
+            const nivelesSuma = [
+                { min: 0, max: 4 },
+                { min: 0, max: 5 },
+                { min: 0, max: 6 },
+                { min: 0, max: 7 },
+                { min: 0, max: 8 },
+                { min: 0, max: 9 },
+                { min: 0, max: 10 }
+            ];
+
+            const nivelesResta = [
+                { min: 0, max: 10 },
+                { min: 10, max: 20 },
+                { min: 20, max: 30 },
+                { min: 30, max: 40 },
+                { min: 40, max: 50 },
+                { min: 50, max: 75 },
+                { min: 75, max: 100 }
+            ];
+
+            function mostrarPantalla(id) {
+                Object.values(pantallas).forEach(p => p.style.display = 'none');
+                pantallas[id].style.display = 'block';
+            }
+
+            function iniciarJuego(tipo) {
+                estadoJuego = {
+                    tipo: tipo,
+                    aciertos: 0,
+                    fallos: 0,
+                    preguntasRespondidas: 0,
+                    startTime: new Date(),
+                    numerosUsados: []
+                };
+
+                if (tipo === 'multiplicaciones') {
+                    estadoJuego.tabla = parseInt(elementos.numeroTabla.value);
+                    elementos.seleccionTabla.style.display = 'none';
+                    elementos.juegoMultiplicacion.style.display = 'block';
+                    elementos.respuestaMultiplicacion.focus();
+                } else if (tipo === 'sumas') {
+                    const nivel = obtenerNivel('sumas');
+                    estadoJuego.nivel = nivel;
+                } else if (tipo === 'restas') {
+                    const nivel = obtenerNivel('restas');
+                    estadoJuego.nivel = nivel;
+                }
+
+                actualizarProgreso();
+                siguientePregunta();
+            }
+
+            function siguientePregunta() {
+                if (estadoJuego.preguntasRespondidas >= TOTAL_PREGUNTAS) return;
+
+                let n1, n2, pregunta, respuesta;
+                const tipo = estadoJuego.tipo;
+
+                if (tipo === 'multiplicaciones') {
+                    n1 = estadoJuego.tabla;
+                    do {
+                        n2 = Math.floor(Math.random() * 11);
+                    } while (estadoJuego.numerosUsados.includes(n2));
+                    estadoJuego.numerosUsados.push(n2);
+                    pregunta = `${n1} x ${n2} = ?`;
+                    respuesta = n1 * n2;
+                    elementos.preguntaMultiplicacion.textContent = pregunta;
+                    elementos.respuestaMultiplicacion.value = '';
+                    elementos.respuestaMultiplicacion.focus();
+                } else if (tipo === 'sumas') {
+                    const nivel = nivelesSuma[estadoJuego.nivel];
+                    n1 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
+                    n2 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
+                    pregunta = `${n1} + ${n2} = ?`;
+                    respuesta = n1 + n2;
+                    elementos.preguntaSuma.textContent = pregunta;
+                    elementos.respuestaSuma.value = '';
+                    elementos.respuestaSuma.focus();
+                } else if (tipo === 'restas') {
+                    const nivel = nivelesResta[estadoJuego.nivel];
+                    n1 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
+                    n2 = Math.floor(Math.random() * (n1 - nivel.min + 1)) + nivel.min; // Asegura que el resultado no sea negativo
+                    pregunta = `${n1} - ${n2} = ?`;
+                    respuesta = n1 - n2;
+                    elementos.preguntaResta.textContent = pregunta;
+                    elementos.respuestaResta.value = '';
+                    elementos.respuestaResta.focus();
+                }
+
+                estadoJuego.respuestaCorrecta = respuesta;
+            }
+
+            function comprobarRespuesta() {
+                const tipo = estadoJuego.tipo;
+                let respuestaUsuario;
+
+                if (tipo === 'multiplicaciones') {
+                    respuestaUsuario = parseInt(elementos.respuestaMultiplicacion.value);
+                } else if (tipo === 'sumas') {
+                    respuestaUsuario = parseInt(elementos.respuestaSuma.value);
+                } else if (tipo === 'restas') {
+                    respuestaUsuario = parseInt(elementos.respuestaResta.value);
+                }
+
+                if (respuestaUsuario === estadoJuego.respuestaCorrecta) {
+                    estadoJuego.aciertos++;
+                } else {
+                    estadoJuego.fallos++;
+                }
+
+                estadoJuego.preguntasRespondidas++;
+                actualizarProgreso();
+
+                if (estadoJuego.preguntasRespondidas >= TOTAL_PREGUNTAS) {
+                    finalizarSesion(true);
+                } else {
+                    siguientePregunta();
+                }
+            }
+
+            function actualizarProgreso() {
+                const progreso = (estadoJuego.preguntasRespondidas / TOTAL_PREGUNTAS) * 100;
+                const progressBarId = `progressBar${estadoJuego.tipo.charAt(0).toUpperCase() + estadoJuego.tipo.slice(1)}`;
+                const progressBar = document.getElementById(progressBarId.replace('es', ''));
+                if (progressBar) {
+                    progressBar.style.width = `${progreso}%`;
+                    progressBar.textContent = `${Math.round(progreso)}%`;
+                }
+            }
+
+            function finalizarSesion(completada) {
+                if (completada) {
+                    estadoJuego.endTime = new Date();
+                    const tiempoTranscurrido = Math.round((estadoJuego.endTime - estadoJuego.startTime) / 1000);
+                    
+                    elementos.tiempoTotal.textContent = tiempoTranscurrido;
+                    elementos.aciertos.textContent = estadoJuego.aciertos;
+                    elementos.fallos.textContent = estadoJuego.fallos;
+
+                    if (estadoJuego.fallos === 0) {
+                        elementos.mensajeFelicitacion.style.display = 'block';
+                        actualizarNivel(estadoJuego.tipo, true);
+                    } else {
+                        elementos.mensajeFelicitacion.style.display = 'none';
+                        actualizarNivel(estadoJuego.tipo, false);
+                    }
+                    
+                    guardarEstadisticas(tiempoTranscurrido);
+                    mostrarPantalla('resumen');
+                } else {
+                    mostrarPantalla('menuPrincipal');
+                }
+                actualizarBotonesNivel();
+            }
+
+            function guardarEstadisticas(tiempo) {
+                const stats = JSON.parse(localStorage.getItem('estadisticas')) || {
+                    multiplicaciones: [],
+                    sumas: [],
+                    restas: []
+                };
+                const sesion = {
+                    fecha: new Date().toLocaleString(),
+                    fallos: estadoJuego.fallos,
+                    tiempo: tiempo
+                };
+                stats[estadoJuego.tipo].push(sesion);
+                localStorage.setItem('estadisticas', JSON.stringify(stats));
+            }
+
+            function obtenerNivel(tipo) {
+                const niveles = JSON.parse(localStorage.getItem('niveles')) || { sumas: 0, restas: 0 };
+                return niveles[tipo] || 0;
+            }
+
+            function actualizarNivel(tipo, sinFallos) {
+                if (tipo !== 'sumas' && tipo !== 'restas') return;
+
+                const rachas = JSON.parse(localStorage.getItem('rachas')) || { sumas: 0, restas: 0 };
+                let niveles = JSON.parse(localStorage.getItem('niveles')) || { sumas: 0, restas: 0 };
+                const maxNivel = (tipo === 'sumas' ? nivelesSuma.length : nivelesResta.length) - 1;
+
+                if (sinFallos) {
+                    rachas[tipo]++;
+                    if (rachas[tipo] >= 3 && niveles[tipo] < maxNivel) {
+                        niveles[tipo]++;
+                        rachas[tipo] = 0;
+                    }
+                } else {
+                    rachas[tipo] = 0;
+                }
+
+                localStorage.setItem('rachas', JSON.stringify(rachas));
+                localStorage.setItem('niveles', JSON.stringify(niveles));
             }
             
-            guardarEstadisticas(tiempoTranscurrido);
-            mostrarPantalla('resumen');
-        } else {
-            mostrarPantalla('menuPrincipal');
-        }
-        actualizarBotonesNivel();
-    }
+            function actualizarBotonesNivel() {
+                const rachas = JSON.parse(localStorage.getItem('rachas')) || { sumas: 0, restas: 0 };
+                const progresoSuma = (rachas.sumas / 3) * 100;
+                const progresoResta = (rachas.restas / 3) * 100;
 
-    function guardarEstadisticas(tiempo) {
-        const stats = JSON.parse(localStorage.getItem('estadisticas')) || {
-            multiplicaciones: [],
-            sumas: [],
-            restas: []
-        };
-        const sesion = {
-            fecha: new Date().toLocaleString(),
-            fallos: estadoJuego.fallos,
-            tiempo: tiempo
-        };
-        stats[estadoJuego.tipo].push(sesion);
-        localStorage.setItem('estadisticas', JSON.stringify(stats));
-    }
-
-    function obtenerNivel(tipo) {
-        const niveles = JSON.parse(localStorage.getItem('niveles')) || { sumas: 0, restas: 0 };
-        return niveles[tipo] || 0;
-    }
-
-    function actualizarNivel(tipo, sinFallos) {
-        if (tipo !== 'sumas' && tipo !== 'restas') return;
-
-        const rachas = JSON.parse(localStorage.getItem('rachas')) || { sumas: 0, restas: 0 };
-        let niveles = JSON.parse(localStorage.getItem('niveles')) || { sumas: 0, restas: 0 };
-        const maxNivel = (tipo === 'sumas' ? nivelesSuma.length : nivelesResta.length) - 1;
-
-        if (sinFallos) {
-            rachas[tipo]++;
-            if (rachas[tipo] >= 3 && niveles[tipo] < maxNivel) {
-                niveles[tipo]++;
-                rachas[tipo] = 0;
+                botones.sumas.style.background = `linear-gradient(to right, #66bb6a ${progresoSuma}%, #007BFF ${progresoSuma}%)`;
+                botones.restas.style.background = `linear-gradient(to right, #66bb6a ${progresoResta}%, #007BFF ${progresoResta}%)`;
             }
-        } else {
-            rachas[tipo] = 0;
-        }
 
-        localStorage.setItem('rachas', JSON.stringify(rachas));
-        localStorage.setItem('niveles', JSON.stringify(niveles));
-    }
-    
-    function actualizarBotonesNivel() {
-        const rachas = JSON.parse(localStorage.getItem('rachas')) || { sumas: 0, restas: 0 };
-        const progresoSuma = (rachas.sumas / 3) * 100;
-        const progresoResta = (rachas.restas / 3) * 100;
+            function mostrarHistorial(tipo) {
+                const stats = JSON.parse(localStorage.getItem('estadisticas')) || {};
+                const historial = stats[tipo] || [];
+                
+                elementos.historialTitulo.textContent = `Historial de ${tipo}`;
+                elementos.historialContenido.innerHTML = '';
 
-        botones.sumas.style.background = `linear-gradient(to right, #66bb6a ${progresoSuma}%, #007BFF ${progresoSuma}%)`;
-        botones.restas.style.background = `linear-gradient(to right, #66bb6a ${progresoResta}%, #007BFF ${progresoResta}%)`;
-    }
-
-    function mostrarHistorial(tipo) {
-        const stats = JSON.parse(localStorage.getItem('estadisticas')) || {};
-        const historial = stats[tipo] || [];
-        
-        elementos.historialTitulo.textContent = `Historial de ${tipo}`;
-        elementos.historialContenido.innerHTML = '';
-
-        if (historial.length === 0) {
-            elementos.historialContenido.innerHTML = '<p>No hay datos todavía.</p>';
-        } else {
-            historial.forEach(s => {
-                const p = document.createElement('p');
-                p.textContent = `${s.fecha} - Fallos: ${s.fallos}, Tiempo: ${s.tiempo}s`;
-                elementos.historialContenido.appendChild(p);
+                if (historial.length === 0) {
+                    elementos.historialContenido.innerHTML = '<p>No hay datos todavía.</p>';
+                } else {
+                    historial.slice().reverse().forEach(s => { // .slice().reverse() to show latest first
+                        const p = document.createElement('p');
+                        p.textContent = `${s.fecha} - Fallos: ${s.fallos}, Tiempo: ${s.tiempo}s`;
+                        elementos.historialContenido.appendChild(p);
+                    });
+                }
+                elementos.historialDetallado.style.display = 'block';
+            }
+            
+            // Event Listeners
+            botones.multiplicaciones.addEventListener('click', () => {
+                mostrarPantalla('multiplicaciones');
+                elementos.seleccionTabla.style.display = 'block';
+                elementos.juegoMultiplicacion.style.display = 'none';
+                elementos.numeroTabla.value = '';
             });
-        }
-        elementos.historialDetallado.style.display = 'block';
-    }
-    
-    // Event Listeners
-    botones.multiplicaciones.addEventListener('click', () => {
-        mostrarPantalla('multiplicaciones');
-        elementos.seleccionTabla.style.display = 'block';
-        elementos.juegoMultiplicacion.style.display = 'none';
-        elementos.numeroTabla.value = '';
-    });
-    
-    botones.sumas.addEventListener('click', () => {
-        mostrarPantalla('sumas');
-        iniciarJuego('sumas');
-    });
+            
+            botones.sumas.addEventListener('click', () => {
+                mostrarPantalla('sumas');
+                iniciarJuego('sumas');
+            });
 
-    botones.restas.addEventListener('click', () => {
-        mostrarPantalla('restas');
-        iniciarJuego('restas');
-    });
-    
-    botones.estadisticas.addEventListener('click', () => {
-        mostrarPantalla('estadisticas');
-        elementos.historialDetallado.style.display = 'none';
-    });
+            botones.restas.addEventListener('click', () => {
+                mostrarPantalla('restas');
+                iniciarJuego('restas');
+            });
+            
+            botones.estadisticas.addEventListener('click', () => {
+                mostrarPantalla('estadisticas');
+                elementos.historialDetallado.style.display = 'none';
+            });
 
-    botones.iniciarMultiplicacion.addEventListener('click', () => {
-        if (elementos.numeroTabla.value) {
-            iniciarJuego('multiplicaciones');
-        }
-    });
-    
-    [elementos.respuestaMultiplicacion, elementos.respuestaSuma, elementos.respuestaResta].forEach((input, index) => {
-        const boton = [botones.comprobarMultiplicacion, botones.comprobarSuma, botones.comprobarResta][index];
-        input.addEventListener('input', () => {
-            boton.disabled = input.value.trim() === '';
+            botones.iniciarMultiplicacion.addEventListener('click', () => {
+                if (elementos.numeroTabla.value) {
+                    iniciarJuego('multiplicaciones');
+                }
+            });
+            
+            [elementos.respuestaMultiplicacion, elementos.respuestaSuma, elementos.respuestaResta].forEach((input, index) => {
+                const boton = [botones.comprobarMultiplicacion, botones.comprobarSuma, botones.comprobarResta][index];
+                input.addEventListener('input', () => {
+                    boton.disabled = input.value.trim() === '';
+                });
+                input.addEventListener('keyup', (event) => {
+                    if (event.key === 'Enter' && !boton.disabled) {
+                        comprobarRespuesta();
+                    }
+                });
+            });
+
+            [botones.comprobarMultiplicacion, botones.comprobarSuma, botones.comprobarResta].forEach(boton => {
+                boton.addEventListener('click', comprobarRespuesta);
+            });
+
+            document.querySelectorAll('.btn-finalizar').forEach(btn => {
+                btn.addEventListener('click', () => finalizarSesion(false));
+            });
+
+            botones.volverMenu.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
+            botones.volverMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
+
+            botones.historial.forEach(btn => {
+                btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipo));
+            });
+
+            // Inicialización
+            mostrarPantalla('menuPrincipal');
+            actualizarBotonesNivel();
         });
-        input.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter' && !boton.disabled) {
-                comprobarRespuesta();
-            }
-        });
-    });
-
-    [botones.comprobarMultiplicacion, botones.comprobarSuma, botones.comprobarResta].forEach(boton => {
-        boton.addEventListener('click', comprobarRespuesta);
-    });
-
-    document.querySelectorAll('.btn-finalizar').forEach(btn => {
-        btn.addEventListener('click', () => finalizarSesion(false));
-    });
-
-    botones.volverMenu.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
-    botones.volverMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
-
-    botones.historial.forEach(btn => {
-        btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipo));
-    });
-
-    // Inicialización
-    mostrarPantalla('menuPrincipal');
-    actualizarBotonesNivel();
-});
+    </script>
+</body>
+</html>
