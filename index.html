@@ -143,7 +143,7 @@
         
         <div id="pantalla-login" class="container">
             <h2>Qui està jugant?</h2>
-            <div id="usuaris-existents"></div>
+            <div id="usuaris-existents"><p>Carregant usuaris...</p></div>
             <hr>
             <p>o crea un usuari nou:</p>
             <input type="text" id="nou-usuari-nom" placeholder="Escriu el teu nom">
@@ -227,6 +227,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbw-6gIP9QUZwHRE4HwY6lgf0w4Ka2mNNwvg2lUFm4wB2dmmwcHTDQ-mN7DoT9IGa-7-/exec";
+            const CLAU_SECRETA = "dojo-secret-key-2025";
+            
             const pantallas = {
                 login: document.getElementById('pantalla-login'),
                 menuPrincipal: document.getElementById('menu-principal'),
@@ -257,7 +260,6 @@
                     usuarisExistents: document.getElementById('usuaris-existents'),
                     nouUsuariNom: document.getElementById('nou-usuari-nom'),
                     menuBenvinguda: document.getElementById('menu-benvinguda'),
-                    // ... resta d'elements ...
                     numeroTaula: document.getElementById('numero-taula'),
                     seleccioTaula: document.getElementById('seleccio-taula'),
                     jocMultiplicacio: document.getElementById('joc-multiplicacio'),
@@ -298,15 +300,36 @@
 
             // --- GESTIÓ D'USUARIS ---
             function carregarUsuaris() {
-                const usuaris = JSON.parse(localStorage.getItem('dojoUsuaris')) || [];
+                fetch(`${URL_APP_SCRIPT}?action=getUsers`)
+                    .then(response => response.json())
+                    .then(usuaris => {
+                        if (Array.isArray(usuaris)) {
+                            localStorage.setItem('dojoUsuaris', JSON.stringify(usuaris)); // Guarda una còpia local
+                            mostrarBotonsUsuari(usuaris);
+                        } else {
+                           throw new Error("La resposta no és una llista d'usuaris.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error en carregar usuaris del Sheet. Carregant des de local:", error);
+                        const usuarisLocals = JSON.parse(localStorage.getItem('dojoUsuaris')) || [];
+                        mostrarBotonsUsuari(usuarisLocals);
+                    });
+            }
+            
+            function mostrarBotonsUsuari(usuaris) {
                 ui.elements.usuarisExistents.innerHTML = '';
-                usuaris.forEach(nom => {
-                    const botoUsuari = document.createElement('button');
-                    botoUsuari.textContent = nom;
-                    botoUsuari.className = 'btn-usuari';
-                    botoUsuari.onclick = () => iniciarSessioUsuari(nom);
-                    ui.elements.usuarisExistents.appendChild(botoUsuari);
-                });
+                if (usuaris.length === 0) {
+                     ui.elements.usuarisExistents.innerHTML = '<p>Encara no hi ha cap usuari. Crea el primer!</p>';
+                } else {
+                    usuaris.forEach(nom => {
+                        const botoUsuari = document.createElement('button');
+                        botoUsuari.textContent = nom;
+                        botoUsuari.className = 'btn-usuari';
+                        botoUsuari.onclick = () => iniciarSessioUsuari(nom);
+                        ui.elements.usuarisExistents.appendChild(botoUsuari);
+                    });
+                }
             }
 
             function iniciarSessioUsuari(nom) {
@@ -323,23 +346,20 @@
                     return;
                 }
                 let usuaris = JSON.parse(localStorage.getItem('dojoUsuaris')) || [];
-                if (usuaris.includes(nom)) {
-                    alert("Aquest nom ja existeix. Tria'n un altre o selecciona'l de la llista.");
-                    return;
+                if (!usuaris.includes(nom)) {
+                    usuaris.push(nom);
+                    localStorage.setItem('dojoUsuaris', JSON.stringify(usuaris));
                 }
-                usuaris.push(nom);
-                localStorage.setItem('dojoUsuaris', JSON.stringify(usuaris));
                 ui.elements.nouUsuariNom.value = '';
                 iniciarSessioUsuari(nom);
             }
 
             function canviarUsuari() {
                 usuariActual = null;
-                carregarUsuaris();
+                carregarUsuaris(); // Torna a carregar des del servidor
                 mostrarPantalla('login');
             }
             
-            // --- GESTIÓ DE DADES PER USUARI ---
             function getDadesUsuari() {
                 const dades = JSON.parse(localStorage.getItem(`dojoDades_${usuariActual}`));
                 return dades || {
@@ -353,13 +373,13 @@
                 localStorage.setItem(`dojoDades_${usuariActual}`, JSON.stringify(dades));
             }
             
-
             function mostrarPantalla(id) {
                 Object.values(pantallas).forEach(p => p.style.display = 'none');
                 pantallas[id].style.display = 'block';
             }
 
-            function iniciarJoc(tipus) {
+            // ... (TOTA LA LÒGICA DEL JOC ES QUEDA EXACTAMENT IGUAL) ...
+             function iniciarJoc(tipus) {
                 estatJoc = {
                     tipus: tipus, encerts: 0, errades: 0, preguntesRespostes: 0,
                     startTime: new Date(), numerosUtilitzats: []
@@ -485,9 +505,6 @@
                 dadesUsuari.estadistiques[estatJoc.tipus].push(sessioDades);
                 setDadesUsuari(dadesUsuari);
 
-                const URL_DE_LA_TEVA_APLICACIO_WEB = "https://script.google.com/macros/s/AKfycbw-6gIP9QUZwHRE4HwY6lgf0w4Ka2mNNwvg2lUFm4wB2dmmwcHTDQ-mN7DoT9IGa-7-/exec";
-                const CLAU_SECRETA = "dojo-secret-key-2025";
-
                 const dadesPerEnviar = {
                     secret: CLAU_SECRETA,
                     usuari: usuariActual,
@@ -498,7 +515,7 @@
                     temps: sessioDades.temps
                 };
 
-                fetch(URL_DE_LA_TEVA_APLICACIO_WEB, {
+                fetch(URL_APP_SCRIPT, {
                     method: 'POST', mode: 'no-cors', cache: 'no-cache',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(dadesPerEnviar), redirect: 'follow'
@@ -547,7 +564,7 @@
                 const totesLesSessions = [...dadesUsuari.estadistiques.multiplicacions, ...dadesUsuari.estadistiques.sumes, ...dadesUsuari.estadistiques.restes];
                 
                 if (totesLesSessions.length === 0) {
-                    ui.elements.statsGlobals.innerHTML = "<h3>Resum General</h3><p>Encara no has completat cap sessió. Som-hi a jugar!</p>";
+                    ui.elements.statsGlobals.innerHTML = `<h3>Resum General (${usuariActual})</h3><p>Encara no has completat cap sessió. Som-hi a jugar!</p>`;
                     return;
                 }
                 
@@ -576,8 +593,8 @@
 
                 if (historial.length === 0) {
                     ui.elements.historialContingut.innerHTML = '<p>Encara no hi ha dades.</p>';
-                    if (chartInstances.errors) chartInstances.errors.destroy();
-                    if (chartInstances.times) chartInstances.times.destroy();
+                    if (chartInstances.errors) { chartInstances.errors.destroy(); chartInstances.errors = null; }
+                    if (chartInstances.times) { chartInstances.times.destroy(); chartInstances.times = null; }
                 } else {
                     historial.slice().reverse().forEach(s => {
                         const p = document.createElement('p');
