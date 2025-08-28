@@ -229,7 +229,7 @@
                 };
                 const historialNormalitzat = historial.map(s => ({
                     tipus: s.tipus, errades: s.errades, data: s.data, temps: s.temps,
-                    encerts: s.encerts || (s.totalpreguntes - s.errades),
+                    encerts: s.encerts != null ? s.encerts : (s.totalpreguntes - s.errades),
                     totalPreguntes: s.totalpreguntes
                 }));
 
@@ -253,8 +253,10 @@
             function crearUsuariNou() {
                 const nom = ui.elements.nouUsuariNom.value.trim();
                 if (!nom) return alert("Si us plau, escriu un nom.");
-                if (!usuarisCarregats.includes(nom)) usuarisCarregats.push(nom);
-                localStorage.setItem('dojoUsuaris', JSON.stringify(usuarisCarregats));
+                if (!usuarisCarregats.includes(nom)) {
+                    usuarisCarregats.push(nom);
+                    localStorage.setItem('dojoUsuaris', JSON.stringify(usuarisCarregats));
+                }
                 ui.elements.nouUsuariNom.value = '';
                 iniciarSessioUsuari(nom);
             }
@@ -329,7 +331,6 @@
             }
 
             function seguentPregunta() {
-                if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) return;
                 const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex];
                 ui.elements.preguntaText.textContent = preguntaActual.text;
                 estatJoc.respostaCorrecta = preguntaActual.resposta;
@@ -435,8 +436,8 @@
                     ui.elements.statsGlobals.innerHTML = `<h3>Resum General (${usuariActual})</h3><p>No hi ha dades.</p>`; return;
                 }
                 const totalSessions = totesLesSessions.length;
-                const totalEncerts = totesLesSessions.reduce((s, a) => s + a.encerts, 0);
-                const totalPreguntes = totesLesSessions.reduce((s, a) => s + a.totalPreguntes, 0);
+                const totalEncerts = totesLesSessions.reduce((s, a) => s + (a.encerts || 0), 0);
+                const totalPreguntes = totesLesSessions.reduce((s, a) => s + (a.totalPreguntes || 0), 0);
                 const precisio = totalPreguntes > 0 ? ((totalEncerts / totalPreguntes) * 100).toFixed(1) : 0;
                 const tempsTotal = totesLesSessions.reduce((s, a) => s + a.temps, 0);
                 const tempsMitja = (tempsTotal / totalSessions).toFixed(1);
