@@ -1,492 +1,333 @@
-<!DOCTYPE html>
-<html lang="ca">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dojo de Càlcul Mental Kawaii</title>
-    <style>
-        :root {
-            --primary-color: #007bff; --secondary-color: #6c757d; --success-color: #28a745;
-            --danger-color: #dc3545; --warning-color: #ffc107; --info-color: #17a2b8;
-            --light-pink: #ffc0cb; --kawaii-pink: #ff69b4; --background-color: #f4f7f6;
-            --container-bg: #fff; --text-color: #333;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; min-height: 100vh; margin: 20px 0;
-            background-color: var(--background-color); color: var(--text-color); text-align: center; overflow-x: hidden;
-        }
-        .container {
-            background-color: var(--container-bg); padding: 25px; border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 90%; max-width: 600px;
-        }
-        h1, h2 { color: var(--primary-color); }
-        .hidden { display: none !important; }
-        #nameScreen, #mainMenuScreen, #statsScreen { display: flex; flex-direction: column; align-items: center; gap: 15px; }
-        #userNameInput { padding: 10px; font-size: 1.2em; border: 2px solid #ced4da; border-radius: 8px; text-align: center; }
-        #existingUsers { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-        .user-select-btn { background-color: var(--info-color); }
-        .menu-button, .action-button, .nav-button {
-            background-color: var(--primary-color); color: white; border: none; padding: 15px 25px;
-            border-radius: 8px; cursor: pointer; font-size: 1.1em; transition: all 0.3s ease;
-            width: 80%; max-width: 300px;
-        }
-        .menu-button:hover, .action-button:hover, .nav-button:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
-        .menu-button.multiplication { background-color: #007bff; }
-        .menu-button.addition { background-color: #28a745; }
-        .menu-button.subtraction { background-color: #ffc107; color: #333; }
-        .menu-button.stats { background-color: #6c757d; }
-        .menu-button.locked { background-color: #e9ecef; color: #6c757d; cursor: not-allowed; border: 2px dashed var(--secondary-color); }
-        .menu-button.locked:hover { transform: none; box-shadow: none; }
-        .lock-message { font-size: 0.9em; color: var(--kawaii-pink); font-weight: bold; }
-        #overallProgressContainer { width: 100%; background-color: #e9ecef; border-radius: 8px; margin-bottom: 20px; height: 28px; overflow: hidden; border: 1px solid #ccc; }
-        #overallProgressBar {
-            width: 0%; height: 100%; background: linear-gradient(45deg, var(--success-color), #58f57f);
-            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;
-            font-size: 0.9em; transition: width 0.5s ease-in-out;
-        }
-        #gameArea { margin-top: 10px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #fdfdfd; }
-        #question { font-size: 2.5em; font-weight: bold; margin-bottom: 20px; color: var(--danger-color); min-height: 55px; }
-        #answer { padding: 10px; font-size: 1.5em; width: 100px; text-align: center; border: 2px solid #ced4da; border-radius: 5px; margin-right: 10px; }
-        #actionButton { background-color: var(--primary-color); color: white; border: none; padding: 12px 22px; border-radius: 5px; cursor: pointer; font-size: 1.1em; transition: background-color 0.3s ease; min-width: 130px; }
-        #actionButton.next { background-color: var(--info-color); }
-        #actionButton.error { background-color: var(--warning-color); color: #212529; }
-        #feedback { margin-top: 15px; font-size: 1.2em; font-weight: bold; min-height: 30px; }
-        .correct { color: var(--success-color); }
-        .incorrect { color: var(--danger-color); }
-        #summaryArea, #statsScreen { text-align: left; padding: 20px; border: 2px solid var(--primary-color); border-radius: 10px; }
-        #statsScreen ul, #reviewList { list-style-type: '⭐'; padding-left: 25px; }
-        #statsScreen li, #reviewList li { margin-bottom: 8px; }
-        .dominado { color: green; font-weight: bold; }
-        .no-dominado { color: red; font-weight: bold; }
-        #kawaii-celebration-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255, 255, 255, 0.3); z-index: 9999; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        #kawaii-message {
-            font-size: 2.8em; font-weight: bold; color: var(--kawaii-pink); text-shadow: 2px 2px 4px rgba(0,0,0,0.2), 0 0 10px #fff176;
-            padding: 20px 40px; background-color: rgba(255, 228, 225, 0.95); border: 3px dashed var(--light-pink); border-radius: 20px;
-            transform: scale(0); animation: fadeInScaleUpMessage 0.8s 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; z-index: 10000; text-align: center;
-        }
-        @keyframes fadeInScaleUpMessage { to { transform: scale(1); opacity: 1; } }
-        .confetti-piece { position: absolute; width: 10px; height: 20px; opacity: 0; animation: fall 4s linear infinite; }
-        .confetti-piece.type1 { background-color: #ffc0cb; } .confetti-piece.type2 { background-color: #add8e6; width: 12px; height: 12px; border-radius: 50%;} .confetti-piece.type3 { background-color: #90ee90; }
-        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
-    </style>
-</head>
-<body>
-    <div id="kawaii-celebration-overlay" class="hidden"> <div id="kawaii-message"></div> </div>
-    <div class="container">
-        <div id="nameScreen">
-            <h1>Dojo de Càlcul Mental Kawaii</h1>
-            <p>Escriu un nom nou per començar:</p>
-            <input type="text" id="userNameInput" placeholder="El teu nom" autofocus>
-            <button id="submitNameButton" class="action-button">Començar!</button>
-            <div id="existingUsersContainer" class="hidden">
-                <hr style="width: 80%; margin: 20px 0;">
-                <p>O escull un usuari existent:</p>
-                <div id="existingUsers"></div>
-            </div>
-        </div>
-        <div id="mainMenuScreen" class="hidden">
-            <h2 id="welcomeMessage"></h2>
-            <p>Què et ve de gust practicar avui?</p>
-            <button id="multBtn" class="menu-button multiplication">Taules de Multiplicar</button>
-            <div id="multLockInfo" class="lock-message"></div>
-            <button id="addBtn" class="menu-button addition">Sumes (Nivell X)</button>
-            <button id="subBtn" class="menu-button subtraction">Restes (Nivell X)</button>
-            <button id="statsBtn" class="menu-button stats">Estadístiques Generals</button>
-        </div>
-        <div id="gameContainer" class="hidden">
-            <h1 id="gameTitle"></h1>
-            <div id="overallProgressContainer"> <div id="overallProgressBar">0%</div> </div>
-            <div id="gameArea">
-                <div id="question">Comencem!</div>
-                <input type="number" id="answer" autofocus>
-                <button id="actionButton">Comprovar</button>
-                <div id="feedback"></div>
-                <button id="finalizeButton" class="nav-button" style="background-color: var(--secondary-color); margin-top: 15px;">Finalitzar i Veure Resum</button>
-            </div>
-        </div>
-        <div id="summaryArea" class="hidden">
-            <h2>Resum de la Sessió</h2>
-            <p id="totalStats"></p> <p id="timeStats"></p>
-            <p id="summaryMessage" style="font-weight: bold; font-size: 1.2em;"></p>
-            <p id="reviewTitle"><strong>Operacions per Repassar:</strong></p>
-            <ul id="reviewList"></ul>
-            <button id="backToMenuBtn" class="nav-button">Tornar al Menú</button>
-        </div>
-        <div id="statsScreen" class="hidden">
-             <h2>Estadístiques Generals</h2>
-             <div id="statsContent" style="width:100%;"></div>
-             <button id="exportDataBtn" class="nav-button" style="background-color: var(--info-color);">Exportar Totes les Dades (JSON)</button>
-             <button id="statsBackToMenuBtn" class="nav-button" style="background-color: var(--secondary-color);">Tornar al Menú</button>
-        </div>
-    </div>
-    <script>
-        const DB_KEY = 'dojoCalculoMentalData';
-        const TOTAL_LEVELS = 8; // <-- CANVI: Nombre total de nivells definit aquí
-        const DOM = {
-            screens: { name: document.getElementById('nameScreen'), menu: document.getElementById('mainMenuScreen'), game: document.getElementById('gameContainer'), summary: document.getElementById('summaryArea'), stats: document.getElementById('statsScreen') },
-            userNameInput: document.getElementById('userNameInput'), submitNameButton: document.getElementById('submitNameButton'), existingUsersContainer: document.getElementById('existingUsersContainer'), existingUsers: document.getElementById('existingUsers'),
-            welcomeMessage: document.getElementById('welcomeMessage'), multBtn: document.getElementById('multBtn'), multLockInfo: document.getElementById('multLockInfo'), addBtn: document.getElementById('addBtn'), subBtn: document.getElementById('subBtn'), statsBtn: document.getElementById('statsBtn'),
-            gameTitle: document.getElementById('gameTitle'), overallProgressBar: document.getElementById('overallProgressBar'), questionDiv: document.getElementById('question'), answerInput: document.getElementById('answer'), actionButton: document.getElementById('actionButton'), feedbackDiv: document.getElementById('feedback'), finalizeButton: document.getElementById('finalizeButton'),
-            totalStatsP: document.getElementById('totalStats'), timeStatsP: document.getElementById('timeStats'), summaryMessage: document.getElementById('summaryMessage'), reviewListUl: document.getElementById('reviewList'), backToMenuBtn: document.getElementById('backToMenuBtn'),
-            statsContent: document.getElementById('statsContent'), exportDataBtn: document.getElementById('exportDataBtn'), statsBackToMenuBtn: document.getElementById('statsBackToMenuBtn'),
-            kawaiiOverlay: document.getElementById('kawaii-celebration-overlay'), kawaiiMessage: document.getElementById('kawaii-message'),
+document.addEventListener('DOMContentLoaded', () => {
+    const pantallas = {
+        menuPrincipal: document.getElementById('menu-principal'),
+        multiplicaciones: document.getElementById('pantalla-multiplicaciones'),
+        sumas: document.getElementById('pantalla-sumas'),
+        restas: document.getElementById('pantalla-restas'),
+        resumen: document.getElementById('pantalla-resumen'),
+        estadisticas: document.getElementById('pantalla-estadisticas')
+    };
+
+    const botones = {
+        multiplicaciones: document.getElementById('btn-multiplicaciones'),
+        sumas: document.getElementById('btn-sumas'),
+        restas: document.getElementById('btn-restas'),
+        estadisticas: document.getElementById('btn-estadisticas'),
+        iniciarMultiplicacion: document.getElementById('btn-iniciar-multiplicacion'),
+        comprobarMultiplicacion: document.getElementById('btn-comprobar-multiplicacion'),
+        comprobarSuma: document.getElementById('btn-comprobar-suma'),
+        comprobarResta: document.getElementById('btn-comprobar-resta'),
+        volverMenu: document.getElementById('btn-volver-menu'),
+        volverMenuStats: document.getElementById('btn-volver-menu-stats'),
+        historial: document.querySelectorAll('#botones-historial button')
+    };
+
+    const elementos = {
+        numeroTabla: document.getElementById('numero-tabla'),
+        seleccionTabla: document.getElementById('seleccion-tabla'),
+        juegoMultiplicacion: document.getElementById('juego-multiplicacion'),
+        preguntaMultiplicacion: document.getElementById('pregunta-multiplicacion'),
+        respuestaMultiplicacion: document.getElementById('respuesta-multiplicacion'),
+        progressBarMultiplicacion: document.getElementById('progress-bar-multiplicacion'),
+        preguntaSuma: document.getElementById('pregunta-suma'),
+        respuestaSuma: document.getElementById('respuesta-suma'),
+        progressBarSuma: document.getElementById('progress-bar-suma'),
+        preguntaResta: document.getElementById('pregunta-resta'),
+        respuestaResta: document.getElementById('respuesta-resta'),
+        progressBarResta: document.getElementById('progress-bar-resta'),
+        tiempoTotal: document.getElementById('tiempo-total'),
+        aciertos: document.getElementById('aciertos'),
+        fallos: document.getElementById('fallos'),
+        mensajeFelicitacion: document.getElementById('mensaje-felicitacion'),
+        historialDetallado: document.getElementById('historial-detallado'),
+        historialTitulo: document.getElementById('historial-titulo'),
+        historialContenido: document.getElementById('historial-contenido')
+    };
+
+    let estadoJuego = {};
+    const TOTAL_PREGUNTAS = 10;
+
+    const nivelesSuma = [
+        { min: 0, max: 4 },
+        { min: 0, max: 5 },
+        { min: 0, max: 6 },
+        { min: 0, max: 7 },
+        { min: 0, max: 8 },
+        { min: 0, max: 9 },
+        { min: 0, max: 10 }
+    ];
+
+    const nivelesResta = [
+        { min: 0, max: 10 },
+        { min: 10, max: 20 },
+        { min: 20, max: 30 },
+        { min: 30, max: 40 },
+        { min: 40, max: 50 },
+        { min: 50, max: 75 },
+        { min: 75, max: 100 }
+    ];
+
+    function mostrarPantalla(id) {
+        Object.values(pantallas).forEach(p => p.style.display = 'none');
+        pantallas[id].style.display = 'block';
+    }
+
+    function iniciarJuego(tipo) {
+        estadoJuego = {
+            tipo: tipo,
+            aciertos: 0,
+            fallos: 0,
+            preguntasRespondidas: 0,
+            startTime: new Date(),
+            numerosUsados: []
         };
-        let appState = { database: {}, currentUser: null, userData: {}, gameMode: null, currentLevel: null, session: {} };
 
-        // --- LÓGICA DE DATOS ---
-        function loadDatabase() { appState.database = JSON.parse(localStorage.getItem(DB_KEY) || '{}'); }
-        function saveDatabase() { localStorage.setItem(DB_KEY, JSON.stringify(appState.database)); }
-        function saveCurrentUserData() { if (appState.currentUser) { appState.database[appState.currentUser] = appState.userData; saveDatabase(); } }
-        function getDefaultUserData(userName) { return { userName, multiplication: { consecutivePerfectScores: 0, unlockTimestamp: 0 }, addition: { currentLevel: 1, levelProgress: { 1: { consecutivePerfectScores: 0 } } }, subtraction: { currentLevel: 1, levelProgress: { 1: { consecutivePerfectScores: 0 } } } }; }
-
-        // --- NAVEGACIÓN Y PREPARACIÓN ---
-        function showScreen(screenName) { Object.values(DOM.screens).forEach(s => s.classList.add('hidden')); DOM.screens[screenName].classList.remove('hidden'); }
-        function initLoginScreen() {
-            loadDatabase();
-            const users = Object.keys(appState.database);
-            DOM.existingUsers.innerHTML = '';
-            if (users.length > 0) {
-                DOM.existingUsersContainer.classList.remove('hidden');
-                users.forEach(user => { const btn = document.createElement('button'); btn.className = 'nav-button user-select-btn'; btn.textContent = user; btn.onclick = () => loginUser(user); DOM.existingUsers.appendChild(btn); });
-            } else { DOM.existingUsersContainer.classList.add('hidden'); }
-            showScreen('name');
+        if (tipo === 'multiplicaciones') {
+            estadoJuego.tabla = parseInt(elementos.numeroTabla.value);
+            elementos.seleccionTabla.style.display = 'none';
+            elementos.juegoMultiplicacion.style.display = 'block';
+            elementos.respuestaMultiplicacion.focus();
+        } else if (tipo === 'sumas') {
+            const nivel = obtenerNivel('sumas');
+            estadoJuego.nivel = nivel;
+        } else if (tipo === 'restas') {
+            const nivel = obtenerNivel('restas');
+            estadoJuego.nivel = nivel;
         }
-        function loginUser(userName) { appState.currentUser = userName; appState.userData = appState.database[userName]; setupMainMenu(); }
-        function createNewUser(userName) { if (appState.database[userName]) { alert("Aquest nom ja existeix!"); return; } appState.currentUser = userName; appState.userData = getDefaultUserData(userName); saveCurrentUserData(); setupMainMenu(); }
+
+        actualizarProgreso();
+        siguientePregunta();
+    }
+
+    function siguientePregunta() {
+        if (estadoJuego.preguntasRespondidas >= TOTAL_PREGUNTAS) return;
+
+        let n1, n2, pregunta, respuesta;
+        const tipo = estadoJuego.tipo;
+
+        if (tipo === 'multiplicaciones') {
+            n1 = estadoJuego.tabla;
+            do {
+                n2 = Math.floor(Math.random() * 11);
+            } while (estadoJuego.numerosUsados.includes(n2));
+            estadoJuego.numerosUsados.push(n2);
+            pregunta = `${n1} x ${n2} = ?`;
+            respuesta = n1 * n2;
+            elementos.preguntaMultiplicacion.textContent = pregunta;
+            elementos.respuestaMultiplicacion.value = '';
+            elementos.respuestaMultiplicacion.focus();
+        } else if (tipo === 'sumas') {
+            const nivel = nivelesSuma[estadoJuego.nivel];
+            n1 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
+            n2 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
+            pregunta = `${n1} + ${n2} = ?`;
+            respuesta = n1 + n2;
+            elementos.preguntaSuma.textContent = pregunta;
+            elementos.respuestaSuma.value = '';
+            elementos.respuestaSuma.focus();
+        } else if (tipo === 'restas') {
+            const nivel = nivelesResta[estadoJuego.nivel];
+            n1 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
+            n2 = Math.floor(Math.random() * (n1 - nivel.min + 1)) + nivel.min; // Asegura que el resultado no sea negativo
+            pregunta = `${n1} - ${n2} = ?`;
+            respuesta = n1 - n2;
+            elementos.preguntaResta.textContent = pregunta;
+            elementos.respuestaResta.value = '';
+            elementos.respuestaResta.focus();
+        }
+
+        estadoJuego.respuestaCorrecta = respuesta;
+    }
+
+    function comprobarRespuesta() {
+        const tipo = estadoJuego.tipo;
+        let respuestaUsuario;
+
+        if (tipo === 'multiplicaciones') {
+            respuestaUsuario = parseInt(elementos.respuestaMultiplicacion.value);
+        } else if (tipo === 'sumas') {
+            respuestaUsuario = parseInt(elementos.respuestaSuma.value);
+        } else if (tipo === 'restas') {
+            respuestaUsuario = parseInt(elementos.respuestaResta.value);
+        }
+
+        if (respuestaUsuario === estadoJuego.respuestaCorrecta) {
+            estadoJuego.aciertos++;
+        } else {
+            estadoJuego.fallos++;
+        }
+
+        estadoJuego.preguntasRespondidas++;
+        actualizarProgreso();
+
+        if (estadoJuego.preguntasRespondidas >= TOTAL_PREGUNTAS) {
+            finalizarSesion(true);
+        } else {
+            siguientePregunta();
+        }
+    }
+
+    function actualizarProgreso() {
+        const progreso = (estadoJuego.preguntasRespondidas / TOTAL_PREGUNTAS) * 100;
+        const progressBarId = `progressBar${estadoJuego.tipo.charAt(0).toUpperCase() + estadoJuego.tipo.slice(1)}`;
+        const progressBar = document.getElementById(progressBarId.replace('es', ''));
+        if (progressBar) {
+            progressBar.style.width = `${progreso}%`;
+            progressBar.textContent = `${Math.round(progreso)}%`;
+        }
+    }
+
+    function finalizarSesion(completada) {
+        if (completada) {
+            estadoJuego.endTime = new Date();
+            const tiempoTranscurrido = Math.round((estadoJuego.endTime - estadoJuego.startTime) / 1000);
+            
+            elementos.tiempoTotal.textContent = tiempoTranscurrido;
+            elementos.aciertos.textContent = estadoJuego.aciertos;
+            elementos.fallos.textContent = estadoJuego.fallos;
+
+            if (estadoJuego.fallos === 0) {
+                elementos.mensajeFelicitacion.style.display = 'block';
+                actualizarNivel(estadoJuego.tipo, true);
+            } else {
+                elementos.mensajeFelicitacion.style.display = 'none';
+                actualizarNivel(estadoJuego.tipo, false);
+            }
+            
+            guardarEstadisticas(tiempoTranscurrido);
+            mostrarPantalla('resumen');
+        } else {
+            mostrarPantalla('menuPrincipal');
+        }
+        actualizarBotonesNivel();
+    }
+
+    function guardarEstadisticas(tiempo) {
+        const stats = JSON.parse(localStorage.getItem('estadisticas')) || {
+            multiplicaciones: [],
+            sumas: [],
+            restas: []
+        };
+        const sesion = {
+            fecha: new Date().toLocaleString(),
+            fallos: estadoJuego.fallos,
+            tiempo: tiempo
+        };
+        stats[estadoJuego.tipo].push(sesion);
+        localStorage.setItem('estadisticas', JSON.stringify(stats));
+    }
+
+    function obtenerNivel(tipo) {
+        const niveles = JSON.parse(localStorage.getItem('niveles')) || { sumas: 0, restas: 0 };
+        return niveles[tipo] || 0;
+    }
+
+    function actualizarNivel(tipo, sinFallos) {
+        if (tipo !== 'sumas' && tipo !== 'restas') return;
+
+        const rachas = JSON.parse(localStorage.getItem('rachas')) || { sumas: 0, restas: 0 };
+        let niveles = JSON.parse(localStorage.getItem('niveles')) || { sumas: 0, restas: 0 };
+        const maxNivel = (tipo === 'sumas' ? nivelesSuma.length : nivelesResta.length) - 1;
+
+        if (sinFallos) {
+            rachas[tipo]++;
+            if (rachas[tipo] >= 3 && niveles[tipo] < maxNivel) {
+                niveles[tipo]++;
+                rachas[tipo] = 0;
+            }
+        } else {
+            rachas[tipo] = 0;
+        }
+
+        localStorage.setItem('rachas', JSON.stringify(rachas));
+        localStorage.setItem('niveles', JSON.stringify(niveles));
+    }
+    
+    function actualizarBotonesNivel() {
+        const rachas = JSON.parse(localStorage.getItem('rachas')) || { sumas: 0, restas: 0 };
+        const progresoSuma = (rachas.sumas / 3) * 100;
+        const progresoResta = (rachas.restas / 3) * 100;
+
+        botones.sumas.style.background = `linear-gradient(to right, #66bb6a ${progresoSuma}%, #007BFF ${progresoSuma}%)`;
+        botones.restas.style.background = `linear-gradient(to right, #66bb6a ${progresoResta}%, #007BFF ${progresoResta}%)`;
+    }
+
+    function mostrarHistorial(tipo) {
+        const stats = JSON.parse(localStorage.getItem('estadisticas')) || {};
+        const historial = stats[tipo] || [];
         
-        // CANVI: LÒGICA PER MOSTRAR EL NIVELL ACTUALITZADA
-        function setupMainMenu() {
-            const { userName, multiplication, addition, subtraction } = appState.userData;
-            DOM.welcomeMessage.textContent = `Hola de nou, ${userName}! ✨`;
-            const now = Date.now();
-            if (multiplication.unlockTimestamp > now) {
-                DOM.multBtn.classList.add('locked'); DOM.multBtn.disabled = true; const timeLeft = multiplication.unlockTimestamp - now; const hours = Math.floor(timeLeft / 36e5); const minutes = Math.floor((timeLeft % 36e5) / 6e4);
-                DOM.multLockInfo.textContent = `Descans merescut! Disponible en ${hours}h ${minutes}m.`;
-            } else { DOM.multBtn.classList.remove('locked'); DOM.multBtn.disabled = false; DOM.multLockInfo.textContent = `Domina-les per guanyar un descans!`; }
-            
-            // Lògica per al botó de Sumes
-            const addLevel = addition.currentLevel;
-            if (addLevel >= TOTAL_LEVELS) {
-                DOM.addBtn.textContent = `Sumes (⭐ Nivell Èpic! ⭐)`;
-            } else {
-                DOM.addBtn.textContent = `Sumes (Nivell ${addLevel} de ${TOTAL_LEVELS})`;
-            }
+        elementos.historialTitulo.textContent = `Historial de ${tipo}`;
+        elementos.historialContenido.innerHTML = '';
 
-            // Lògica per al botó de Restes
-            const subLevel = subtraction.currentLevel;
-            if (subLevel >= TOTAL_LEVELS) {
-                DOM.subBtn.textContent = `Restes (🏆 Nivell Mestre! 🏆)`;
-            } else {
-                DOM.subBtn.textContent = `Restes (Nivell ${subLevel} de ${TOTAL_LEVELS})`;
-            }
-
-            showScreen('menu');
-        }
-
-        // --- LÓGICA DE JUEGO ---
-        function initializeGame(mode) {
-            appState.gameMode = mode;
-            appState.session = {
-                startTime: null, gameActuallyStarted: false, totalAttempts: 0, correctAttempts: 0,
-                questions: {}, questionOrder: [], masteredCount: 0, totalUniqueQuestions: 0,
-                reAskQueue: [], questionsAnsweredCounter: 0,
-                currentKey: null, correctAnswer: null, perfectRun: true, failedAttempts: 0,
-                lastKey: null,
-            };
-            generateQuestionsForMode();
-            updateOverallProgress();
-            DOM.gameTitle.textContent = { multiplication: "Taules de Multiplicar", addition: `Sumes - Nivell ${appState.currentLevel}`, subtraction: `Restes - Nivell ${appState.currentLevel}` }[mode];
-            showScreen('game');
-            askQuestion();
-        }
-
-        function generateQuestionsForMode() {
-            const { session, userData } = appState; let questionList = [];
-            const createQuestion = (key, f1, f2) => {
-                session.questions[key] = { f1, f2, key, isMastered: false, failedOnce: false, attempts: 0 };
-                questionList.push({ key });
-            };
-            switch (appState.gameMode) {
-                case 'multiplication':
-                    for (let i = 2; i <= 9; i++) {
-                        for (let j = 2; j <= 9; j++) {
-                            createQuestion(`${i}x${j}`, i, j);
-                        }
-                    }
-                    session.totalUniqueQuestions = questionList.length;
-                    break;
-                case 'addition':
-                    appState.currentLevel = userData.addition.currentLevel;
-                    const maxNumAdd = appState.currentLevel + 2;
-                    for (let i = 0; i <= maxNumAdd; i++) {
-                        for (let j = 0; j <= maxNumAdd; j++) {
-                           if (i === j && i > 0) {
-                               if (!session.questions[`${i}+${j}`]) createQuestion(`${i}+${j}`, i, j);
-                           } else {
-                               createQuestion(`${i}+${j}`, i, j);
-                           }
-                        }
-                    }
-                    session.totalUniqueQuestions = Math.min(questionList.length, 20);
-                    break;
-                case 'subtraction':
-                    appState.currentLevel = userData.subtraction.currentLevel;
-                    const maxNumSub = appState.currentLevel + 2;
-                    for (let i = 0; i <= maxNumSub; i++) {
-                        for (let j = 0; j <= i; j++) {
-                            createQuestion(`${i}-${j}`, i, j);
-                        }
-                    }
-                    session.totalUniqueQuestions = Math.min(questionList.length, 20);
-                    break;
-            }
-            session.questionOrder = questionList.map(q => q.key).sort(() => Math.random() - 0.5);
-        }
-
-        function selectNextQuestion() {
-            const { session } = appState;
-            let candidates = [];
-            const dueReasks = session.reAskQueue
-                .filter(item => session.questionsAnsweredCounter >= item.askAtQuestion)
-                .map(item => item.key);
-            const newQuestions = session.questionOrder.filter(key => !session.questions[key].isMastered);
-            candidates = [...new Set([...dueReasks, ...newQuestions])];
-            let filteredCandidates = candidates.filter(key => key !== session.lastKey);
-            
-            let nextKey;
-            if (filteredCandidates.length > 0) {
-                nextKey = filteredCandidates[0];
-            } else if (candidates.length > 0) {
-                nextKey = candidates[0];
-            } else if (session.reAskQueue.length > 0) {
-                session.reAskQueue.sort((a, b) => a.askAtQuestion - b.askAtQuestion);
-                nextKey = session.reAskQueue[0].key;
-            } else {
-                return null;
-            }
-            return session.questions[nextKey];
-        }
-
-        function askQuestion() {
-            const qData = selectNextQuestion();
-            if (!qData) {
-                if (appState.session.gameActuallyStarted) finalizeSession();
-                return;
-            }
-            appState.session.currentKey = qData.key;
-            const { f1, f2 } = qData;
-            const opChar = appState.gameMode === 'multiplication' ? 'x' : (appState.gameMode === 'addition' ? '+' : '-');
-            const opSymbol = { 'x': '×', '+': '+', '-': '−' }[opChar];
-            
-            switch(opChar) {
-                case 'x': appState.session.correctAnswer = f1 * f2; break;
-                case '+': appState.session.correctAnswer = f1 + f2; break;
-                case '-': appState.session.correctAnswer = f1 - f2; break;
-            }
-            DOM.questionDiv.textContent = `${f1} ${opSymbol} ${f2} = ?`;
-            DOM.answerInput.value = ''; DOM.answerInput.disabled = false; DOM.answerInput.focus();
-            DOM.feedbackDiv.textContent = ''; DOM.feedbackDiv.className = '';
-            DOM.actionButton.textContent = 'Comprovar'; DOM.actionButton.className = '';
-        }
-
-        function checkAnswer() {
-            const { session } = appState;
-            if (!session.gameActuallyStarted) { session.startTime = Date.now(); session.gameActuallyStarted = true; }
-            session.lastKey = session.currentKey;
-            const userAnswer = parseInt(DOM.answerInput.value); 
-            const qData = session.questions[session.currentKey];
-            
-            session.questionsAnsweredCounter++; session.totalAttempts++; qData.attempts++;
-            DOM.answerInput.disabled = true;
-            const reAskIndex = session.reAskQueue.findIndex(item => item.key === session.currentKey);
-
-            if (userAnswer === session.correctAnswer) {
-                session.correctAttempts++;
-                DOM.feedbackDiv.textContent = "Correcte! 👍"; DOM.feedbackDiv.className = 'correct';
-                if (reAskIndex > -1) {
-                    const item = session.reAskQueue[reAskIndex]; item.timesCorrectlyReAsked++;
-                    if (item.timesCorrectlyReAsked >= 3) {
-                        session.reAskQueue.splice(reAskIndex, 1);
-                        if (!qData.isMastered) { qData.isMastered = true; session.masteredCount++; }
-                        DOM.feedbackDiv.textContent += " Dominada de nou!";
-                    } else {
-                        item.askAtQuestion = session.questionsAnsweredCounter + (item.timesCorrectlyReAsked + 2);
-                        DOM.feedbackDiv.textContent += ` (${item.timesCorrectlyReAsked}/3 per dominar)`;
-                    }
-                } else if (!qData.isMastered) { qData.isMastered = true; session.masteredCount++; }
-            } else {
-                session.failedAttempts++;
-                session.perfectRun = false; DOM.feedbackDiv.textContent = `Incorrecte. La resposta era ${session.correctAnswer}.`;
-                DOM.feedbackDiv.className = 'incorrect'; qData.failedOnce = true;
-                if (qData.isMastered) { qData.isMastered = false; session.masteredCount--; }
-                if (reAskIndex > -1) {
-                    session.reAskQueue[reAskIndex].timesCorrectlyReAsked = 0;
-                    session.reAskQueue[reAskIndex].askAtQuestion = session.questionsAnsweredCounter + 2;
-                } else {
-                    session.reAskQueue.push({ key: session.currentKey, timesCorrectlyReAsked: 0, askAtQuestion: session.questionsAnsweredCounter + 2 });
-                }
-            }
-            updateOverallProgress();
-            DOM.actionButton.textContent = 'Següent'; DOM.actionButton.className = 'next'; DOM.actionButton.focus();
-            
-            if (session.masteredCount === session.totalUniqueQuestions && session.reAskQueue.length === 0) setTimeout(finalizeSession, 400);
-        }
-        
-        function updateOverallProgress() {
-            const { session } = appState;
-            if (session.totalUniqueQuestions === 0) return;
-
-            const truePercentage = (session.masteredCount / session.totalUniqueQuestions) * 100;
-            const singleMasteryIncrement = 100 / session.totalUniqueQuestions;
-            const failureBonusPerAttempt = singleMasteryIncrement / 4;
-            const totalFailureBonus = session.failedAttempts * failureBonusPerAttempt;
-
-            let visualPercentage = truePercentage + totalFailureBonus;
-            const nextStepCeiling = ((session.masteredCount + 1) / session.totalUniqueQuestions) * 100;
-            visualPercentage = Math.min(visualPercentage, nextStepCeiling, 99.5);
-            
-            const finalPercentage = Math.max(truePercentage, visualPercentage);
-
-            DOM.overallProgressBar.style.width = `${session.masteredCount === session.totalUniqueQuestions ? 100 : finalPercentage}%`;
-            DOM.overallProgressBar.textContent = `${Math.round(truePercentage)}% (${session.masteredCount}/${session.totalUniqueQuestions})`;
-        }
-
-        function finalizeSession() {
-            if (appState.session.isFinalized) return;
-            appState.session.isFinalized = true;
-            const isComplete = appState.session.masteredCount === appState.session.totalUniqueQuestions;
-            let message = "Bon esforç! 🎉";
-            if (isComplete && appState.session.perfectRun) { message = "PERFECTE! ✨ Ho has clavat!"; handlePerfectRun(); } 
-            else if (isComplete) { message = "Molt bé! Has completat la ronda!"; handleImperfectRun(); }
-            else { message = "Sessió finalitzada. Continua practicant!"; handleImperfectRun(); }
-            showKawaiiCelebration(message, showFinalSummary);
-        }
-
-        function handlePerfectRun() {
-            const { gameMode, userData, currentLevel } = appState; const modeData = userData[gameMode];
-            if (gameMode === 'multiplication') {
-                modeData.consecutivePerfectScores++;
-                if (modeData.consecutivePerfectScores >= 3) {
-                    let daysToLock = Math.min(modeData.consecutivePerfectScores - 2, 3);
-                    modeData.unlockTimestamp = Date.now() + daysToLock * 864e5;
-                }
-            } else {
-                if(!modeData.levelProgress[currentLevel]) modeData.levelProgress[currentLevel] = { consecutivePerfectScores: 0 };
-                modeData.levelProgress[currentLevel].consecutivePerfectScores++;
-                // CANVI: La condició ara respecta la constant TOTAL_LEVELS
-                if (modeData.levelProgress[currentLevel].consecutivePerfectScores >= 3 && currentLevel < TOTAL_LEVELS) {
-                    modeData.currentLevel++;
-                    if (!modeData.levelProgress[modeData.currentLevel]) modeData.levelProgress[modeData.currentLevel] = { consecutivePerfectScores: 0 };
-                }
-            }
-            saveCurrentUserData();
-        }
-
-        function handleImperfectRun() {
-            const { gameMode, userData, currentLevel } = appState;
-            if (gameMode === 'multiplication') userData.multiplication.consecutivePerfectScores = 0;
-            else {
-                 if(!userData[gameMode].levelProgress[currentLevel]) userData[gameMode].levelProgress[currentLevel] = { consecutivePerfectScores: 0 };
-                 userData[gameMode].levelProgress[currentLevel].consecutivePerfectScores = 0;
-            }
-            saveCurrentUserData();
-        }
-
-        function showFinalSummary() {
-            const { session } = appState;
-            const accuracy = session.totalAttempts > 0 ? (session.correctAttempts / session.totalAttempts * 100).toFixed(1) : 0;
-            DOM.totalStatsP.textContent = `Intents: ${session.totalAttempts}, Encerts: ${session.correctAttempts} (${accuracy}%).`;
-            DOM.summaryMessage.textContent = `Molt bona feina, ${appState.currentUser}!`;
-            if (session.gameActuallyStarted) {
-                const timeTakenMs = Date.now() - session.startTime; const seconds = Math.floor((timeTakenMs / 1000) % 60); const minutes = Math.floor(timeTakenMs / 6e4);
-                DOM.timeStatsP.textContent = `Temps de pràctica: ${minutes}m ${seconds}s.`;
-            } else { DOM.timeStatsP.textContent = "No s'ha registrat temps."; }
-            
-            DOM.reviewListUl.innerHTML = ''; let itemsToReview = 0;
-            Object.values(session.questions).forEach(qData => {
-                if (qData.failedOnce) {
-                    itemsToReview++; 
-                    const li = document.createElement('li');
-                    li.className = qData.isMastered ? 'dominado' : 'no-dominado';
-                    const op = { 'x': '×', '+': '+', '-': '−' }[qData.key.replace(/\d/g, '')];
-                    li.textContent = `${qData.f1} ${op} ${qData.f2}`;
-                    DOM.reviewListUl.appendChild(li);
-                }
+        if (historial.length === 0) {
+            elementos.historialContenido.innerHTML = '<p>No hay datos todavía.</p>';
+        } else {
+            historial.forEach(s => {
+                const p = document.createElement('p');
+                p.textContent = `${s.fecha} - Fallos: ${s.fallos}, Tiempo: ${s.tiempo}s`;
+                elementos.historialContenido.appendChild(p);
             });
-
-            if (itemsToReview === 0 && session.totalAttempts > 0) {
-                 DOM.reviewListUl.innerHTML = '<li class="dominado">Fantàstic! No has fallat cap operació!</li>';
-            } else if (session.totalAttempts === 0) {
-                 DOM.reviewListUl.innerHTML = '<li>No s\'ha fet cap pregunta.</li>';
-            } else {
-                 const explanation = document.createElement('p');
-                 explanation.innerHTML = '<small>En <span class="dominado">verd</span> les que has fallat però acabat dominant. En <span class="no-dominado">vermell</span> les que queden pendents.</small>';
-                 DOM.reviewListUl.prepend(explanation);
-            }
-            showScreen('summary');
         }
-        
-        function showStatsScreen() {
-            const { multiplication, addition, subtraction } = appState.userData;
-            let statsHTML = '<h3 style="text-align:center; width:100%;">Resum General</h3>';
+        elementos.historialDetallado.style.display = 'block';
+    }
+    
+    // Event Listeners
+    botones.multiplicaciones.addEventListener('click', () => {
+        mostrarPantalla('multiplicaciones');
+        elementos.seleccionTabla.style.display = 'block';
+        elementos.juegoMultiplicacion.style.display = 'none';
+        elementos.numeroTabla.value = '';
+    });
+    
+    botones.sumas.addEventListener('click', () => {
+        mostrarPantalla('sumas');
+        iniciarJuego('sumas');
+    });
 
-            statsHTML += '<h4>Taules de Multiplicar</h4>';
-            statsHTML += '<ul>';
-            statsHTML += `<li>Ratxes de sessions perfectes: <strong>${multiplication.consecutivePerfectScores}</strong></li>`;
-            if (multiplication.unlockTimestamp > Date.now()) {
-                const timeLeft = multiplication.unlockTimestamp - Date.now();
-                const hours = Math.floor(timeLeft / 36e5);
-                const minutes = Math.floor((timeLeft % 36e5) / 6e4);
-                statsHTML += `<li>Mode bloquejat per descans merescut. Disponible en: <strong>${hours}h ${minutes}m</strong></li>`;
-            } else {
-                statsHTML += `<li>Mode: <strong>Disponible</strong></li>`;
-            }
-            statsHTML += '</ul>';
+    botones.restas.addEventListener('click', () => {
+        mostrarPantalla('restas');
+        iniciarJuego('restas');
+    });
+    
+    botones.estadisticas.addEventListener('click', () => {
+        mostrarPantalla('estadisticas');
+        elementos.historialDetallado.style.display = 'none';
+    });
 
-            statsHTML += '<h4>Sumes</h4>';
-            statsHTML += '<ul>';
-            statsHTML += `<li>Nivell actual: <strong>${addition.currentLevel} de ${TOTAL_LEVELS}</strong></li>`;
-            const addLevelData = addition.levelProgress[addition.currentLevel];
-            if(addLevelData) {
-                statsHTML += `<li>Ratxes perfectes en el nivell actual: <strong>${addLevelData.consecutivePerfectScores}</strong> (en necessites 3 per pujar de nivell)</li>`;
-            }
-            statsHTML += '</ul>';
-
-            statsHTML += '<h4>Restes</h4>';
-            statsHTML += '<ul>';
-            statsHTML += `<li>Nivell actual: <strong>${subtraction.currentLevel} de ${TOTAL_LEVELS}</strong></li>`;
-            const subLevelData = subtraction.levelProgress[subtraction.currentLevel];
-            if(subLevelData) {
-                statsHTML += `<li>Ratxes perfectes en el nivell actual: <strong>${subLevelData.consecutivePerfectScores}</strong> (en necessites 3 per pujar de nivell)</li>`;
-            }
-            statsHTML += '</ul>';
-
-            DOM.statsContent.innerHTML = statsHTML;
-            showScreen('stats');
+    botones.iniciarMultiplicacion.addEventListener('click', () => {
+        if (elementos.numeroTabla.value) {
+            iniciarJuego('multiplicaciones');
         }
-
-        function showKawaiiCelebration(message, onCompleteCallback) {
-            DOM.kawaiiMessage.innerHTML = message; DOM.kawaiiOverlay.classList.remove('hidden');
-            const oldConfetti = DOM.kawaiiOverlay.querySelectorAll('.confetti-piece'); oldConfetti.forEach(c => c.remove());
-            for (let i = 0; i < 100; i++) {
-                const confetti = document.createElement('div'); confetti.className = `confetti-piece type${Math.ceil(Math.random() * 3)}`;
-                confetti.style.left = Math.random() * 100 + 'vw'; confetti.style.animationDelay = Math.random() * 2 + 's';
-                confetti.style.animationDuration = 2 + Math.random() * 3 + 's'; DOM.kawaiiOverlay.appendChild(confetti);
+    });
+    
+    [elementos.respuestaMultiplicacion, elementos.respuestaSuma, elementos.respuestaResta].forEach((input, index) => {
+        const boton = [botones.comprobarMultiplicacion, botones.comprobarSuma, botones.comprobarResta][index];
+        input.addEventListener('input', () => {
+            boton.disabled = input.value.trim() === '';
+        });
+        input.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter' && !boton.disabled) {
+                comprobarRespuesta();
             }
-            setTimeout(() => { DOM.kawaiiOverlay.classList.add('hidden'); if (onCompleteCallback) onCompleteCallback(); }, 4000);
-        }
+        });
+    });
 
-        // --- MANEJADORES DE EVENTOS ---
-        DOM.submitNameButton.addEventListener('click', () => { const userName = DOM.userNameInput.value.trim(); if (userName) createNewUser(userName); });
-        DOM.userNameInput.addEventListener('keypress', e => { if (e.key === 'Enter') DOM.submitNameButton.click(); });
-        DOM.multBtn.addEventListener('click', () => initializeGame('multiplication')); DOM.addBtn.addEventListener('click', () => initializeGame('addition')); DOM.subBtn.addEventListener('click', () => initializeGame('subtraction')); DOM.statsBtn.addEventListener('click', showStatsScreen);
-        DOM.actionButton.addEventListener('click', () => { if (DOM.actionButton.textContent === 'Comprovar') checkAnswer(); else askQuestion(); });
-        DOM.answerInput.addEventListener('keypress', e => { if (e.key === 'Enter') DOM.actionButton.click(); });
-        DOM.finalizeButton.addEventListener('click', finalizeSession); DOM.backToMenuBtn.addEventListener('click', setupMainMenu); DOM.statsBackToMenuBtn.addEventListener('click', setupMainMenu);
-        DOM.exportDataBtn.addEventListener('click', () => { const dataStr = JSON.stringify(appState.database, null, 2); const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr); const linkElement = document.createElement('a'); linkElement.setAttribute('href', dataUri); linkElement.setAttribute('download', `dojo_calcul_mental_dades.json`); linkElement.click(); });
+    [botones.comprobarMultiplicacion, botones.comprobarSuma, botones.comprobarResta].forEach(boton => {
+        boton.addEventListener('click', comprobarRespuesta);
+    });
 
-        initLoginScreen();
-    </script>
-</body>
-</html>
+    document.querySelectorAll('.btn-finalizar').forEach(btn => {
+        btn.addEventListener('click', () => finalizarSesion(false));
+    });
+
+    botones.volverMenu.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
+    botones.volverMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
+
+    botones.historial.forEach(btn => {
+        btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipo));
+    });
+
+    // Inicialización
+    mostrarPantalla('menuPrincipal');
+    actualizarBotonesNivel();
+});
