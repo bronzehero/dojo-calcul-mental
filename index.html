@@ -4,174 +4,281 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Dojo de Cálculo Mental</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --c-pink: #ffafcc;
+            --c-blue: #a2d2ff;
+            --c-green: #bde0fe;
+            --c-purple: #cdb4db;
+            --c-dark: #333;
+            --c-light: #fff;
+            --c-shadow: rgba(100, 100, 150, 0.15);
+            --font-main: 'Baloo 2', cursive;
+        }
+
         body {
-            font-family: sans-serif;
+            font-family: var(--font-main);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
             text-align: center;
+            padding: 15px;
+            box-sizing: border-box;
         }
 
-        #menu-principal, .pantalla-juego, #pantalla-resumen, #pantalla-estadisticas {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 400px;
+        .container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 var(--c-shadow);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 100%;
+            max-width: 420px;
         }
 
         h1, h2 {
-            color: #333;
+            color: var(--c-dark);
+            margin-top: 0;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+        }
+        
+        h2 {
+            font-size: 2em;
         }
 
         button {
             display: block;
             width: 100%;
             padding: 15px;
-            margin: 10px 0;
+            margin: 12px 0;
             border: none;
-            border-radius: 5px;
-            background-color: #007BFF;
-            color: white;
-            font-size: 1.2em;
+            border-radius: 15px;
+            color: var(--c-dark);
+            font-size: 1.3em;
+            font-family: var(--font-main);
+            font-weight: 700;
             cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 15px 0 var(--c-shadow);
         }
 
         button:hover {
-            background-color: #0056b3;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px 0 rgba(100, 100, 150, 0.25);
         }
-
+        
         button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
+        #btn-multiplicaciones { background-color: var(--c-pink); }
+        #btn-sumas { background-color: var(--c-blue); }
+        #btn-restas { background-color: var(--c-green); }
+        #btn-estadisticas { background-color: var(--c-purple); }
+
         input[type="number"] {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 1.2em;
+            width: calc(100% - 22px);
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 1.5em;
             text-align: center;
+            font-family: var(--font-main);
+            transition: border-color 0.2s;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--c-purple);
         }
 
         .progress-container {
             width: 100%;
-            background-color: #ddd;
-            border-radius: 5px;
+            background-color: #eee;
+            border-radius: 15px;
             margin: 20px 0;
+            overflow: hidden;
         }
 
         .progress-bar {
             width: 0%;
             height: 30px;
-            background-color: #4CAF50;
+            background: linear-gradient(to right, #a2d2ff, #cdb4db);
             text-align: center;
             line-height: 30px;
-            color: white;
-            border-radius: 5px;
+            color: var(--c-dark);
+            font-weight: 700;
+            border-radius: 15px;
+            transition: width 0.3s ease;
         }
 
-        .btn-finalizar {
-            background-color: #f44336;
+        .btn-finalizar { background-color: #ff758f; }
+        
+        /* Estadísticas */
+        .stats-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px 0 var(--c-shadow);
         }
-
-        .btn-finalizar:hover {
-            background-color: #d32f2f;
+        .stats-card h3 { margin-top: 0; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            font-size: 1.1em;
+        }
+        .stat-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .stat-item .value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--c-purple);
         }
 
         #historial-contenido {
             text-align: left;
-            max-height: 300px;
+            max-height: 200px;
             overflow-y: auto;
-            border: 1px solid #ccc;
+            border: 1px solid #eee;
+            border-radius: 10px;
             padding: 10px;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
-        #historial-contenido p {
-            margin: 5px 0;
-            padding: 5px;
-            border-bottom: 1px solid #eee;
+        #historial-contenido p { margin: 8px 0; }
+
+        /* Gráfica */
+        #chart-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            height: 150px;
+            border-left: 2px solid #ccc;
+            border-bottom: 2px solid #ccc;
+            padding: 10px 0 0 10px;
+            margin-top: 20px;
+            position: relative;
         }
+        .chart-bar {
+            width: 8%;
+            background-color: var(--c-blue);
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+        .chart-bar:hover {
+            background-color: var(--c-purple);
+        }
+        .chart-bar .tooltip {
+            visibility: hidden;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 105%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .chart-bar:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        
     </style>
 </head>
 <body>
-    <div id="menu-principal">
-        <h1>Dojo de Cálculo Mental</h1>
-        <button id="btn-multiplicaciones">Tablas de Multiplicar</button>
-        <button id="btn-sumas">Sumas</button>
-        <button id="btn-restas">Restas</button>
-        <button id="btn-estadisticas">Estadísticas Generales</button>
-    </div>
-
-    <div id="pantalla-multiplicaciones" class="pantalla-juego" style="display:none;">
-        <h2>Tablas de Multiplicar</h2>
-        <div id="seleccion-tabla">
-            <p>Elige una tabla de multiplicar:</p>
-            <input type="number" id="numero-tabla" min="1" max="10" inputmode="numeric">
-            <button id="btn-iniciar-multiplicacion">Siguiente</button>
+    <div id="app-container">
+        <div id="menu-principal" class="container">
+            <h1>🧠 Dojo Mental 🧠</h1>
+            <button id="btn-multiplicaciones">Tablas de Multiplicar</button>
+            <button id="btn-sumas">Sumas</button>
+            <button id="btn-restas">Restas</button>
+            <button id="btn-estadisticas">📊 Estadísticas</button>
         </div>
-        <div id="juego-multiplicacion" style="display:none;">
-            <p id="pregunta-multiplicacion"></p>
-            <input type="number" id="respuesta-multiplicacion" inputmode="numeric">
-            <button id="btn-comprobar-multiplicacion" disabled>Comprobar</button>
-            <div class="progress-container">
-                <div id="progress-bar-multiplicacion" class="progress-bar"></div>
+
+        <div id="pantalla-multiplicaciones" class="container" style="display:none;">
+            <h2>Tablas de Multiplicar</h2>
+            <div id="seleccion-tabla">
+                <p>Elige una tabla:</p>
+                <input type="number" id="numero-tabla" min="1" max="10" inputmode="numeric">
+                <button id="btn-iniciar-multiplicacion">¡A multiplicar!</button>
             </div>
-            <button class="btn-finalizar">Finalizar y ver resumen</button>
+            <div id="juego-multiplicacion" style="display:none;">
+                <p id="pregunta-multiplicacion" style="font-size: 1.8em; font-weight: 700;"></p>
+                <input type="number" id="respuesta-multiplicacion" inputmode="numeric">
+                <button id="btn-comprobar-multiplicacion" disabled>Comprobar</button>
+                <div class="progress-container"><div id="progress-bar-multiplicacion" class="progress-bar"></div></div>
+                <button class="btn-finalizar">Salir</button>
+            </div>
         </div>
-    </div>
 
-    <div id="pantalla-sumas" class="pantalla-juego" style="display:none;">
-        <h2>Sumas</h2>
-        <p id="pregunta-suma"></p>
-        <input type="number" id="respuesta-suma" inputmode="numeric">
-        <button id="btn-comprobar-suma" disabled>Comprobar</button>
-        <div class="progress-container">
-            <div id="progress-bar-suma" class="progress-bar"></div>
+        <div id="pantalla-sumas" class="container" style="display:none;">
+            <h2>¡A sumar!</h2>
+            <p id="pregunta-suma" style="font-size: 1.8em; font-weight: 700;"></p>
+            <input type="number" id="respuesta-suma" inputmode="numeric">
+            <button id="btn-comprobar-suma" disabled>Comprobar</button>
+            <div class="progress-container"><div id="progress-bar-suma" class="progress-bar"></div></div>
+            <button class="btn-finalizar">Salir</button>
         </div>
-        <button class="btn-finalizar">Finalizar y ver resumen</button>
-    </div>
 
-    <div id="pantalla-restas" class="pantalla-juego" style="display:none;">
-        <h2>Restas</h2>
-        <p id="pregunta-resta"></p>
-        <input type="number" id="respuesta-resta" inputmode="numeric">
-        <button id="btn-comprobar-resta" disabled>Comprobar</button>
-        <div class="progress-container">
-            <div id="progress-bar-resta" class="progress-bar"></div>
+        <div id="pantalla-restas" class="container" style="display:none;">
+            <h2>¡A restar!</h2>
+            <p id="pregunta-resta" style="font-size: 1.8em; font-weight: 700;"></p>
+            <input type="number" id="respuesta-resta" inputmode="numeric">
+            <button id="btn-comprobar-resta" disabled>Comprobar</button>
+            <div class="progress-container"><div id="progress-bar-resta" class="progress-bar"></div></div>
+            <button class="btn-finalizar">Salir</button>
         </div>
-        <button class="btn-finalizar">Finalizar y ver resumen</button>
-    </div>
 
-    <div id="pantalla-resumen" style="display:none;">
-        <h2>Resumen de la Sesión</h2>
-        <p>Tiempo total: <span id="tiempo-total"></span> segundos</p>
-        <p>Aciertos: <span id="aciertos"></span></p>
-        <p>Fallos: <span id="fallos"></span></p>
-        <p id="mensaje-felicitacion" style="display:none;">¡Felicidades! ¡Has completado la sesión perfectamente!</p>
-        <button id="btn-volver-menu">Volver al Menú</button>
-    </div>
+        <div id="pantalla-resumen" class="container" style="display:none;">
+            <h2 id="resumen-titulo">¡Bien hecho!</h2>
+            <p>Tiempo total: <strong id="tiempo-total"></strong> segundos</p>
+            <p>Aciertos: <strong id="aciertos"></strong> ✅</p>
+            <p>Fallos: <strong id="fallos"></strong> ❌</p>
+            <p id="mensaje-felicitacion" style="display:none; font-size: 1.5em;">⭐ ¡PERFECTO! ⭐</p>
+            <button id="btn-volver-menu">Volver al Menú</button>
+        </div>
 
-    <div id="pantalla-estadisticas" style="display:none;">
-        <h2>Estadísticas Generales</h2>
-        <div id="botones-historial">
-            <button data-tipo="multiplicaciones">Multiplicaciones</button>
-            <button data-tipo="sumas">Sumas</button>
-            <button data-tipo="restas">Restas</button>
+        <div id="pantalla-estadisticas" class="container" style="display:none;">
+            <h2>📊 Estadísticas</h2>
+            <div id="stats-globales" class="stats-card"></div>
+            <div id="botones-historial">
+                <button data-tipo="multiplicaciones">Historial Multiplicaciones</button>
+                <button data-tipo="sumas">Historial Sumas</button>
+                <button data-tipo="restas">Historial Restas</button>
+            </div>
+            <div id="historial-detallado" style="display:none;">
+                <h3 id="historial-titulo"></h3>
+                <div id="chart-container"></div>
+                <div id="historial-contenido"></div>
+            </div>
+            <button id="btn-volver-menu-stats">Volver al Menú</button>
         </div>
-        <div id="historial-detallado" style="display:none;">
-            <h3 id="historial-titulo"></h3>
-            <div id="historial-contenido"></div>
-        </div>
-        <button id="btn-volver-menu-stats">Volver al Menú</button>
     </div>
 
     <script>
@@ -185,63 +292,57 @@
                 estadisticas: document.getElementById('pantalla-estadisticas')
             };
 
-            const botones = {
-                multiplicaciones: document.getElementById('btn-multiplicaciones'),
-                sumas: document.getElementById('btn-sumas'),
-                restas: document.getElementById('btn-restas'),
-                estadisticas: document.getElementById('btn-estadisticas'),
-                iniciarMultiplicacion: document.getElementById('btn-iniciar-multiplicacion'),
-                comprobarMultiplicacion: document.getElementById('btn-comprobar-multiplicacion'),
-                comprobarSuma: document.getElementById('btn-comprobar-suma'),
-                comprobarResta: document.getElementById('btn-comprobar-resta'),
-                volverMenu: document.getElementById('btn-volver-menu'),
-                volverMenuStats: document.getElementById('btn-volver-menu-stats'),
-                historial: document.querySelectorAll('#botones-historial button')
-            };
-
-            const elementos = {
-                numeroTabla: document.getElementById('numero-tabla'),
-                seleccionTabla: document.getElementById('seleccion-tabla'),
-                juegoMultiplicacion: document.getElementById('juego-multiplicacion'),
-                preguntaMultiplicacion: document.getElementById('pregunta-multiplicacion'),
-                respuestaMultiplicacion: document.getElementById('respuesta-multiplicacion'),
-                progressBarMultiplicacion: document.getElementById('progress-bar-multiplicacion'),
-                preguntaSuma: document.getElementById('pregunta-suma'),
-                respuestaSuma: document.getElementById('respuesta-suma'),
-                progressBarSuma: document.getElementById('progress-bar-suma'),
-                preguntaResta: document.getElementById('pregunta-resta'),
-                respuestaResta: document.getElementById('respuesta-resta'),
-                progressBarResta: document.getElementById('progress-bar-resta'),
-                tiempoTotal: document.getElementById('tiempo-total'),
-                aciertos: document.getElementById('aciertos'),
-                fallos: document.getElementById('fallos'),
-                mensajeFelicitacion: document.getElementById('mensaje-felicitacion'),
-                historialDetallado: document.getElementById('historial-detallado'),
-                historialTitulo: document.getElementById('historial-titulo'),
-                historialContenido: document.getElementById('historial-contenido')
+            // Todos los botones y elementos interactivos
+            const ui = {
+                buttons: {
+                    multiplicaciones: document.getElementById('btn-multiplicaciones'),
+                    sumas: document.getElementById('btn-sumas'),
+                    restas: document.getElementById('btn-restas'),
+                    estadisticas: document.getElementById('btn-estadisticas'),
+                    iniciarMultiplicacion: document.getElementById('btn-iniciar-multiplicacion'),
+                    comprobarMultiplicacion: document.getElementById('btn-comprobar-multiplicacion'),
+                    comprobarSuma: document.getElementById('btn-comprobar-suma'),
+                    comprobarResta: document.getElementById('btn-comprobar-resta'),
+                    volverMenu: document.getElementById('btn-volver-menu'),
+                    volverMenuStats: document.getElementById('btn-volver-menu-stats'),
+                    historial: document.querySelectorAll('#botones-historial button')
+                },
+                elements: {
+                    numeroTabla: document.getElementById('numero-tabla'),
+                    seleccionTabla: document.getElementById('seleccion-tabla'),
+                    juegoMultiplicacion: document.getElementById('juego-multiplicacion'),
+                    preguntaMultiplicacion: document.getElementById('pregunta-multiplicacion'),
+                    respuestaMultiplicacion: document.getElementById('respuesta-multiplicacion'),
+                    progressBarMultiplicacion: document.getElementById('progress-bar-multiplicacion'),
+                    preguntaSuma: document.getElementById('pregunta-suma'),
+                    respuestaSuma: document.getElementById('respuesta-suma'),
+                    progressBarSuma: document.getElementById('progress-bar-suma'),
+                    preguntaResta: document.getElementById('pregunta-resta'),
+                    respuestaResta: document.getElementById('respuesta-resta'),
+                    progressBarResta: document.getElementById('progress-bar-resta'),
+                    tiempoTotal: document.getElementById('tiempo-total'),
+                    aciertos: document.getElementById('aciertos'),
+                    fallos: document.getElementById('fallos'),
+                    mensajeFelicitacion: document.getElementById('mensaje-felicitacion'),
+                    resumenTitulo: document.getElementById('resumen-titulo'),
+                    statsGlobales: document.getElementById('stats-globales'),
+                    historialDetallado: document.getElementById('historial-detallado'),
+                    historialTitulo: document.getElementById('historial-titulo'),
+                    chartContainer: document.getElementById('chart-container'),
+                    historialContenido: document.getElementById('historial-contenido')
+                }
             };
 
             let estadoJuego = {};
             const TOTAL_PREGUNTAS = 10;
 
             const nivelesSuma = [
-                { min: 0, max: 4 },
-                { min: 0, max: 5 },
-                { min: 0, max: 6 },
-                { min: 0, max: 7 },
-                { min: 0, max: 8 },
-                { min: 0, max: 9 },
-                { min: 0, max: 10 }
+                { min: 0, max: 4 }, { min: 0, max: 5 }, { min: 0, max: 6 },
+                { min: 0, max: 7 }, { min: 0, max: 8 }, { min: 0, max: 9 }, { min: 0, max: 10 }
             ];
-
             const nivelesResta = [
-                { min: 0, max: 10 },
-                { min: 10, max: 20 },
-                { min: 20, max: 30 },
-                { min: 30, max: 40 },
-                { min: 40, max: 50 },
-                { min: 50, max: 75 },
-                { min: 75, max: 100 }
+                { min: 0, max: 10 }, { min: 10, max: 20 }, { min: 20, max: 30 },
+                { min: 30, max: 40 }, { min: 40, max: 50 }, { min: 50, max: 75 }, { min: 75, max: 100 }
             ];
 
             function mostrarPantalla(id) {
@@ -251,106 +352,88 @@
 
             function iniciarJuego(tipo) {
                 estadoJuego = {
-                    tipo: tipo,
-                    aciertos: 0,
-                    fallos: 0,
-                    preguntasRespondidas: 0,
-                    startTime: new Date(),
-                    numerosUsados: []
+                    tipo: tipo, aciertos: 0, fallos: 0, preguntasRespondidas: 0,
+                    startTime: new Date(), numerosUsados: []
                 };
 
                 if (tipo === 'multiplicaciones') {
-                    estadoJuego.tabla = parseInt(elementos.numeroTabla.value);
-                    elementos.seleccionTabla.style.display = 'none';
-                    elementos.juegoMultiplicacion.style.display = 'block';
-                    elementos.respuestaMultiplicacion.focus();
+                    estadoJuego.tabla = parseInt(ui.elements.numeroTabla.value);
+                    ui.elements.seleccionTabla.style.display = 'none';
+                    ui.elements.juegoMultiplicacion.style.display = 'block';
+                    ui.elements.respuestaMultiplicacion.focus();
                 } else if (tipo === 'sumas') {
-                    const nivel = obtenerNivel('sumas');
-                    estadoJuego.nivel = nivel;
+                    estadoJuego.nivel = obtenerNivel('sumas');
                 } else if (tipo === 'restas') {
-                    const nivel = obtenerNivel('restas');
-                    estadoJuego.nivel = nivel;
+                    estadoJuego.nivel = obtenerNivel('restas');
                 }
-
                 actualizarProgreso();
                 siguientePregunta();
             }
 
             function siguientePregunta() {
                 if (estadoJuego.preguntasRespondidas >= TOTAL_PREGUNTAS) return;
-
                 let n1, n2, pregunta, respuesta;
                 const tipo = estadoJuego.tipo;
 
                 if (tipo === 'multiplicaciones') {
                     n1 = estadoJuego.tabla;
-                    do {
-                        n2 = Math.floor(Math.random() * 11);
-                    } while (estadoJuego.numerosUsados.includes(n2));
+                    do { n2 = Math.floor(Math.random() * 11); } while (estadoJuego.numerosUsados.includes(n2));
                     estadoJuego.numerosUsados.push(n2);
-                    pregunta = `${n1} x ${n2} = ?`;
+                    pregunta = `${n1} x ${n2}`;
+                    ui.elements.preguntaMultiplicacion.textContent = pregunta;
+                    ui.elements.respuestaMultiplicacion.value = '';
+                    ui.elements.respuestaMultiplicacion.focus();
                     respuesta = n1 * n2;
-                    elementos.preguntaMultiplicacion.textContent = pregunta;
-                    elementos.respuestaMultiplicacion.value = '';
-                    elementos.respuestaMultiplicacion.focus();
                 } else if (tipo === 'sumas') {
                     const nivel = nivelesSuma[estadoJuego.nivel];
                     n1 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
                     n2 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
-                    pregunta = `${n1} + ${n2} = ?`;
+                    pregunta = `${n1} + ${n2}`;
+                    ui.elements.preguntaSuma.textContent = pregunta;
+                    ui.elements.respuestaSuma.value = '';
+                    ui.elements.respuestaSuma.focus();
                     respuesta = n1 + n2;
-                    elementos.preguntaSuma.textContent = pregunta;
-                    elementos.respuestaSuma.value = '';
-                    elementos.respuestaSuma.focus();
                 } else if (tipo === 'restas') {
                     const nivel = nivelesResta[estadoJuego.nivel];
                     n1 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
-                    n2 = Math.floor(Math.random() * (n1 - nivel.min + 1)) + nivel.min; // Asegura que el resultado no sea negativo
-                    pregunta = `${n1} - ${n2} = ?`;
+                    n2 = Math.floor(Math.random() * (n1 - nivel.min + 1)) + nivel.min;
+                    pregunta = `${n1} - ${n2}`;
+                    ui.elements.preguntaResta.textContent = pregunta;
+                    ui.elements.respuestaResta.value = '';
+                    ui.elements.respuestaResta.focus();
                     respuesta = n1 - n2;
-                    elementos.preguntaResta.textContent = pregunta;
-                    elementos.respuestaResta.value = '';
-                    elementos.respuestaResta.focus();
                 }
-
                 estadoJuego.respuestaCorrecta = respuesta;
             }
 
             function comprobarRespuesta() {
                 const tipo = estadoJuego.tipo;
-                let respuestaUsuario;
+                let input, respuestaUsuario;
+                if (tipo === 'multiplicaciones') input = ui.elements.respuestaMultiplicacion;
+                else if (tipo === 'sumas') input = ui.elements.respuestaSuma;
+                else input = ui.elements.respuestaResta;
 
-                if (tipo === 'multiplicaciones') {
-                    respuestaUsuario = parseInt(elementos.respuestaMultiplicacion.value);
-                } else if (tipo === 'sumas') {
-                    respuestaUsuario = parseInt(elementos.respuestaSuma.value);
-                } else if (tipo === 'restas') {
-                    respuestaUsuario = parseInt(elementos.respuestaResta.value);
-                }
-
-                if (respuestaUsuario === estadoJuego.respuestaCorrecta) {
-                    estadoJuego.aciertos++;
-                } else {
-                    estadoJuego.fallos++;
-                }
+                respuestaUsuario = parseInt(input.value);
+                if (respuestaUsuario === estadoJuego.respuestaCorrecta) estadoJuego.aciertos++;
+                else estadoJuego.fallos++;
 
                 estadoJuego.preguntasRespondidas++;
                 actualizarProgreso();
 
-                if (estadoJuego.preguntasRespondidas >= TOTAL_PREGUNTAS) {
-                    finalizarSesion(true);
-                } else {
-                    siguientePregunta();
-                }
+                if (estadoJuego.preguntasRespondidas >= TOTAL_PREGUNTAS) finalizarSesion(true);
+                else siguientePregunta();
             }
 
             function actualizarProgreso() {
                 const progreso = (estadoJuego.preguntasRespondidas / TOTAL_PREGUNTAS) * 100;
-                const progressBarId = `progressBar${estadoJuego.tipo.charAt(0).toUpperCase() + estadoJuego.tipo.slice(1)}`;
-                const progressBar = document.getElementById(progressBarId.replace('es', ''));
+                let progressBar;
+                if(estadoJuego.tipo === 'multiplicaciones') progressBar = ui.elements.progressBarMultiplicacion;
+                else if(estadoJuego.tipo === 'sumas') progressBar = ui.elements.progressBarSuma;
+                else progressBar = ui.elements.progressBarResta;
+                
                 if (progressBar) {
                     progressBar.style.width = `${progreso}%`;
-                    progressBar.textContent = `${Math.round(progreso)}%`;
+                    progressBar.textContent = `${estadoJuego.preguntasRespondidas}/${TOTAL_PREGUNTAS}`;
                 }
             }
 
@@ -359,18 +442,19 @@
                     estadoJuego.endTime = new Date();
                     const tiempoTranscurrido = Math.round((estadoJuego.endTime - estadoJuego.startTime) / 1000);
                     
-                    elementos.tiempoTotal.textContent = tiempoTranscurrido;
-                    elementos.aciertos.textContent = estadoJuego.aciertos;
-                    elementos.fallos.textContent = estadoJuego.fallos;
+                    ui.elements.tiempoTotal.textContent = tiempoTranscurrido;
+                    ui.elements.aciertos.textContent = estadoJuego.aciertos;
+                    ui.elements.fallos.textContent = estadoJuego.fallos;
 
                     if (estadoJuego.fallos === 0) {
-                        elementos.mensajeFelicitacion.style.display = 'block';
+                        ui.elements.resumenTitulo.textContent = "¡Increíble!";
+                        ui.elements.mensajeFelicitacion.style.display = 'block';
                         actualizarNivel(estadoJuego.tipo, true);
                     } else {
-                        elementos.mensajeFelicitacion.style.display = 'none';
+                        ui.elements.resumenTitulo.textContent = "¡Buen intento!";
+                        ui.elements.mensajeFelicitacion.style.display = 'none';
                         actualizarNivel(estadoJuego.tipo, false);
                     }
-                    
                     guardarEstadisticas(tiempoTranscurrido);
                     mostrarPantalla('resumen');
                 } else {
@@ -380,20 +464,16 @@
             }
 
             function guardarEstadisticas(tiempo) {
-                const stats = JSON.parse(localStorage.getItem('estadisticas')) || {
-                    multiplicaciones: [],
-                    sumas: [],
-                    restas: []
-                };
-                const sesion = {
-                    fecha: new Date().toLocaleString(),
+                const stats = JSON.parse(localStorage.getItem('estadisticas')) || { multiplicaciones: [], sumas: [], restas: [] };
+                stats[estadoJuego.tipo].push({
+                    fecha: new Date().toLocaleDateString(),
                     fallos: estadoJuego.fallos,
-                    tiempo: tiempo
-                };
-                stats[estadoJuego.tipo].push(sesion);
+                    tiempo: tiempo,
+                    aciertos: estadoJuego.aciertos
+                });
                 localStorage.setItem('estadisticas', JSON.stringify(stats));
             }
-
+            
             function obtenerNivel(tipo) {
                 const niveles = JSON.parse(localStorage.getItem('niveles')) || { sumas: 0, restas: 0 };
                 return niveles[tipo] || 0;
@@ -415,96 +495,134 @@
                 } else {
                     rachas[tipo] = 0;
                 }
-
                 localStorage.setItem('rachas', JSON.stringify(rachas));
                 localStorage.setItem('niveles', JSON.stringify(niveles));
             }
             
             function actualizarBotonesNivel() {
                 const rachas = JSON.parse(localStorage.getItem('rachas')) || { sumas: 0, restas: 0 };
+                const niveles = JSON.parse(localStorage.getItem('niveles')) || { sumas: 0, restas: 0 };
+                
                 const progresoSuma = (rachas.sumas / 3) * 100;
+                const nivelSuma = niveles.sumas + 1;
+                ui.buttons.sumas.style.background = `linear-gradient(to right, #ffafcc ${progresoSuma}%, var(--c-blue) ${progresoSuma}%)`;
+                ui.buttons.sumas.innerHTML = `Sumas <br>(Nivel ${nivelSuma}/${nivelesSuma.length})`;
+                
                 const progresoResta = (rachas.restas / 3) * 100;
+                const nivelResta = niveles.restas + 1;
+                ui.buttons.restas.style.background = `linear-gradient(to right, #ffafcc ${progresoResta}%, var(--c-green) ${progresoResta}%)`;
+                ui.buttons.restas.innerHTML = `Restas <br>(Nivel ${nivelResta}/${nivelesResta.length})`;
+            }
 
-                botones.sumas.style.background = `linear-gradient(to right, #66bb6a ${progresoSuma}%, #007BFF ${progresoSuma}%)`;
-                botones.restas.style.background = `linear-gradient(to right, #66bb6a ${progresoResta}%, #007BFF ${progresoResta}%)`;
+            function mostrarEstadisticasGlobales() {
+                const stats = JSON.parse(localStorage.getItem('estadisticas')) || { multiplicaciones: [], sumas: [], restas: [] };
+                const todasLasSesiones = [...stats.multiplicaciones, ...stats.sumas, ...stats.restas];
+                
+                if (todasLasSesiones.length === 0) {
+                    ui.elements.statsGlobales.innerHTML = "<h3>Resumen General</h3><p>¡Aún no has completado ninguna sesión! ¡Vamos a jugar!</p>";
+                    return;
+                }
+                
+                const totalSesiones = todasLasSesiones.length;
+                const totalAciertos = todasLasSesiones.reduce((sum, s) => sum + s.aciertos, 0);
+                const totalPreguntas = todasLasSesiones.length * TOTAL_PREGUNTAS;
+                const precision = totalPreguntas > 0 ? ((totalAciertos / totalPreguntas) * 100).toFixed(1) : 0;
+                const tiempoTotal = todasLasSesiones.reduce((sum, s) => sum + s.tiempo, 0);
+                const tiempoMedio = (tiempoTotal / totalSesiones).toFixed(1);
+
+                ui.elements.statsGlobales.innerHTML = `
+                    <h3>Resumen General</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div>Sesiones</div>
+                            <div class="value">${totalSesiones}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div>Precisión</div>
+                            <div class="value">${precision}%</div>
+                        </div>
+                        <div class="stat-item">
+                            <div>Tiempo Medio</div>
+                            <div class="value">${tiempoMedio}s</div>
+                        </div>
+                    </div>
+                `;
             }
 
             function mostrarHistorial(tipo) {
                 const stats = JSON.parse(localStorage.getItem('estadisticas')) || {};
                 const historial = stats[tipo] || [];
                 
-                elementos.historialTitulo.textContent = `Historial de ${tipo}`;
-                elementos.historialContenido.innerHTML = '';
+                ui.elements.historialTitulo.textContent = `Historial de ${tipo}`;
+                ui.elements.historialContenido.innerHTML = '';
 
                 if (historial.length === 0) {
-                    elementos.historialContenido.innerHTML = '<p>No hay datos todavía.</p>';
+                    ui.elements.historialContenido.innerHTML = '<p>No hay datos todavía.</p>';
+                    ui.elements.chartContainer.innerHTML = '';
                 } else {
-                    historial.slice().reverse().forEach(s => { // .slice().reverse() to show latest first
+                    historial.slice().reverse().forEach(s => {
                         const p = document.createElement('p');
                         p.textContent = `${s.fecha} - Fallos: ${s.fallos}, Tiempo: ${s.tiempo}s`;
-                        elementos.historialContenido.appendChild(p);
+                        ui.elements.historialContenido.appendChild(p);
                     });
+                    generarGrafica(historial);
                 }
-                elementos.historialDetallado.style.display = 'block';
+                ui.elements.historialDetallado.style.display = 'block';
+            }
+
+            function generarGrafica(datos) {
+                ui.elements.chartContainer.innerHTML = '';
+                const datosRecientes = datos.slice(-10); // Últimas 10 sesiones
+                const maxFallos = Math.max(...datosRecientes.map(s => s.fallos), 1); // Evitar división por cero
+
+                datosRecientes.forEach(sesion => {
+                    const bar = document.createElement('div');
+                    bar.className = 'chart-bar';
+                    const altura = (sesion.fallos / maxFallos) * 100;
+                    bar.style.height = `${altura}%`;
+                    
+                    const tooltip = document.createElement('span');
+                    tooltip.className = 'tooltip';
+                    tooltip.textContent = `${sesion.fallos} fallos`;
+                    
+                    bar.appendChild(tooltip);
+                    ui.elements.chartContainer.appendChild(bar);
+                });
             }
             
-            // Event Listeners
-            botones.multiplicaciones.addEventListener('click', () => {
+            // --- Event Listeners ---
+            ui.buttons.multiplicaciones.addEventListener('click', () => {
                 mostrarPantalla('multiplicaciones');
-                elementos.seleccionTabla.style.display = 'block';
-                elementos.juegoMultiplicacion.style.display = 'none';
-                elementos.numeroTabla.value = '';
+                ui.elements.seleccionTabla.style.display = 'block';
+                ui.elements.juegoMultiplicacion.style.display = 'none';
+                ui.elements.numeroTabla.value = '';
             });
-            
-            botones.sumas.addEventListener('click', () => {
-                mostrarPantalla('sumas');
-                iniciarJuego('sumas');
-            });
-
-            botones.restas.addEventListener('click', () => {
-                mostrarPantalla('restas');
-                iniciarJuego('restas');
-            });
-            
-            botones.estadisticas.addEventListener('click', () => {
+            ui.buttons.sumas.addEventListener('click', () => { mostrarPantalla('sumas'); iniciarJuego('sumas'); });
+            ui.buttons.restas.addEventListener('click', () => { mostrarPantalla('restas'); iniciarJuego('restas'); });
+            ui.buttons.estadisticas.addEventListener('click', () => {
                 mostrarPantalla('estadisticas');
-                elementos.historialDetallado.style.display = 'none';
+                mostrarEstadisticasGlobales();
+                ui.elements.historialDetallado.style.display = 'none';
             });
-
-            botones.iniciarMultiplicacion.addEventListener('click', () => {
-                if (elementos.numeroTabla.value) {
-                    iniciarJuego('multiplicaciones');
-                }
+            ui.buttons.iniciarMultiplicacion.addEventListener('click', () => {
+                if (ui.elements.numeroTabla.value) iniciarJuego('multiplicaciones');
             });
             
-            [elementos.respuestaMultiplicacion, elementos.respuestaSuma, elementos.respuestaResta].forEach((input, index) => {
-                const boton = [botones.comprobarMultiplicacion, botones.comprobarSuma, botones.comprobarResta][index];
-                input.addEventListener('input', () => {
-                    boton.disabled = input.value.trim() === '';
-                });
+            [ui.elements.respuestaMultiplicacion, ui.elements.respuestaSuma, ui.elements.respuestaResta].forEach((input, index) => {
+                const boton = [ui.buttons.comprobarMultiplicacion, ui.buttons.comprobarSuma, ui.buttons.comprobarResta][index];
+                input.addEventListener('input', () => { boton.disabled = input.value.trim() === ''; });
                 input.addEventListener('keyup', (event) => {
-                    if (event.key === 'Enter' && !boton.disabled) {
-                        comprobarRespuesta();
-                    }
+                    if (event.key === 'Enter' && !boton.disabled) comprobarRespuesta();
                 });
             });
 
-            [botones.comprobarMultiplicacion, botones.comprobarSuma, botones.comprobarResta].forEach(boton => {
-                boton.addEventListener('click', comprobarRespuesta);
-            });
+            [ui.buttons.comprobarMultiplicacion, ui.buttons.comprobarSuma, ui.buttons.comprobarResta].forEach(b => b.addEventListener('click', comprobarRespuesta));
+            document.querySelectorAll('.btn-finalizar').forEach(btn => btn.addEventListener('click', () => finalizarSesion(false)));
+            ui.buttons.volverMenu.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
+            ui.buttons.volverMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
+            ui.buttons.historial.forEach(btn => btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipo)));
 
-            document.querySelectorAll('.btn-finalizar').forEach(btn => {
-                btn.addEventListener('click', () => finalizarSesion(false));
-            });
-
-            botones.volverMenu.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
-            botones.volverMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
-
-            botones.historial.forEach(btn => {
-                btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipo));
-            });
-
-            // Inicialización
+            // --- Inicialización ---
             mostrarPantalla('menuPrincipal');
             actualizarBotonesNivel();
         });
