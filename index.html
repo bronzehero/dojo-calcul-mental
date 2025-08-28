@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="ca">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Dojo de Cálculo Mental</title>
+    <title>Dojo de Càlcul Mental</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --c-pink: #ffafcc;
@@ -48,13 +49,8 @@
             margin-top: 0;
         }
         
-        h1 {
-            font-size: 2.5em;
-        }
-        
-        h2 {
-            font-size: 2em;
-        }
+        h1 { font-size: 2.5em; }
+        h2 { font-size: 2em; }
 
         button {
             display: block;
@@ -78,16 +74,16 @@
         }
         
         button:disabled {
-            background-color: #cccccc;
+            background-color: #cccccc !important;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
 
-        #btn-multiplicaciones { background-color: var(--c-pink); }
-        #btn-sumas { background-color: var(--c-blue); }
-        #btn-restas { background-color: var(--c-green); }
-        #btn-estadisticas { background-color: var(--c-purple); }
+        #btn-multiplicacions { background-color: var(--c-pink); }
+        #btn-sumes { background-color: var(--c-blue); }
+        #btn-restes { background-color: var(--c-green); }
+        #btn-estadistiques { background-color: var(--c-purple); }
 
         input[type="number"] {
             width: calc(100% - 22px);
@@ -107,177 +103,113 @@
         }
 
         .progress-container {
-            width: 100%;
-            background-color: #eee;
-            border-radius: 15px;
-            margin: 20px 0;
-            overflow: hidden;
+            width: 100%; background-color: #eee; border-radius: 15px;
+            margin: 20px 0; overflow: hidden;
         }
 
         .progress-bar {
-            width: 0%;
-            height: 30px;
+            width: 0%; height: 30px;
             background: linear-gradient(to right, #a2d2ff, #cdb4db);
-            text-align: center;
-            line-height: 30px;
-            color: var(--c-dark);
-            font-weight: 700;
-            border-radius: 15px;
-            transition: width 0.3s ease;
+            text-align: center; line-height: 30px; color: var(--c-dark);
+            font-weight: 700; border-radius: 15px; transition: width 0.3s ease;
         }
 
-        .btn-finalizar { background-color: #ff758f; }
+        .btn-finalitzar { background-color: #ff758f; }
         
-        /* Estadísticas */
+        /* Estadístiques */
         .stats-card {
-            background: #fff;
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px 0 var(--c-shadow);
+            background: #fff; border-radius: 15px; padding: 15px;
+            margin-bottom: 20px; box-shadow: 0 4px 15px 0 var(--c-shadow);
         }
         .stats-card h3 { margin-top: 0; }
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            font-size: 1.1em;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 1.1em;
         }
-        .stat-item {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 10px;
-        }
-        .stat-item .value {
-            font-size: 1.5em;
-            font-weight: 700;
-            color: var(--c-purple);
-        }
+        .stat-item { background: #f8f9fa; padding: 10px; border-radius: 10px; }
+        .stat-item .value { font-size: 1.5em; font-weight: 700; color: var(--c-purple); }
 
-        #historial-contenido {
-            text-align: left;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            border-radius: 10px;
-            padding: 10px;
-            margin-top: 15px;
+        #historial-contingut {
+            text-align: left; max-height: 200px; overflow-y: auto; border: 1px solid #eee;
+            border-radius: 10px; padding: 10px; margin-top: 15px;
         }
-
-        #historial-contenido p { margin: 8px 0; }
-
-        /* Gráfica */
-        #chart-container {
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-end;
-            height: 150px;
-            border-left: 2px solid #ccc;
-            border-bottom: 2px solid #ccc;
-            padding: 10px 0 0 10px;
-            margin-top: 20px;
-            position: relative;
+        #historial-contingut p { margin: 8px 0; }
+        .chart-container {
+             margin-top: 20px;
         }
-        .chart-bar {
-            width: 8%;
-            background-color: var(--c-blue);
-            border-radius: 5px 5px 0 0;
-            position: relative;
-            transition: background-color 0.2s;
-        }
-        .chart-bar:hover {
-            background-color: var(--c-purple);
-        }
-        .chart-bar .tooltip {
-            visibility: hidden;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px 8px;
-            position: absolute;
-            z-index: 1;
-            bottom: 105%;
-            left: 50%;
-            transform: translateX(-50%);
-            white-space: nowrap;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .chart-bar:hover .tooltip {
-            visibility: visible;
-            opacity: 1;
-        }
-        
     </style>
 </head>
 <body>
     <div id="app-container">
         <div id="menu-principal" class="container">
             <h1>🧠 Dojo Mental 🧠</h1>
-            <button id="btn-multiplicaciones">Tablas de Multiplicar</button>
-            <button id="btn-sumas">Sumas</button>
-            <button id="btn-restas">Restas</button>
-            <button id="btn-estadisticas">📊 Estadísticas</button>
+            <button id="btn-multiplicacions">Taules de Multiplicar</button>
+            <button id="btn-sumes">Sumes</button>
+            <button id="btn-restes">Restes</button>
+            <button id="btn-estadistiques">📊 Estadístiques</button>
         </div>
 
-        <div id="pantalla-multiplicaciones" class="container" style="display:none;">
-            <h2>Tablas de Multiplicar</h2>
-            <div id="seleccion-tabla">
-                <p>Elige una tabla:</p>
-                <input type="number" id="numero-tabla" min="1" max="10" inputmode="numeric">
-                <button id="btn-iniciar-multiplicacion">¡A multiplicar!</button>
+        <div id="pantalla-multiplicacions" class="container" style="display:none;">
+            <h2>Taules de Multiplicar</h2>
+            <div id="seleccio-taula">
+                <p>Tria una taula:</p>
+                <input type="number" id="numero-taula" min="1" max="10" inputmode="numeric">
+                <button id="btn-iniciar-multiplicacio">A multiplicar!</button>
             </div>
-            <div id="juego-multiplicacion" style="display:none;">
-                <p id="pregunta-multiplicacion" style="font-size: 1.8em; font-weight: 700;"></p>
-                <input type="number" id="respuesta-multiplicacion" inputmode="numeric">
-                <button id="btn-comprobar-multiplicacion" disabled>Comprobar</button>
-                <div class="progress-container"><div id="progress-bar-multiplicacion" class="progress-bar"></div></div>
-                <button class="btn-finalizar">Salir</button>
+            <div id="joc-multiplicacio" style="display:none;">
+                <p id="pregunta-multiplicacio" style="font-size: 1.8em; font-weight: 700;"></p>
+                <input type="number" id="resposta-multiplicacio" inputmode="numeric">
+                <button id="btn-comprovar-multiplicacio" disabled>Comprovar</button>
+                <div class="progress-container"><div id="progress-bar-multiplicacio" class="progress-bar"></div></div>
+                <button class="btn-finalitzar">Sortir</button>
             </div>
         </div>
 
-        <div id="pantalla-sumas" class="container" style="display:none;">
-            <h2>¡A sumar!</h2>
+        <div id="pantalla-sumes" class="container" style="display:none;">
+            <h2>A sumar!</h2>
             <p id="pregunta-suma" style="font-size: 1.8em; font-weight: 700;"></p>
-            <input type="number" id="respuesta-suma" inputmode="numeric">
-            <button id="btn-comprobar-suma" disabled>Comprobar</button>
+            <input type="number" id="resposta-suma" inputmode="numeric">
+            <button id="btn-comprovar-suma" disabled>Comprovar</button>
             <div class="progress-container"><div id="progress-bar-suma" class="progress-bar"></div></div>
-            <button class="btn-finalizar">Salir</button>
+            <button class="btn-finalitzar">Sortir</button>
         </div>
 
-        <div id="pantalla-restas" class="container" style="display:none;">
-            <h2>¡A restar!</h2>
+        <div id="pantalla-restes" class="container" style="display:none;">
+            <h2>A restar!</h2>
             <p id="pregunta-resta" style="font-size: 1.8em; font-weight: 700;"></p>
-            <input type="number" id="respuesta-resta" inputmode="numeric">
-            <button id="btn-comprobar-resta" disabled>Comprobar</button>
+            <input type="number" id="resposta-resta" inputmode="numeric">
+            <button id="btn-comprovar-resta" disabled>Comprovar</button>
             <div class="progress-container"><div id="progress-bar-resta" class="progress-bar"></div></div>
-            <button class="btn-finalizar">Salir</button>
+            <button class="btn-finalitzar">Sortir</button>
         </div>
 
-        <div id="pantalla-resumen" class="container" style="display:none;">
-            <h2 id="resumen-titulo">¡Bien hecho!</h2>
-            <p>Tiempo total: <strong id="tiempo-total"></strong> segundos</p>
-            <p>Aciertos: <strong id="aciertos"></strong> ✅</p>
-            <p>Fallos: <strong id="fallos"></strong> ❌</p>
-            <p id="mensaje-felicitacion" style="display:none; font-size: 1.5em;">⭐ ¡PERFECTO! ⭐</p>
-            <button id="btn-volver-menu">Volver al Menú</button>
+        <div id="pantalla-resum" class="container" style="display:none;">
+            <h2 id="resum-titol">Ben fet!</h2>
+            <p>Temps total: <strong id="temps-total"></strong> segons</p>
+            <p>Encerts: <strong id="encerts"></strong> ✅</p>
+            <p>Errades: <strong id="errades"></strong> ❌</p>
+            <p id="missatge-felicitacio" style="display:none; font-size: 1.5em;">⭐ PERFECTE! ⭐</p>
+            <button id="btn-tornar-menu">Tornar al Menú</button>
         </div>
 
-        <div id="pantalla-estadisticas" class="container" style="display:none;">
-            <h2>📊 Estadísticas</h2>
-            <div id="stats-globales" class="stats-card"></div>
-            <div id="botones-historial">
-                <button data-tipo="multiplicaciones">Historial Multiplicaciones</button>
-                <button data-tipo="sumas">Historial Sumas</button>
-                <button data-tipo="restas">Historial Restas</button>
+        <div id="pantalla-estadistiques" class="container" style="display:none;">
+            <h2>📊 Estadístiques</h2>
+            <div id="stats-globals" class="stats-card"></div>
+            <div id="botons-historial">
+                <button data-tipus="multiplicacions">Historial Multiplicacions</button>
+                <button data-tipus="sumes">Historial Sumes</button>
+                <button data-tipus="restes">Historial Restes</button>
             </div>
-            <div id="historial-detallado" style="display:none;">
-                <h3 id="historial-titulo"></h3>
-                <div id="chart-container"></div>
-                <div id="historial-contenido"></div>
+            <div id="historial-detallat" style="display:none;">
+                <h3 id="historial-titol"></h3>
+                <div class="chart-container">
+                    <canvas id="errors-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="times-chart"></canvas>
+                </div>
+                <div id="historial-contingut"></div>
             </div>
-            <button id="btn-volver-menu-stats">Volver al Menú</button>
+            <button id="btn-tornar-menu-stats">Tornar al Menú</button>
         </div>
     </div>
 
@@ -285,62 +217,61 @@
         document.addEventListener('DOMContentLoaded', () => {
             const pantallas = {
                 menuPrincipal: document.getElementById('menu-principal'),
-                multiplicaciones: document.getElementById('pantalla-multiplicaciones'),
-                sumas: document.getElementById('pantalla-sumas'),
-                restas: document.getElementById('pantalla-restas'),
-                resumen: document.getElementById('pantalla-resumen'),
-                estadisticas: document.getElementById('pantalla-estadisticas')
+                multiplicacions: document.getElementById('pantalla-multiplicacions'),
+                sumes: document.getElementById('pantalla-sumes'),
+                restes: document.getElementById('pantalla-restes'),
+                resum: document.getElementById('pantalla-resum'),
+                estadistiques: document.getElementById('pantalla-estadistiques')
             };
 
-            // Todos los botones y elementos interactivos
             const ui = {
                 buttons: {
-                    multiplicaciones: document.getElementById('btn-multiplicaciones'),
-                    sumas: document.getElementById('btn-sumas'),
-                    restas: document.getElementById('btn-restas'),
-                    estadisticas: document.getElementById('btn-estadisticas'),
-                    iniciarMultiplicacion: document.getElementById('btn-iniciar-multiplicacion'),
-                    comprobarMultiplicacion: document.getElementById('btn-comprobar-multiplicacion'),
-                    comprobarSuma: document.getElementById('btn-comprobar-suma'),
-                    comprobarResta: document.getElementById('btn-comprobar-resta'),
-                    volverMenu: document.getElementById('btn-volver-menu'),
-                    volverMenuStats: document.getElementById('btn-volver-menu-stats'),
-                    historial: document.querySelectorAll('#botones-historial button')
+                    multiplicacions: document.getElementById('btn-multiplicacions'),
+                    sumes: document.getElementById('btn-sumes'),
+                    restes: document.getElementById('btn-restes'),
+                    estadistiques: document.getElementById('btn-estadistiques'),
+                    iniciarMultiplicacio: document.getElementById('btn-iniciar-multiplicacio'),
+                    comprovarMultiplicacio: document.getElementById('btn-comprovar-multiplicacio'),
+                    comprovarSuma: document.getElementById('btn-comprovar-suma'),
+                    comprovarResta: document.getElementById('btn-comprovar-resta'),
+                    tornarMenu: document.getElementById('btn-tornar-menu'),
+                    tornarMenuStats: document.getElementById('btn-tornar-menu-stats'),
+                    historial: document.querySelectorAll('#botons-historial button')
                 },
                 elements: {
-                    numeroTabla: document.getElementById('numero-tabla'),
-                    seleccionTabla: document.getElementById('seleccion-tabla'),
-                    juegoMultiplicacion: document.getElementById('juego-multiplicacion'),
-                    preguntaMultiplicacion: document.getElementById('pregunta-multiplicacion'),
-                    respuestaMultiplicacion: document.getElementById('respuesta-multiplicacion'),
-                    progressBarMultiplicacion: document.getElementById('progress-bar-multiplicacion'),
+                    numeroTaula: document.getElementById('numero-taula'),
+                    seleccioTaula: document.getElementById('seleccio-taula'),
+                    jocMultiplicacio: document.getElementById('joc-multiplicacio'),
+                    preguntaMultiplicacio: document.getElementById('pregunta-multiplicacio'),
+                    respostaMultiplicacio: document.getElementById('resposta-multiplicacio'),
+                    progressBarMultiplicacio: document.getElementById('progress-bar-multiplicacio'),
                     preguntaSuma: document.getElementById('pregunta-suma'),
-                    respuestaSuma: document.getElementById('respuesta-suma'),
+                    respostaSuma: document.getElementById('resposta-suma'),
                     progressBarSuma: document.getElementById('progress-bar-suma'),
                     preguntaResta: document.getElementById('pregunta-resta'),
-                    respuestaResta: document.getElementById('respuesta-resta'),
+                    respostaResta: document.getElementById('resposta-resta'),
                     progressBarResta: document.getElementById('progress-bar-resta'),
-                    tiempoTotal: document.getElementById('tiempo-total'),
-                    aciertos: document.getElementById('aciertos'),
-                    fallos: document.getElementById('fallos'),
-                    mensajeFelicitacion: document.getElementById('mensaje-felicitacion'),
-                    resumenTitulo: document.getElementById('resumen-titulo'),
-                    statsGlobales: document.getElementById('stats-globales'),
-                    historialDetallado: document.getElementById('historial-detallado'),
-                    historialTitulo: document.getElementById('historial-titulo'),
-                    chartContainer: document.getElementById('chart-container'),
-                    historialContenido: document.getElementById('historial-contenido')
+                    tempsTotal: document.getElementById('temps-total'),
+                    encerts: document.getElementById('encerts'),
+                    errades: document.getElementById('errades'),
+                    missatgeFelicitacio: document.getElementById('missatge-felicitacio'),
+                    resumTitol: document.getElementById('resum-titol'),
+                    statsGlobals: document.getElementById('stats-globals'),
+                    historialDetallat: document.getElementById('historial-detallat'),
+                    historialTitol: document.getElementById('historial-titol'),
+                    historialContingut: document.getElementById('historial-contingut')
                 }
             };
 
-            let estadoJuego = {};
-            const TOTAL_PREGUNTAS = 10;
+            let estatJoc = {};
+            const TOTAL_PREGUNTES = 10;
+            let chartInstances = { errors: null, times: null };
 
-            const nivelesSuma = [
+            const nivellsSuma = [
                 { min: 0, max: 4 }, { min: 0, max: 5 }, { min: 0, max: 6 },
                 { min: 0, max: 7 }, { min: 0, max: 8 }, { min: 0, max: 9 }, { min: 0, max: 10 }
             ];
-            const nivelesResta = [
+            const nivellsResta = [
                 { min: 0, max: 10 }, { min: 10, max: 20 }, { min: 20, max: 30 },
                 { min: 30, max: 40 }, { min: 40, max: 50 }, { min: 50, max: 75 }, { min: 75, max: 100 }
             ];
@@ -350,281 +281,299 @@
                 pantallas[id].style.display = 'block';
             }
 
-            function iniciarJuego(tipo) {
-                estadoJuego = {
-                    tipo: tipo, aciertos: 0, fallos: 0, preguntasRespondidas: 0,
-                    startTime: new Date(), numerosUsados: []
+            function iniciarJoc(tipus) {
+                estatJoc = {
+                    tipus: tipus, encerts: 0, errades: 0, preguntesRespostes: 0,
+                    startTime: new Date(), numerosUtilitzats: []
                 };
 
-                if (tipo === 'multiplicaciones') {
-                    estadoJuego.tabla = parseInt(ui.elements.numeroTabla.value);
-                    ui.elements.seleccionTabla.style.display = 'none';
-                    ui.elements.juegoMultiplicacion.style.display = 'block';
-                    ui.elements.respuestaMultiplicacion.focus();
-                } else if (tipo === 'sumas') {
-                    estadoJuego.nivel = obtenerNivel('sumas');
-                } else if (tipo === 'restas') {
-                    estadoJuego.nivel = obtenerNivel('restas');
+                if (tipus === 'multiplicacions') {
+                    estatJoc.taula = parseInt(ui.elements.numeroTaula.value);
+                    ui.elements.seleccioTaula.style.display = 'none';
+                    ui.elements.jocMultiplicacio.style.display = 'block';
+                    ui.elements.respostaMultiplicacio.focus();
+                } else if (tipus === 'sumes') {
+                    estatJoc.nivell = obtenirNivell('sumes');
+                } else if (tipus === 'restes') {
+                    estatJoc.nivell = obtenirNivell('restes');
                 }
-                actualizarProgreso();
-                siguientePregunta();
+                actualitzarProgres();
+                seguentPregunta();
             }
 
-            function siguientePregunta() {
-                if (estadoJuego.preguntasRespondidas >= TOTAL_PREGUNTAS) return;
-                let n1, n2, pregunta, respuesta;
-                const tipo = estadoJuego.tipo;
+            function seguentPregunta() {
+                if (estatJoc.preguntesRespostes >= TOTAL_PREGUNTES) return;
+                let n1, n2, pregunta, resposta;
+                const tipus = estatJoc.tipus;
 
-                if (tipo === 'multiplicaciones') {
-                    n1 = estadoJuego.tabla;
-                    do { n2 = Math.floor(Math.random() * 11); } while (estadoJuego.numerosUsados.includes(n2));
-                    estadoJuego.numerosUsados.push(n2);
+                if (tipus === 'multiplicacions') {
+                    n1 = estatJoc.taula;
+                    do { n2 = Math.floor(Math.random() * 11); } while (estatJoc.numerosUtilitzats.includes(n2));
+                    estatJoc.numerosUtilitzats.push(n2);
                     pregunta = `${n1} x ${n2}`;
-                    ui.elements.preguntaMultiplicacion.textContent = pregunta;
-                    ui.elements.respuestaMultiplicacion.value = '';
-                    ui.elements.respuestaMultiplicacion.focus();
-                    respuesta = n1 * n2;
-                } else if (tipo === 'sumas') {
-                    const nivel = nivelesSuma[estadoJuego.nivel];
-                    n1 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
-                    n2 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
+                    ui.elements.preguntaMultiplicacio.textContent = pregunta;
+                    ui.elements.respostaMultiplicacio.value = '';
+                    ui.elements.respostaMultiplicacio.focus();
+                    resposta = n1 * n2;
+                } else if (tipus === 'sumes') {
+                    const nivell = nivellsSuma[estatJoc.nivell];
+                    n1 = Math.floor(Math.random() * (nivell.max - nivell.min + 1)) + nivell.min;
+                    n2 = Math.floor(Math.random() * (nivell.max - nivell.min + 1)) + nivell.min;
                     pregunta = `${n1} + ${n2}`;
                     ui.elements.preguntaSuma.textContent = pregunta;
-                    ui.elements.respuestaSuma.value = '';
-                    ui.elements.respuestaSuma.focus();
-                    respuesta = n1 + n2;
-                } else if (tipo === 'restas') {
-                    const nivel = nivelesResta[estadoJuego.nivel];
-                    n1 = Math.floor(Math.random() * (nivel.max - nivel.min + 1)) + nivel.min;
-                    n2 = Math.floor(Math.random() * (n1 - nivel.min + 1)) + nivel.min;
+                    ui.elements.respostaSuma.value = '';
+                    ui.elements.respostaSuma.focus();
+                    resposta = n1 + n2;
+                } else if (tipus === 'restes') {
+                    const nivell = nivellsResta[estatJoc.nivell];
+                    n1 = Math.floor(Math.random() * (nivell.max - nivell.min + 1)) + nivell.min;
+                    n2 = Math.floor(Math.random() * (n1 - nivell.min + 1)) + nivell.min;
                     pregunta = `${n1} - ${n2}`;
                     ui.elements.preguntaResta.textContent = pregunta;
-                    ui.elements.respuestaResta.value = '';
-                    ui.elements.respuestaResta.focus();
-                    respuesta = n1 - n2;
+                    ui.elements.respostaResta.value = '';
+                    ui.elements.respostaResta.focus();
+                    resposta = n1 - n2;
                 }
-                estadoJuego.respuestaCorrecta = respuesta;
+                estatJoc.respostaCorrecta = resposta;
             }
 
-            function comprobarRespuesta() {
-                const tipo = estadoJuego.tipo;
-                let input, respuestaUsuario;
-                if (tipo === 'multiplicaciones') input = ui.elements.respuestaMultiplicacion;
-                else if (tipo === 'sumas') input = ui.elements.respuestaSuma;
-                else input = ui.elements.respuestaResta;
+            function comprovarResposta() {
+                const tipus = estatJoc.tipus;
+                let input, respostaUsuari;
+                if (tipus === 'multiplicacions') input = ui.elements.respostaMultiplicacio;
+                else if (tipus === 'sumes') input = ui.elements.respostaSuma;
+                else input = ui.elements.respostaResta;
 
-                respuestaUsuario = parseInt(input.value);
-                if (respuestaUsuario === estadoJuego.respuestaCorrecta) estadoJuego.aciertos++;
-                else estadoJuego.fallos++;
+                if (input.value.trim() === '') {
+                    return; // No fer res si la resposta està buida
+                }
 
-                estadoJuego.preguntasRespondidas++;
-                actualizarProgreso();
+                respostaUsuari = parseInt(input.value);
+                if (respostaUsuari === estatJoc.respostaCorrecta) estatJoc.encerts++;
+                else estatJoc.errades++;
 
-                if (estadoJuego.preguntasRespondidas >= TOTAL_PREGUNTAS) finalizarSesion(true);
-                else siguientePregunta();
+                estatJoc.preguntesRespostes++;
+                actualitzarProgres();
+
+                if (estatJoc.preguntesRespostes >= TOTAL_PREGUNTES) finalitzarSessio(true);
+                else seguentPregunta();
             }
 
-            function actualizarProgreso() {
-                const progreso = (estadoJuego.preguntasRespondidas / TOTAL_PREGUNTAS) * 100;
+            function actualitzarProgres() {
+                const progres = (estatJoc.preguntesRespostes / TOTAL_PREGUNTES) * 100;
                 let progressBar;
-                if(estadoJuego.tipo === 'multiplicaciones') progressBar = ui.elements.progressBarMultiplicacion;
-                else if(estadoJuego.tipo === 'sumas') progressBar = ui.elements.progressBarSuma;
+                if(estatJoc.tipus === 'multiplicacions') progressBar = ui.elements.progressBarMultiplicacio;
+                else if(estatJoc.tipus === 'sumes') progressBar = ui.elements.progressBarSuma;
                 else progressBar = ui.elements.progressBarResta;
                 
                 if (progressBar) {
-                    progressBar.style.width = `${progreso}%`;
-                    progressBar.textContent = `${estadoJuego.preguntasRespondidas}/${TOTAL_PREGUNTAS}`;
+                    progressBar.style.width = `${progres}%`;
+                    progressBar.textContent = `${estatJoc.preguntesRespostes}/${TOTAL_PREGUNTES}`;
                 }
             }
 
-            function finalizarSesion(completada) {
+            function finalitzarSessio(completada) {
                 if (completada) {
-                    estadoJuego.endTime = new Date();
-                    const tiempoTranscurrido = Math.round((estadoJuego.endTime - estadoJuego.startTime) / 1000);
+                    estatJoc.endTime = new Date();
+                    const tempsTranscorregut = Math.round((estatJoc.endTime - estatJoc.startTime) / 1000);
                     
-                    ui.elements.tiempoTotal.textContent = tiempoTranscurrido;
-                    ui.elements.aciertos.textContent = estadoJuego.aciertos;
-                    ui.elements.fallos.textContent = estadoJuego.fallos;
+                    ui.elements.tempsTotal.textContent = tempsTranscorregut;
+                    ui.elements.encerts.textContent = estatJoc.encerts;
+                    ui.elements.errades.textContent = estatJoc.errades;
 
-                    if (estadoJuego.fallos === 0) {
-                        ui.elements.resumenTitulo.textContent = "¡Increíble!";
-                        ui.elements.mensajeFelicitacion.style.display = 'block';
-                        actualizarNivel(estadoJuego.tipo, true);
+                    if (estatJoc.errades === 0) {
+                        ui.elements.resumTitol.textContent = "Increïble!";
+                        ui.elements.missatgeFelicitacio.style.display = 'block';
+                        actualitzarNivell(estatJoc.tipus, true);
                     } else {
-                        ui.elements.resumenTitulo.textContent = "¡Buen intento!";
-                        ui.elements.mensajeFelicitacion.style.display = 'none';
-                        actualizarNivel(estadoJuego.tipo, false);
+                        ui.elements.resumTitol.textContent = "Bon intent!";
+                        ui.elements.missatgeFelicitacio.style.display = 'none';
+                        actualitzarNivell(estatJoc.tipus, false);
                     }
-                    guardarEstadisticas(tiempoTranscurrido);
-                    mostrarPantalla('resumen');
+                    guardarEstadistiques(tempsTranscorregut);
+                    mostrarPantalla('resum');
                 } else {
                     mostrarPantalla('menuPrincipal');
                 }
-                actualizarBotonesNivel();
+                actualitzarBotonsNivell();
             }
 
-            function guardarEstadisticas(tiempo) {
-                const stats = JSON.parse(localStorage.getItem('estadisticas')) || { multiplicaciones: [], sumas: [], restas: [] };
-                stats[estadoJuego.tipo].push({
-                    fecha: new Date().toLocaleDateString(),
-                    fallos: estadoJuego.fallos,
-                    tiempo: tiempo,
-                    aciertos: estadoJuego.aciertos
+            function guardarEstadistiques(temps) {
+                const stats = JSON.parse(localStorage.getItem('estadistiques')) || { multiplicacions: [], sumes: [], restes: [] };
+                stats[estatJoc.tipus].push({
+                    data: new Date().toLocaleDateString(),
+                    errades: estatJoc.errades,
+                    temps: temps,
+                    encerts: estatJoc.encerts
                 });
-                localStorage.setItem('estadisticas', JSON.stringify(stats));
+                localStorage.setItem('estadistiques', JSON.stringify(stats));
             }
             
-            function obtenerNivel(tipo) {
-                const niveles = JSON.parse(localStorage.getItem('niveles')) || { sumas: 0, restas: 0 };
-                return niveles[tipo] || 0;
+            function obtenirNivell(tipus) {
+                const nivells = JSON.parse(localStorage.getItem('nivells')) || { sumes: 0, restes: 0 };
+                return nivells[tipus] || 0;
             }
 
-            function actualizarNivel(tipo, sinFallos) {
-                if (tipo !== 'sumas' && tipo !== 'restas') return;
+            function actualitzarNivell(tipus, senseErrades) {
+                if (tipus !== 'sumes' && tipus !== 'restes') return;
 
-                const rachas = JSON.parse(localStorage.getItem('rachas')) || { sumas: 0, restas: 0 };
-                let niveles = JSON.parse(localStorage.getItem('niveles')) || { sumas: 0, restas: 0 };
-                const maxNivel = (tipo === 'sumas' ? nivelesSuma.length : nivelesResta.length) - 1;
+                const ratxes = JSON.parse(localStorage.getItem('ratxes')) || { sumes: 0, restes: 0 };
+                let nivells = JSON.parse(localStorage.getItem('nivells')) || { sumes: 0, restes: 0 };
+                const maxNivell = (tipus === 'sumes' ? nivellsSuma.length : nivellsResta.length) - 1;
 
-                if (sinFallos) {
-                    rachas[tipo]++;
-                    if (rachas[tipo] >= 3 && niveles[tipo] < maxNivel) {
-                        niveles[tipo]++;
-                        rachas[tipo] = 0;
+                if (senseErrades) {
+                    ratxes[tipus]++;
+                    if (ratxes[tipus] >= 3 && nivells[tipus] < maxNivell) {
+                        nivells[tipus]++;
+                        ratxes[tipus] = 0;
                     }
                 } else {
-                    rachas[tipo] = 0;
+                    ratxes[tipus] = 0;
                 }
-                localStorage.setItem('rachas', JSON.stringify(rachas));
-                localStorage.setItem('niveles', JSON.stringify(niveles));
+                localStorage.setItem('ratxes', JSON.stringify(ratxes));
+                localStorage.setItem('nivells', JSON.stringify(nivells));
             }
             
-            function actualizarBotonesNivel() {
-                const rachas = JSON.parse(localStorage.getItem('rachas')) || { sumas: 0, restas: 0 };
-                const niveles = JSON.parse(localStorage.getItem('niveles')) || { sumas: 0, restas: 0 };
+            function actualitzarBotonsNivell() {
+                const ratxes = JSON.parse(localStorage.getItem('ratxes')) || { sumes: 0, restes: 0 };
+                const nivells = JSON.parse(localStorage.getItem('nivells')) || { sumes: 0, restes: 0 };
                 
-                const progresoSuma = (rachas.sumas / 3) * 100;
-                const nivelSuma = niveles.sumas + 1;
-                ui.buttons.sumas.style.background = `linear-gradient(to right, #ffafcc ${progresoSuma}%, var(--c-blue) ${progresoSuma}%)`;
-                ui.buttons.sumas.innerHTML = `Sumas <br>(Nivel ${nivelSuma}/${nivelesSuma.length})`;
+                const progresSuma = (ratxes.sumes / 3) * 100;
+                const nivellSuma = nivells.sumes + 1;
+                ui.buttons.sumes.style.background = `linear-gradient(to right, #ffafcc ${progresSuma}%, var(--c-blue) ${progresSuma}%)`;
+                ui.buttons.sumes.innerHTML = `Sumes <br>(Nivell ${nivellSuma}/${nivellsSuma.length})`;
                 
-                const progresoResta = (rachas.restas / 3) * 100;
-                const nivelResta = niveles.restas + 1;
-                ui.buttons.restas.style.background = `linear-gradient(to right, #ffafcc ${progresoResta}%, var(--c-green) ${progresoResta}%)`;
-                ui.buttons.restas.innerHTML = `Restas <br>(Nivel ${nivelResta}/${nivelesResta.length})`;
+                const progresResta = (ratxes.restes / 3) * 100;
+                const nivellResta = nivells.restes + 1;
+                ui.buttons.restes.style.background = `linear-gradient(to right, #ffafcc ${progresResta}%, var(--c-green) ${progresResta}%)`;
+                ui.buttons.restes.innerHTML = `Restes <br>(Nivell ${nivellResta}/${nivellsResta.length})`;
             }
 
-            function mostrarEstadisticasGlobales() {
-                const stats = JSON.parse(localStorage.getItem('estadisticas')) || { multiplicaciones: [], sumas: [], restas: [] };
-                const todasLasSesiones = [...stats.multiplicaciones, ...stats.sumas, ...stats.restas];
+            function mostrarEstadistiquesGlobals() {
+                const stats = JSON.parse(localStorage.getItem('estadistiques')) || { multiplicacions: [], sumes: [], restes: [] };
+                const totesLesSessions = [...stats.multiplicacions, ...stats.sumes, ...stats.restes];
                 
-                if (todasLasSesiones.length === 0) {
-                    ui.elements.statsGlobales.innerHTML = "<h3>Resumen General</h3><p>¡Aún no has completado ninguna sesión! ¡Vamos a jugar!</p>";
+                if (totesLesSessions.length === 0) {
+                    ui.elements.statsGlobals.innerHTML = "<h3>Resum General</h3><p>Encara no has completat cap sessió. Som-hi a jugar!</p>";
                     return;
                 }
                 
-                const totalSesiones = todasLasSesiones.length;
-                const totalAciertos = todasLasSesiones.reduce((sum, s) => sum + s.aciertos, 0);
-                const totalPreguntas = todasLasSesiones.length * TOTAL_PREGUNTAS;
-                const precision = totalPreguntas > 0 ? ((totalAciertos / totalPreguntas) * 100).toFixed(1) : 0;
-                const tiempoTotal = todasLasSesiones.reduce((sum, s) => sum + s.tiempo, 0);
-                const tiempoMedio = (tiempoTotal / totalSesiones).toFixed(1);
+                const totalSessions = totesLesSessions.length;
+                const totalEncerts = totesLesSessions.reduce((sum, s) => sum + s.encerts, 0);
+                const totalPreguntes = totesLesSessions.length * TOTAL_PREGUNTES;
+                const precisio = totalPreguntes > 0 ? ((totalEncerts / totalPreguntes) * 100).toFixed(1) : 0;
+                const tempsTotal = totesLesSessions.reduce((sum, s) => sum + s.temps, 0);
+                const tempsMitja = (tempsTotal / totalSessions).toFixed(1);
 
-                ui.elements.statsGlobales.innerHTML = `
-                    <h3>Resumen General</h3>
+                ui.elements.statsGlobals.innerHTML = `
+                    <h3>Resum General</h3>
                     <div class="stats-grid">
-                        <div class="stat-item">
-                            <div>Sesiones</div>
-                            <div class="value">${totalSesiones}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div>Precisión</div>
-                            <div class="value">${precision}%</div>
-                        </div>
-                        <div class="stat-item">
-                            <div>Tiempo Medio</div>
-                            <div class="value">${tiempoMedio}s</div>
-                        </div>
-                    </div>
-                `;
+                        <div class="stat-item"><div>Sessions</div><div class="value">${totalSessions}</div></div>
+                        <div class="stat-item"><div>Precisió</div><div class="value">${precisio}%</div></div>
+                        <div class="stat-item"><div>Temps Mitjà</div><div class="value">${tempsMitja}s</div></div>
+                    </div>`;
             }
 
-            function mostrarHistorial(tipo) {
-                const stats = JSON.parse(localStorage.getItem('estadisticas')) || {};
-                const historial = stats[tipo] || [];
+            function mostrarHistorial(tipus) {
+                const stats = JSON.parse(localStorage.getItem('estadistiques')) || {};
+                const historial = stats[tipus] || [];
                 
-                ui.elements.historialTitulo.textContent = `Historial de ${tipo}`;
-                ui.elements.historialContenido.innerHTML = '';
+                ui.elements.historialTitol.textContent = `Historial de ${tipus}`;
+                ui.elements.historialContingut.innerHTML = '';
 
                 if (historial.length === 0) {
-                    ui.elements.historialContenido.innerHTML = '<p>No hay datos todavía.</p>';
-                    ui.elements.chartContainer.innerHTML = '';
+                    ui.elements.historialContingut.innerHTML = '<p>Encara no hi ha dades.</p>';
+                    if (chartInstances.errors) chartInstances.errors.destroy();
+                    if (chartInstances.times) chartInstances.times.destroy();
                 } else {
                     historial.slice().reverse().forEach(s => {
                         const p = document.createElement('p');
-                        p.textContent = `${s.fecha} - Fallos: ${s.fallos}, Tiempo: ${s.tiempo}s`;
-                        ui.elements.historialContenido.appendChild(p);
+                        p.textContent = `${s.data} - Errades: ${s.errades}, Temps: ${s.temps}s`;
+                        ui.elements.historialContingut.appendChild(p);
                     });
-                    generarGrafica(historial);
+                    generarGrafiques(historial);
                 }
-                ui.elements.historialDetallado.style.display = 'block';
+                ui.elements.historialDetallat.style.display = 'block';
             }
 
-            function generarGrafica(datos) {
-                ui.elements.chartContainer.innerHTML = '';
-                const datosRecientes = datos.slice(-10); // Últimas 10 sesiones
-                const maxFallos = Math.max(...datosRecientes.map(s => s.fallos), 1); // Evitar división por cero
+            function generarGrafiques(dades) {
+                if (chartInstances.errors) chartInstances.errors.destroy();
+                if (chartInstances.times) chartInstances.times.destroy();
 
-                datosRecientes.forEach(sesion => {
-                    const bar = document.createElement('div');
-                    bar.className = 'chart-bar';
-                    const altura = (sesion.fallos / maxFallos) * 100;
-                    bar.style.height = `${altura}%`;
-                    
-                    const tooltip = document.createElement('span');
-                    tooltip.className = 'tooltip';
-                    tooltip.textContent = `${sesion.fallos} fallos`;
-                    
-                    bar.appendChild(tooltip);
-                    ui.elements.chartContainer.appendChild(bar);
+                const labels = dades.map((s, i) => `${s.data} (${i+1})`);
+                const erradesData = dades.map(s => s.errades);
+                const tempsData = dades.map(s => s.temps);
+
+                const errCtx = document.getElementById('errors-chart').getContext('2d');
+                chartInstances.errors = new Chart(errCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Errades per sessió',
+                            data: erradesData,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                });
+
+                const timesCtx = document.getElementById('times-chart').getContext('2d');
+                chartInstances.times = new Chart(timesCtx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Temps per sessió (segons)',
+                            data: tempsData,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: { scales: { y: { beginAtZero: true } } }
                 });
             }
             
             // --- Event Listeners ---
-            ui.buttons.multiplicaciones.addEventListener('click', () => {
-                mostrarPantalla('multiplicaciones');
-                ui.elements.seleccionTabla.style.display = 'block';
-                ui.elements.juegoMultiplicacion.style.display = 'none';
-                ui.elements.numeroTabla.value = '';
+            ui.buttons.multiplicacions.addEventListener('click', () => {
+                mostrarPantalla('multiplicacions');
+                ui.elements.seleccioTaula.style.display = 'block';
+                ui.elements.jocMultiplicacio.style.display = 'none';
+                ui.elements.numeroTaula.value = '';
             });
-            ui.buttons.sumas.addEventListener('click', () => { mostrarPantalla('sumas'); iniciarJuego('sumas'); });
-            ui.buttons.restas.addEventListener('click', () => { mostrarPantalla('restas'); iniciarJuego('restas'); });
-            ui.buttons.estadisticas.addEventListener('click', () => {
-                mostrarPantalla('estadisticas');
-                mostrarEstadisticasGlobales();
-                ui.elements.historialDetallado.style.display = 'none';
+            ui.buttons.sumes.addEventListener('click', () => { mostrarPantalla('sumes'); iniciarJoc('sumes'); });
+            ui.buttons.restes.addEventListener('click', () => { mostrarPantalla('restes'); iniciarJoc('restes'); });
+            ui.buttons.estadistiques.addEventListener('click', () => {
+                mostrarPantalla('estadistiques');
+                mostrarEstadistiquesGlobals();
+                ui.elements.historialDetallat.style.display = 'none';
             });
-            ui.buttons.iniciarMultiplicacion.addEventListener('click', () => {
-                if (ui.elements.numeroTabla.value) iniciarJuego('multiplicaciones');
+            ui.buttons.iniciarMultiplicacio.addEventListener('click', () => {
+                if (ui.elements.numeroTaula.value) iniciarJoc('multiplicacions');
             });
             
-            [ui.elements.respuestaMultiplicacion, ui.elements.respuestaSuma, ui.elements.respuestaResta].forEach((input, index) => {
-                const boton = [ui.buttons.comprobarMultiplicacion, ui.buttons.comprobarSuma, ui.buttons.comprobarResta][index];
-                input.addEventListener('input', () => { boton.disabled = input.value.trim() === ''; });
+            [ui.elements.respostaMultiplicacio, ui.elements.respostaSuma, ui.elements.respostaResta].forEach((input, index) => {
+                const boto = [ui.buttons.comprovarMultiplicacio, ui.buttons.comprovarSuma, ui.buttons.comprovarResta][index];
+                input.addEventListener('input', () => { boto.disabled = input.value.trim() === ''; });
                 input.addEventListener('keyup', (event) => {
-                    if (event.key === 'Enter' && !boton.disabled) comprobarRespuesta();
+                    if (event.key === 'Enter' && !boto.disabled) comprovarResposta();
                 });
             });
 
-            [ui.buttons.comprobarMultiplicacion, ui.buttons.comprobarSuma, ui.buttons.comprobarResta].forEach(b => b.addEventListener('click', comprobarRespuesta));
-            document.querySelectorAll('.btn-finalizar').forEach(btn => btn.addEventListener('click', () => finalizarSesion(false)));
-            ui.buttons.volverMenu.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
-            ui.buttons.volverMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
-            ui.buttons.historial.forEach(btn => btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipo)));
+            [ui.buttons.comprovarMultiplicacio, ui.buttons.comprovarSuma, ui.buttons.comprovarResta].forEach(b => b.addEventListener('click', comprovarResposta));
+            document.querySelectorAll('.btn-finalitzar').forEach(btn => btn.addEventListener('click', () => finalitzarSessio(false)));
+            ui.buttons.tornarMenu.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
+            ui.buttons.tornarMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
+            ui.buttons.historial.forEach(btn => btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipus)));
 
-            // --- Inicialización ---
+            // --- Inicialització ---
             mostrarPantalla('menuPrincipal');
-            actualizarBotonesNivel();
+            actualitzarBotonsNivell();
         });
     </script>
 </body>
