@@ -58,9 +58,14 @@
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 1.1em; }
         .stat-item { background: #f8f9fa; padding: 10px; border-radius: 10px; }
         .stat-item .value { font-size: 1.5em; font-weight: 700; color: var(--c-purple); }
-        #historial-contingut { text-align: left; max-height: 200px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; padding: 10px; margin-top: 15px; }
+        #historial-contingut, #resum-fallades { text-align: left; max-height: 200px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; padding: 10px; margin-top: 15px; }
         #historial-contingut p { margin: 8px 0; }
         .chart-container { margin-top: 20px; }
+        #feedback-missatge {
+            padding: 10px; margin-top: 15px; border-radius: 10px;
+            font-weight: bold; display: none;
+        }
+        .feedback-incorrecte { background-color: #ffdde5; color: #d00000; }
     </style>
 </head>
 <body>
@@ -89,6 +94,7 @@
             <p id="pregunta-text" style="font-size: 1.8em; font-weight: 700;"></p>
             <input type="number" id="resposta-input" inputmode="numeric">
             <button id="btn-comprovar" disabled>Comprovar</button>
+            <div id="feedback-missatge"></div>
             <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
             <button class="btn-finalitzar">Sortir</button>
         </div>
@@ -96,9 +102,13 @@
         <div id="pantalla-resum" class="container" style="display:none;">
             <h2 id="resum-titol">Ben fet!</h2>
             <p>Temps total: <strong id="temps-total"></strong> segons</p>
-            <p>Encerts: <strong id="encerts"></strong> ✅</p>
-            <p>Errades: <strong id="errades"></strong> ❌</p>
+            <p>Encerts inicials: <strong id="encerts"></strong> ✅</p>
+            <p>Errades inicials: <strong id="errades"></strong> ❌</p>
             <p id="missatge-felicitacio" style="display:none; font-size: 1.5em;">⭐ PERFECTE! ⭐</p>
+            <div id="resum-fallades-contenidor" style="display:none;">
+                <h3>Operacions a repassar:</h3>
+                <div id="resum-fallades"></div>
+            </div>
             <button id="btn-tornar-menu">Tornar al Menú</button>
         </div>
 
@@ -153,12 +163,15 @@
                     jocTitol: document.getElementById('joc-titol'),
                     preguntaText: document.getElementById('pregunta-text'),
                     respostaInput: document.getElementById('resposta-input'),
+                    feedbackMissatge: document.getElementById('feedback-missatge'),
                     progressBar: document.getElementById('progress-bar'),
                     tempsTotal: document.getElementById('temps-total'),
                     encerts: document.getElementById('encerts'),
                     errades: document.getElementById('errades'),
                     missatgeFelicitacio: document.getElementById('missatge-felicitacio'),
                     resumTitol: document.getElementById('resum-titol'),
+                    resumFalladesContenidor: document.getElementById('resum-fallades-contenidor'),
+                    resumFallades: document.getElementById('resum-fallades'),
                     statsGlobals: document.getElementById('stats-globals'),
                     historialDetallat: document.getElementById('historial-detallat'),
                     historialTitol: document.getElementById('historial-titol'),
@@ -186,6 +199,7 @@
                 fetch(`${URL_APP_SCRIPT}?action=getUsers`).then(r => r.json()).then(usuaris => {
                     if (Array.isArray(usuaris)) {
                         usuarisCarregats = usuaris;
+                        localStorage.setItem('dojoUsuaris', JSON.stringify(usuaris)); // Guarda còpia local
                         mostrarBotonsUsuari(usuaris);
                     } else { throw new Error("Format de resposta incorrecte."); }
                 }).catch(error => {
@@ -291,14 +305,14 @@
             }
 
             function iniciarJoc(tipus) {
-                let preguntes = [];
+                let preguntesInicials = [];
                 let titol = '';
                 if (tipus === 'multiplicacions') {
                     titol = 'Multiplicacions';
                     for (let i = 2; i <= 9; i++) {
                         for (let j = i; j <= 9; j++) {
-                            preguntes.push({ text: `${i} x ${j}`, resposta: i * j });
-                            if (i !== j) preguntes.push({ text: `${j} x ${i}`, resposta: j * i });
+                            preguntesInicials.push({ text: `${i} x ${j}`, resposta: i * j });
+                            if (i !== j) preguntesInicials.push({ text: `${j} x ${i}`, resposta: j * i });
                         }
                     }
                 } else if (tipus === 'sumes') {
@@ -306,8 +320,8 @@
                     const nivell = nivellsSuma[obtenirNivell('sumes')];
                     for (let i = nivell.min; i <= nivell.max; i++) {
                         for (let j = i; j <= nivell.max; j++) {
-                            preguntes.push({ text: `${i} + ${j}`, resposta: i + j });
-                            if (i !== j) preguntes.push({ text: `${j} + ${i}`, resposta: j + i });
+                            preguntesInicials.push({ text: `${i} + ${j}`, resposta: i + j });
+                            if (i !== j) preguntesInicials.push({ text: `${j} + ${i}`, resposta: j + i });
                         }
                     }
                 } else if (tipus === 'restes') {
@@ -315,14 +329,18 @@
                     const nivell = nivellsResta[obtenirNivell('restes')];
                     for (let i = nivell.min; i <= nivell.max; i++) {
                         for (let j = nivell.min; j <= i; j++) {
-                            preguntes.push({ text: `${i} - ${j}`, resposta: i - j });
+                            preguntesInicials.push({ text: `${i} - ${j}`, resposta: i - j });
                         }
                     }
                 }
                 
                 estatJoc = {
-                    tipus: tipus, preguntes: shuffle(preguntes), preguntaActualIndex: 0,
-                    encerts: 0, errades: 0, startTime: new Date()
+                    tipus: tipus,
+                    preguntes: shuffle(preguntesInicials.map(p => ({ ...p, encertsConsecutius: 0, fallada: false }))),
+                    preguntaActualIndex: 0,
+                    falladesOriginals: [],
+                    startTime: new Date(),
+                    totalPreguntesInicials: preguntesInicials.length
                 };
 
                 ui.elements.jocTitol.textContent = titol;
@@ -331,50 +349,99 @@
             }
 
             function seguentPregunta() {
+                ui.elements.feedbackMissatge.style.display = 'none';
+                if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) {
+                    finalitzarSessio(true);
+                    return;
+                }
                 const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex];
                 ui.elements.preguntaText.textContent = preguntaActual.text;
-                estatJoc.respostaCorrecta = preguntaActual.resposta;
                 ui.elements.respostaInput.value = '';
                 ui.elements.respostaInput.focus();
                 actualitzarProgres();
             }
+            
+            function mostrarFeedback(missatge, esCorrecte) {
+                const el = ui.elements.feedbackMissatge;
+                el.textContent = missatge;
+                el.className = esCorrecte ? 'feedback-correcte' : 'feedback-incorrecte';
+                el.style.display = 'block';
+
+                ui.buttons.comprovar.disabled = true;
+                setTimeout(() => {
+                     ui.buttons.comprovar.disabled = (ui.elements.respostaInput.value.trim() === '');
+                     seguentPregunta();
+                }, 1500); // Pausa de 1.5 segons
+            }
 
             function comprovarResposta() {
                 if (ui.elements.respostaInput.value.trim() === '') return;
-                const respostaUsuari = parseInt(ui.elements.respostaInput.value);
-                if (respostaUsuari === estatJoc.respostaCorrecta) estatJoc.encerts++;
-                else estatJoc.errades++;
                 
-                estatJoc.preguntaActualIndex++;
-                if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) {
-                    finalitzarSessio(true);
-                } else { seguentPregunta(); }
+                const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex];
+                const respostaUsuari = parseInt(ui.elements.respostaInput.value);
+
+                if (respostaUsuari === preguntaActual.resposta) {
+                    preguntaActual.encertsConsecutius++;
+                    if (preguntaActual.encertsConsecutius < 3) {
+                        // Si no està dominada, la movem al final per a que torni a sortir
+                        const preguntaActualitzada = estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1)[0];
+                        estatJoc.preguntes.push(preguntaActualitzada);
+                    } else {
+                        // Si ja està dominada (3 encerts), la traiem
+                        estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1);
+                    }
+                    if (estatJoc.preguntes.length === 0) {
+                        finalitzarSessio(true);
+                    } else {
+                        estatJoc.preguntaActualIndex %= estatJoc.preguntes.length;
+                        seguentPregunta();
+                    }
+                } else {
+                    if (!preguntaActual.fallada) {
+                        estatJoc.falladesOriginals.push(preguntaActual);
+                        preguntaActual.fallada = true;
+                    }
+                    preguntaActual.encertsConsecutius = 0;
+                    
+                    const preguntaFallada = estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1)[0];
+                    const novaPosicio = Math.min(estatJoc.preguntaActualIndex + 3, estatJoc.preguntes.length);
+                    estatJoc.preguntes.splice(novaPosicio, 0, preguntaFallada);
+                    
+                    mostrarFeedback(`Has fallat! La resposta correcta era: ${preguntaActual.resposta}`, false);
+                }
             }
 
             function actualitzarProgres() {
-                const total = estatJoc.preguntes.length;
-                const actual = estatJoc.preguntaActualIndex;
-                const progres = total > 0 ? (actual / total) * 100 : 0;
+                const total = estatJoc.totalPreguntesInicials;
+                const dominades = total - estatJoc.preguntes.length;
+                const progres = total > 0 ? (dominades / total) * 100 : 0;
                 ui.elements.progressBar.style.width = `${progres}%`;
-                ui.elements.progressBar.textContent = `${actual}/${total}`;
+                ui.elements.progressBar.textContent = `${dominades}/${total}`;
             }
 
             function finalitzarSessio(completada) {
                 if (completada) {
                     const tempsTranscorregut = Math.round((new Date() - estatJoc.startTime) / 1000);
+                    const erradesInicials = estatJoc.falladesOriginals.length;
+                    const encertsInicials = estatJoc.totalPreguntesInicials - erradesInicials;
+
                     ui.elements.tempsTotal.textContent = tempsTranscorregut;
-                    ui.elements.encerts.textContent = estatJoc.encerts;
-                    ui.elements.errades.textContent = estatJoc.errades;
-                    if (estatJoc.errades === 0) {
+                    ui.elements.encerts.textContent = encertsInicials;
+                    ui.elements.errades.textContent = erradesInicials;
+                    
+                    if (erradesInicials === 0) {
                         ui.elements.resumTitol.textContent = "Increïble!";
                         ui.elements.missatgeFelicitacio.style.display = 'block';
+                        ui.elements.resumFalladesContenidor.style.display = 'none';
                         actualitzarNivell(estatJoc.tipus, true);
                     } else {
                         ui.elements.resumTitol.textContent = "Bon intent!";
                         ui.elements.missatgeFelicitacio.style.display = 'none';
+                        ui.elements.resumFalladesContenidor.style.display = 'block';
+                        ui.elements.resumFallades.innerHTML = estatJoc.falladesOriginals.map(p => `<p>${p.text} = <strong>${p.resposta}</strong></p>`).join('');
                         actualitzarNivell(estatJoc.tipus, false);
                     }
-                    guardarEstadistiques(tempsTranscorregut);
+                    guardarEstadistiques(tempsTranscorregut, encertsInicials, erradesInicials);
                     mostrarPantalla('resum');
                 } else {
                     mostrarPantalla('menuPrincipal');
@@ -382,15 +449,13 @@
                 actualitzarBotonsNivell();
             }
 
-            function guardarEstadistiques(temps) {
+            function guardarEstadistiques(temps, encerts, errades) {
                 const dadesUsuari = getDadesUsuari();
                 const sessioDades = {
                     data: new Date().toLocaleDateString('ca-ES'),
                     tipus: estatJoc.tipus,
-                    encerts: estatJoc.encerts,
-                    errades: estatJoc.errades,
-                    temps: temps,
-                    totalPreguntes: estatJoc.preguntes.length
+                    encerts: encerts, errades: errades, temps: temps,
+                    totalPreguntes: estatJoc.totalPreguntesInicials
                 };
                 dadesUsuari.estadistiques[estatJoc.tipus].push(sessioDades);
                 setDadesUsuari(dadesUsuari);
@@ -485,7 +550,9 @@
             ui.elements.respostaInput.addEventListener('input', () => { ui.buttons.comprovar.disabled = ui.elements.respostaInput.value.trim() === ''; });
             ui.elements.respostaInput.addEventListener('keyup', (e) => { if (e.key === 'Enter' && !ui.buttons.comprovar.disabled) comprovarResposta(); });
             ui.buttons.comprovar.addEventListener('click', comprovarResposta);
-            document.querySelectorAll('.btn-finalitzar').forEach(btn => btn.addEventListener('click', () => finalitzarSessio(false)));
+            document.querySelectorAll('.btn-finalitzar').forEach(btn => btn.addEventListener('click', () => {
+                if (confirm("Segur que vols sortir de la sessió? El progrés no es desarà.")) { finalitzarSessio(false); }
+            }));
             ui.buttons.tornarMenu.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
             ui.buttons.tornarMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
             ui.buttons.historial.forEach(btn => btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipus)));
