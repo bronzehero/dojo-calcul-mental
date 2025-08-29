@@ -389,24 +389,21 @@
                         estatJoc.preguntesDominades++;
                         estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1);
                     } else {
-                        // Correcte però no dominada, passa a la següent
                         estatJoc.preguntaActualIndex++;
                     }
                 } else {
-                    // Resposta incorrecta
                     if (!preguntaActual.fallada) {
                         estatJoc.falladesOriginals.push({text: preguntaActual.text, resposta: preguntaActual.resposta});
                         preguntaActual.fallada = true;
                     }
                     preguntaActual.encertsConsecutius = 0;
                     
-                    // Mou la pregunta fallada 3 posicions més enllà per a que no surti immediatament
                     const preguntaFallada = estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1)[0];
                     const novaPosicio = Math.min(estatJoc.preguntaActualIndex + 3, estatJoc.preguntes.length);
                     estatJoc.preguntes.splice(novaPosicio, 0, preguntaFallada);
                     
                     mostrarFeedback(`Has fallat! La resposta correcta era: ${preguntaActual.resposta}`);
-                    return; // Retorna per no cridar a seguentPregunta(), ja que ho farà el temporitzador de mostrarFeedback
+                    return;
                 }
                 seguentPregunta();
             }
