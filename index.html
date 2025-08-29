@@ -336,12 +336,12 @@
                 
                 estatJoc = {
                     tipus: tipus,
-                    preguntes: shuffle(preguntesInicials.map(p => ({ ...p, encertsConsecutius: 0, fallada: false, superada: false }))),
+                    preguntes: shuffle(preguntesInicials.map(p => ({ ...p, encertsConsecutius: 0, fallada: false }))),
                     preguntaActualIndex: 0,
-                    preguntesSuperades: 0,
                     falladesOriginals: [],
                     startTime: new Date(),
-                    totalPreguntesInicials: preguntesInicials.length
+                    totalPreguntesInicials: preguntesInicials.length,
+                    preguntesDominades: 0
                 };
 
                 ui.elements.jocTitol.textContent = titol;
@@ -351,12 +351,11 @@
 
             function seguentPregunta() {
                 ui.elements.feedbackMissatge.style.display = 'none';
-                if (estatJoc.preguntes.length === 0) { // S'ha acabat quan no queden preguntes
+                if (estatJoc.preguntes.length === 0) {
                     finalitzarSessio(true);
                     return;
                 }
-                // Assegurem que l'índex no se surti del límit
-                if(estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) {
+                if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) {
                     estatJoc.preguntaActualIndex = 0;
                 }
                 const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex];
@@ -371,7 +370,6 @@
                 el.textContent = missatge;
                 el.className = 'feedback-incorrecte';
                 el.style.display = 'block';
-
                 ui.buttons.comprovar.disabled = true;
                 setTimeout(() => {
                      ui.buttons.comprovar.disabled = (ui.elements.respostaInput.value.trim() === '');
@@ -386,18 +384,13 @@
                 const respostaUsuari = parseInt(ui.elements.respostaInput.value);
 
                 if (respostaUsuari === preguntaActual.resposta) {
-                    if (!preguntaActual.superada) {
-                        preguntaActual.superada = true;
-                        estatJoc.preguntesSuperades++;
-                    }
                     preguntaActual.encertsConsecutius++;
                     if (preguntaActual.encertsConsecutius >= 3) {
+                        estatJoc.preguntesDominades++;
                         estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1);
                     } else {
-                        const preguntaMoguda = estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1)[0];
-                        estatJoc.preguntes.push(preguntaMoguda);
+                        estatJoc.preguntaActualIndex++;
                     }
-                    seguentPregunta();
                 } else {
                     if (!preguntaActual.fallada) {
                         estatJoc.falladesOriginals.push({text: preguntaActual.text, resposta: preguntaActual.resposta});
@@ -410,15 +403,17 @@
                     estatJoc.preguntes.splice(novaPosicio, 0, preguntaFallada);
                     
                     mostrarFeedback(`Has fallat! La resposta correcta era: ${preguntaActual.resposta}`);
+                    return; // Retorna per no cridar a seguentPregunta(), ja que ho fa mostrarFeedback
                 }
+                seguentPregunta();
             }
 
             function actualitzarProgres() {
                 const total = estatJoc.totalPreguntesInicials;
-                const superades = estatJoc.preguntesSuperades;
-                const progres = total > 0 ? (superades / total) * 100 : 0;
+                const dominades = estatJoc.preguntesDominades;
+                const progres = total > 0 ? (dominades / total) * 100 : 0;
                 ui.elements.progressBar.style.width = `${progres}%`;
-                ui.elements.progressBar.textContent = `${superades}/${total}`;
+                ui.elements.progressBar.textContent = `${dominades}/${total}`;
             }
 
             function finalitzarSessio(completada) {
