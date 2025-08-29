@@ -199,7 +199,7 @@
                 fetch(`${URL_APP_SCRIPT}?action=getUsers`).then(r => r.json()).then(usuaris => {
                     if (Array.isArray(usuaris)) {
                         usuarisCarregats = usuaris;
-                        localStorage.setItem('dojoUsuaris', JSON.stringify(usuaris)); // Guarda còpia local
+                        localStorage.setItem('dojoUsuaris', JSON.stringify(usuaris));
                         mostrarBotonsUsuari(usuaris);
                     } else { throw new Error("Format de resposta incorrecte."); }
                 }).catch(error => {
@@ -336,8 +336,9 @@
                 
                 estatJoc = {
                     tipus: tipus,
-                    preguntes: shuffle(preguntesInicials.map(p => ({ ...p, encertsConsecutius: 0, fallada: false }))),
+                    preguntes: shuffle(preguntesInicials.map(p => ({ ...p, encertsConsecutius: 0, fallada: false, superada: false }))),
                     preguntaActualIndex: 0,
+                    preguntesSuperades: 0,
                     falladesOriginals: [],
                     startTime: new Date(),
                     totalPreguntesInicials: preguntesInicials.length
@@ -350,9 +351,13 @@
 
             function seguentPregunta() {
                 ui.elements.feedbackMissatge.style.display = 'none';
-                if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) {
+                if (estatJoc.preguntes.length === 0) { // S'ha acabat quan no queden preguntes
                     finalitzarSessio(true);
                     return;
+                }
+                // Assegurem que l'índex no se surti del límit
+                if(estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) {
+                    estatJoc.preguntaActualIndex = 0;
                 }
                 const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex];
                 ui.elements.preguntaText.textContent = preguntaActual.text;
@@ -361,17 +366,17 @@
                 actualitzarProgres();
             }
             
-            function mostrarFeedback(missatge, esCorrecte) {
+            function mostrarFeedback(missatge) {
                 const el = ui.elements.feedbackMissatge;
                 el.textContent = missatge;
-                el.className = esCorrecte ? 'feedback-correcte' : 'feedback-incorrecte';
+                el.className = 'feedback-incorrecte';
                 el.style.display = 'block';
 
                 ui.buttons.comprovar.disabled = true;
                 setTimeout(() => {
                      ui.buttons.comprovar.disabled = (ui.elements.respostaInput.value.trim() === '');
                      seguentPregunta();
-                }, 1500); // Pausa de 1.5 segons
+                }, 1500);
             }
 
             function comprovarResposta() {
@@ -381,24 +386,21 @@
                 const respostaUsuari = parseInt(ui.elements.respostaInput.value);
 
                 if (respostaUsuari === preguntaActual.resposta) {
+                    if (!preguntaActual.superada) {
+                        preguntaActual.superada = true;
+                        estatJoc.preguntesSuperades++;
+                    }
                     preguntaActual.encertsConsecutius++;
-                    if (preguntaActual.encertsConsecutius < 3) {
-                        // Si no està dominada, la movem al final per a que torni a sortir
-                        const preguntaActualitzada = estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1)[0];
-                        estatJoc.preguntes.push(preguntaActualitzada);
-                    } else {
-                        // Si ja està dominada (3 encerts), la traiem
+                    if (preguntaActual.encertsConsecutius >= 3) {
                         estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1);
-                    }
-                    if (estatJoc.preguntes.length === 0) {
-                        finalitzarSessio(true);
                     } else {
-                        estatJoc.preguntaActualIndex %= estatJoc.preguntes.length;
-                        seguentPregunta();
+                        const preguntaMoguda = estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1)[0];
+                        estatJoc.preguntes.push(preguntaMoguda);
                     }
+                    seguentPregunta();
                 } else {
                     if (!preguntaActual.fallada) {
-                        estatJoc.falladesOriginals.push(preguntaActual);
+                        estatJoc.falladesOriginals.push({text: preguntaActual.text, resposta: preguntaActual.resposta});
                         preguntaActual.fallada = true;
                     }
                     preguntaActual.encertsConsecutius = 0;
@@ -407,16 +409,16 @@
                     const novaPosicio = Math.min(estatJoc.preguntaActualIndex + 3, estatJoc.preguntes.length);
                     estatJoc.preguntes.splice(novaPosicio, 0, preguntaFallada);
                     
-                    mostrarFeedback(`Has fallat! La resposta correcta era: ${preguntaActual.resposta}`, false);
+                    mostrarFeedback(`Has fallat! La resposta correcta era: ${preguntaActual.resposta}`);
                 }
             }
 
             function actualitzarProgres() {
                 const total = estatJoc.totalPreguntesInicials;
-                const dominades = total - estatJoc.preguntes.length;
-                const progres = total > 0 ? (dominades / total) * 100 : 0;
+                const superades = estatJoc.preguntesSuperades;
+                const progres = total > 0 ? (superades / total) * 100 : 0;
                 ui.elements.progressBar.style.width = `${progres}%`;
-                ui.elements.progressBar.textContent = `${dominades}/${total}`;
+                ui.elements.progressBar.textContent = `${superades}/${total}`;
             }
 
             function finalitzarSessio(completada) {
