@@ -199,6 +199,7 @@
                 fetch(`${URL_APP_SCRIPT}?action=getUsers`).then(r => r.json()).then(usuaris => {
                     if (Array.isArray(usuaris)) {
                         usuarisCarregats = usuaris;
+                        localStorage.setItem('dojoUsuaris', JSON.stringify(usuaris)); // Guarda còpia local
                         mostrarBotonsUsuari(usuaris);
                     } else { throw new Error("Format de resposta incorrecte."); }
                 }).catch(error => {
@@ -368,7 +369,7 @@
 
                 ui.buttons.comprovar.disabled = true;
                 setTimeout(() => {
-                     ui.buttons.comprovar.disabled = false;
+                     ui.buttons.comprovar.disabled = (ui.elements.respostaInput.value.trim() === '');
                      seguentPregunta();
                 }, 1500); // Pausa de 1.5 segons
             }
@@ -381,22 +382,27 @@
 
                 if (respostaUsuari === preguntaActual.resposta) {
                     preguntaActual.encertsConsecutius++;
-                    // Filtrem la pregunta actual si ja està dominada (3 encerts)
-                    if (preguntaActual.encertsConsecutius >= 3) {
-                        estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1);
+                    if (preguntaActual.encertsConsecutius < 3) {
+                        // Si no està dominada, la movem al final per a que torni a sortir
+                        const preguntaActualitzada = estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1)[0];
+                        estatJoc.preguntes.push(preguntaActualitzada);
                     } else {
-                        estatJoc.preguntaActualIndex++;
+                        // Si ja està dominada (3 encerts), la traiem
+                        estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1);
                     }
-                    seguentPregunta();
+                    if (estatJoc.preguntes.length === 0) {
+                        finalitzarSessio(true);
+                    } else {
+                        estatJoc.preguntaActualIndex %= estatJoc.preguntes.length;
+                        seguentPregunta();
+                    }
                 } else {
-                    // Si és la primera vegada que es falla aquesta pregunta, s'afegeix a la llista de repàs
                     if (!preguntaActual.fallada) {
                         estatJoc.falladesOriginals.push(preguntaActual);
                         preguntaActual.fallada = true;
                     }
                     preguntaActual.encertsConsecutius = 0;
                     
-                    // Re-inserim la pregunta fallada més endavant
                     const preguntaFallada = estatJoc.preguntes.splice(estatJoc.preguntaActualIndex, 1)[0];
                     const novaPosicio = Math.min(estatJoc.preguntaActualIndex + 3, estatJoc.preguntes.length);
                     estatJoc.preguntes.splice(novaPosicio, 0, preguntaFallada);
@@ -407,7 +413,7 @@
 
             function actualitzarProgres() {
                 const total = estatJoc.totalPreguntesInicials;
-                const dominades = total - estatJoc.preguntes.filter(p => p.encertsConsecutius < 3).length;
+                const dominades = total - estatJoc.preguntes.length;
                 const progres = total > 0 ? (dominades / total) * 100 : 0;
                 ui.elements.progressBar.style.width = `${progres}%`;
                 ui.elements.progressBar.textContent = `${dominades}/${total}`;
@@ -545,7 +551,16 @@
             ui.elements.respostaInput.addEventListener('keyup', (e) => { if (e.key === 'Enter' && !ui.buttons.comprovar.disabled) comprovarResposta(); });
             ui.buttons.comprovar.addEventListener('click', comprovarResposta);
             document.querySelectorAll('.btn-finalitzar').forEach(btn => btn.addEventListener('click', () => {
-                if (confirm("Segur que vols sortir de la sessió? El progrés no es desarà.")) {
-                    finalitzarSessio(false);
-                }
+                if (confirm("Segur que vols sortir de la sessió? El progrés no es desarà.")) { finalitzarSessio(false); }
             }));
+            ui.buttons.tornarMenu.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
+            ui.buttons.tornarMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
+            ui.buttons.historial.forEach(btn => btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipus)));
+
+            // --- Inicialització ---
+            carregarUsuaris();
+            mostrarPantalla('login');
+        });
+    </script>
+</body>
+</html>
