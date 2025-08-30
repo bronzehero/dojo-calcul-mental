@@ -2,81 +2,58 @@
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dojo de Càlcul Mental</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app-container">
-        
-        <div id="pantalla-login" class="container">
-            <h2>Qui està jugant?</h2>
-            <div id="usuaris-existents"><p>Carregant usuaris...</p></div>
+
+    <div class="container">
+        <!-- Pantalla 1: Selecció d'usuari (Visible al principi) -->
+        <div id="user-selection-screen">
+            <h1>Dojo de Càlcul Mental</h1>
+            <h2>Selecciona el teu usuari</h2>
+            <div id="user-selection" class="user-buttons-container">
+                <p>Carregant usuaris...</p>
+            </div>
             <hr>
-            <p>o crea un usuari nou:</p>
-            <input type="text" id="nou-usuari-nom" placeholder="Escriu el teu nom">
-            <button id="btn-crear-usuari">Entrar</button>
+            <button id="new-user-button">Crear usuari nou</button>
         </div>
 
-        <div id="menu-principal" class="container" style="display:none;">
-            <h1 id="menu-benvinguda">🧠 Dojo Mental 🧠</h1>
-            <button id="btn-multiplicacions">Sessió de Multiplicacions</button>
-            <button id="btn-sumes">Sumes</button>
-            <button id="btn-restes">Restes</button>
-            <button id="btn-estadistiques">📊 Estadístiques</button>
-            <button id="btn-canviar-usuari">Canviar d'Usuari</button>
+        <!-- Pantalla 2: Formulari per a un nou usuari (Oculta al principi) -->
+        <div id="new-user-form" style="display: none;">
+            <h2>Crea un nou usuari</h2>
+            <input type="text" id="new-user-name" placeholder="Escriu el teu nom">
+            <button id="save-user-button">Desar i començar</button>
         </div>
 
-        <div id="pantalla-joc" class="container" style="display:none;">
-            <h2 id="joc-titol"></h2>
-            <p id="pregunta-text" style="font-size: 1.8em; font-weight: 700;"></p>
-            <input type="number" id="resposta-input" inputmode="numeric">
-            <button id="btn-comprovar" disabled>Comprovar</button>
-            <div id="feedback-missatge"></div>
-            <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
-            <button class="btn-finalitzar">Sortir</button>
-        </div>
-
-        <div id="pantalla-resum" class="container" style="display:none;">
-            <h2 id="resum-titol">Ben fet!</h2>
-            <p>Temps total: <strong id="temps-total"></strong> segons</p>
-            <p>Encerts inicials: <strong id="encerts"></strong> ✅</p>
-            <p>Errades inicials: <strong id="errades"></strong> ❌</p>
-            <p id="missatge-felicitacio" style="display:none; font-size: 1.5em;">⭐ PERFECTE! ⭐</p>
-            <div id="resum-fallades-contenidor" style="display:none;">
-                <h3>Operacions a repassar:</h3>
-                <div id="resum-fallades"></div>
+        <!-- Pantalla 3: Pantalla del joc (Oculta al principi) -->
+        <div id="game-screen" style="display: none;">
+            <div class="game-stats">
+                <span>Temps: <span id="timer">60</span></span>
+                <span>Puntuació: <span id="score">0</span></span>
             </div>
-            <button id="btn-tornar-menu">Tornar al Menú</button>
-        </div>
+            
+            <div class="problem-container">
+                <p id="problem">5 x 8 = ?</p>
+            </div>
 
-        <div id="pantalla-estadistiques" class="container" style="display:none;">
-            <h2>📊 Estadístiques</h2>
-            <div id="stats-globals" class="stats-card"></div>
-            <div id="botons-historial">
-                <button data-tipus="multiplicacions">Historial Multiplicacions</button>
-                <button data-tipus="sumes">Historial Sumes</button>
-                <button data-tipus="restes">Historial Restes</button>
-            </div>
-            <div id="historial-detallat" style="display:none;">
-                <h3 id="historial-titol"></h3>
-                <div class="chart-container"><canvas id="errors-chart"></canvas></div>
-                <div class="chart-container"><canvas id="times-chart"></canvas></div>
-                <div id="historial-contingut"></div>
-            </div>
-            <button id="btn-tornar-menu-stats">Tornar al Menú Principal</button>
+            <form id="answer-form" class="answer-container">
+                <input type="number" id="answer" autocomplete="off" autofocus>
+                <button type="submit">Enviar</button>
+            </form>
+
+            <p id="feedback"></p>
         </div>
     </div>
-    
-    <!-- Scripts modulars -->
-    <script src="config.js"></script>
-    <script src="ui.js"></script>
+
+    <!-- Scripts carregats al final del body -->
+    <!-- 1. Llibreria PapaParse per llegir el CSV del Google Sheet -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
+    <!-- 2. Lògica per connectar amb l'API (Google Sheets) -->
     <script src="api.js"></script>
-    <script src="game.js"></script>
+    <!-- 3. Lògica principal del joc -->
     <script src="main.js"></script>
+
 </body>
 </html>
