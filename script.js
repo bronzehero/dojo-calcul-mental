@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbw-6gIP9QUZwHRE4HwY6lgf0w4Ka2mNNwvg2lUFm4wB2dmmwcHTDQ-mN7DoT9IGa-7-/exec";
+    const URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbw-6gIP9QUZwHRE4HwY6lgf0w4Ka2mNNwvg2lUFm4wB2dmmwcHTDQ-mN7DoTIGa-7-/exec";
     const CLAU_SECRETA = "dojo-secret-key-2025";
     
     const pantallas = {
@@ -112,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
             encerts: s.encerts != null ? s.encerts : (s.totalpreguntes - s.errades),
             totalPreguntes: s.totalpreguntes
         }));
+
         historialNormalitzat.forEach(sessio => {
             const { tipus, errades } = sessio;
             if (tipus === 'sumes' || tipus === 'restes') {
