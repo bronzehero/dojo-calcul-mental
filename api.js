@@ -1,91 +1,69 @@
-let usuariActual = null;
-let usuarisCarregats = [];
+// URL del teu Google Sheet publicat com a CSV
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ08s3soO6nF4jR3sAGJ91aarrow_forwardTR2a3w_T4iS2-G4LwL3sUa2wd0mea-k2EUOFhMZxIlwep2z/pub?gid=0&single=true&output=csv';
 
+/**
+ * Mostra els botons per seleccionar un usuari a la pantalla principal.
+ * Aquesta funció s'integra amb l'element <div id="user-selection"> de l'index.html
+ * i crida a la funció seleccionarUsuari(nom) definida a main.js.
+ * @param {Array<Object>} usuaris - La llista d'usuaris a mostrar.
+ */
+function mostrarBotonsUsuari(usuaris) {
+  const contenidorUsuaris = document.getElementById('user-selection');
+
+  // Neteja el missatge "Carregant usuaris..."
+  contenidorUsuaris.innerHTML = '';
+
+  // Crea un botó per cada usuari
+  usuaris.forEach(usuari => {
+    // Assegurem que l'usuari tingui un nom abans de crear el botó
+    if (usuari && usuari.nom) {
+      const boto = document.createElement('button');
+      boto.textContent = usuari.nom;
+      boto.className = 'user-button'; // Pots afegir una classe per estils
+      
+      // Quan es fa clic, crida a la funció de main.js per iniciar el procés
+      boto.onclick = () => seleccionarUsuari(usuari.nom);
+      
+      contenidorUsuaris.appendChild(boto);
+    }
+  });
+}
+
+/**
+ * Carrega els usuaris des del Google Sheet.
+ * Si falla, carrega els usuaris des del fitxer local usuaris.js com a fallback.
+ */
 async function carregarUsuaris() {
-    ui.elements.usuarisExistents.innerHTML = '<p>Carregant usuaris...</p>';
-    try {
-        const response = await fetch(`${URL_APP_SCRIPT}?action=getUsers`);
-        const usuaris = await response.json();
-        if (Array.isArray(usuaris)) {
-            usuarisCarregats = usuaris;
-            localStorage.setItem('dojoUsuaris', JSON.stringify(usuaris));
-            mostrarBotonsUsuari(usuaris);
-        } else {
-            throw new Error("Format de resposta incorrecte.");
-        }
-    } catch (error) {
-        console.error("Error en carregar usuaris del Sheet, usant còpia local:", error);
-        usuarisCarregats = JSON.parse(localStorage.getItem('dojoUsuaris')) || [];
-        mostrarBotonsUsuari(usuarisCarregats);
+  try {
+    const response = await fetch(SHEET_URL);
+    if (!response.ok) {
+      throw new Error('Error en la resposta de la xarxa');
     }
-}
+    const data = await response.text();
+    const usuarisSheet = Papa.parse(data, { header: true }).data.map(row => ({ nom: row.nom }));
+    
+    // Filtrem usuaris sense nom que poden venir de files buides a l'spreadsheet
+    const usuarisFiltrats = usuarisSheet.filter(u => u.nom && u.nom.trim() !== '');
 
-async function iniciarSessioUsuari(nom) {
-    usuariActual = nom;
-    ui.elements.menuBenvinguda.textContent = `Carregant dades de ${usuariActual}...`;
-    mostrarPantalla('menuPrincipal');
-    try {
-        const response = await fetch(`${URL_APP_SCRIPT}?action=getUserData&user=${encodeURIComponent(nom)}`);
-        const historial = await response.json();
-        processarDadesServidor(historial);
-        ui.elements.menuBenvinguda.textContent = `Hola, ${usuariActual}!`;
-        actualitzarBotonsNivell();
-    } catch (error) {
-        console.error("Error en descarregar historial, usant dades locals:", error);
-        ui.elements.menuBenvinguda.textContent = `Hola, ${usuariActual}! (mode offline)`;
-        actualitzarBotonsNivell();
+    if (usuarisFiltrats.length > 0) {
+        mostrarBotonsUsuari(usuarisFiltrats);
+    } else {
+        // Si el CSV està buit o mal format, fem servir la còpia local
+        throw new Error('No s\'han trobat usuaris vàlids al CSV');
     }
+  } catch (error) {
+    console.error('Error en carregar usuaris del Sheet, usant còpia local:', error);
+    // La variable 'usuaris' ve del fitxer usuaris.js que s'importa a l'index.html
+    mostrarBotonsUsuari(usuaris); 
+  }
 }
 
-function processarDadesServidor(historial) {
-    let dades = {
-        estadistiques: { multiplicacions: [], sumes: [], restes: [] },
-        nivells: { sumes: 0, restes: 0 }, ratxes: { sumes: 0, restes: 0 }
-    };
-    const historialNormalitzat = historial.map(s => ({
-        tipus: s.tipus, errades: s.errades, data: s.data, temps: s.temps,
-        encerts: s.encerts != null ? s.encerts : (s.totalpreguntes - s.errades),
-        totalPreguntes: s.totalpreguntes
-    }));
-    historialNormalitzat.forEach(sessio => {
-        const { tipus, errades } = sessio;
-        if (tipus === 'sumes' || tipus === 'restes') {
-            const maxNivell = (tipus === 'sumes' ? nivellsSuma.length : nivellsResta.length) - 1;
-            if (errades === 0) {
-                dades.ratxes[tipus]++;
-                if (dades.ratxes[tipus] >= 3 && dades.nivells[tipus] < maxNivell) {
-                    dades.nivells[tipus]++;
-                    dades.ratxes[tipus] = 0;
-                }
-            } else { dades.ratxes[tipus] = 0; }
-        }
-        if (dades.estadistiques[tipus]) dades.estadistiques[tipus].push(sessio);
-    });
-    setDadesUsuari(dades);
+// TODO: Funció per desar els resultats (a implementar)
+function desarResultat(resultat) {
+  // Aquí anirà la lògica per enviar les dades al Google Sheet mitjançant Google Apps Script
+  console.log('Desant resultat (funcionalitat pendent):', resultat);
+  // Hauràs de fer una petició POST a la URL de la teva Web App de Google Apps Script
 }
 
-function crearUsuariNou() {
-    const nom = ui.elements.nouUsuariNom.value.trim();
-    if (!nom) return alert("Si us plau, escriu un nom.");
-    if (!usuarisCarregats.includes(nom)) {
-        usuarisCarregats.push(nom);
-        localStorage.setItem('dojoUsuaris', JSON.stringify(usuarisCarregats));
-    }
-    ui.elements.nouUsuariNom.value = '';
-    iniciarSessioUsuari(nom);
-}
-
-function canviarUsuari() {
-    usuariActual = null; carregarUsuaris(); mostrarPantalla('login');
-}
-
-function getDadesUsuari() {
-    return JSON.parse(localStorage.getItem(`dojoDades_${usuariActual}`)) || {
-        estadistiques: { multiplicacions: [], sumes: [], restes: [] },
-        nivells: { sumes: 0, restes: 0 }, ratxes: { sumes: 0, restes: 0 }
-    };
-}
-
-function setDadesUsuari(dades) {
-    localStorage.setItem(`dojoDades_${usuariActual}`, JSON.stringify(dades));
-}
+// Inicia la càrrega d'usuaris quan l'script es carrega
+carregarUsuaris();
