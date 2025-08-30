@@ -99,7 +99,9 @@
             <p>Encerts: <strong id="encerts"></strong> ✅</p>
             <p>Errades: <strong id="errades"></strong> ❌</p>
             <p id="missatge-felicitacio" style="display:none; font-size: 1.5em;">⭐ PERFECTE! ⭐</p>
+            <div id="resum-fallades" style="text-align:left; margin-top:15px;"></div>
             <button id="btn-tornar-menu">Tornar al Menú</button>
+
         </div>
 
         <div id="pantalla-estadistiques" class="container" style="display:none;">
@@ -321,9 +323,15 @@
                 }
                 
                 estatJoc = {
-                    tipus: tipus, preguntes: shuffle(preguntes), preguntaActualIndex: 0,
-                    encerts: 0, errades: 0, startTime: new Date()
+                    tipus: tipus,
+                    preguntes: shuffle(preguntes),
+                    preguntaActualIndex: 0,
+                    encerts: 0,
+                    errades: 0,
+                    startTime: new Date(),
+                    fallades: []   // 🔥 añadimos este array
                 };
+
 
                 ui.elements.jocTitol.textContent = titol;
                 mostrarPantalla('joc');
@@ -348,8 +356,14 @@
                     seguentPregunta();
                 } else {
                     estatJoc.errades++;
+                    // 🔥 Guardar la pregunta fallada
+                    estatJoc.fallades.push({
+                        text: estatJoc.preguntes[estatJoc.preguntaActualIndex].text,
+                        correcta: estatJoc.respostaCorrecta,
+                        respostaUsuari: respostaUsuari
+                    });
+                
                     alert(`Resposta incorrecta! La resposta correcta era: ${estatJoc.respostaCorrecta}`);
-                    // Aquí NO avanzamos índice aún, lo re-preguntaremos tras la pregunta-pont
                     gestionarError(estatJoc.preguntes[estatJoc.preguntaActualIndex]);
                 }
             }
@@ -374,28 +388,50 @@
                 ui.elements.progressBar.textContent = `${actual}/${total}`;
             }
 
-            function finalitzarSessio(completada) {
+           function finalitzarSessio(completada) {
+                clearInterval(timerInterval);
+            
+                const tempsTotal = Math.floor((new Date() - estatJoc.startTime) / 1000);
+            
+                document.getElementById('pantalla-joc').style.display = 'none';
+                document.getElementById('pantalla-resum').style.display = 'block';
+            
                 if (completada) {
-                    const tempsTranscorregut = Math.round((new Date() - estatJoc.startTime) / 1000);
-                    ui.elements.tempsTotal.textContent = tempsTranscorregut;
-                    ui.elements.encerts.textContent = estatJoc.encerts;
-                    ui.elements.errades.textContent = estatJoc.errades;
+                    document.getElementById('resum-titol').innerText = 'Ben fet!';
+                    document.getElementById('temps-total').innerText = tempsTotal;
+                    document.getElementById('encerts').innerText = estatJoc.encerts;
+                    document.getElementById('errades').innerText = estatJoc.errades;
+            
+                    // Missatge de felicitació si tot correcte
                     if (estatJoc.errades === 0) {
-                        ui.elements.resumTitol.textContent = "Increïble!";
-                        ui.elements.missatgeFelicitacio.style.display = 'block';
-                        actualitzarNivell(estatJoc.tipus, true);
+                        document.getElementById('missatge-felicitacio').style.display = 'block';
                     } else {
-                        ui.elements.resumTitol.textContent = "Bon intent!";
-                        ui.elements.missatgeFelicitacio.style.display = 'none';
-                        actualitzarNivell(estatJoc.tipus, false);
+                        document.getElementById('missatge-felicitacio').style.display = 'none';
                     }
-                    guardarEstadistiques(tempsTranscorregut);
-                    mostrarPantalla('resum');
+            
+                    // 🔥 Mostrar listado de fallades
+                    if (estatJoc.fallades && estatJoc.fallades.length > 0) {
+                        const llista = estatJoc.fallades.map(f =>
+                            `<p>${f.text} → resposta correcta: <strong>${f.correcta}</strong> (vas escriure: ${f.respostaUsuari})</p>`
+                        ).join("");
+                        document.getElementById('resum-fallades').innerHTML =
+                            `<h3>Preguntes fallades:</h3>${llista}`;
+                    } else {
+                        document.getElementById('resum-fallades').innerHTML = '';
+                    }
+            
+                    // Guardar resultats a Google Sheets
+                    guardarResultats(estatJoc.tipus, estatJoc.encerts, estatJoc.errades, tempsTotal);
                 } else {
-                    mostrarPantalla('menuPrincipal');
+                    document.getElementById('resum-titol').innerText = 'Sessió cancel·lada';
+                    document.getElementById('temps-total').innerText = '-';
+                    document.getElementById('encerts').innerText = '-';
+                    document.getElementById('errades').innerText = '-';
+                    document.getElementById('missatge-felicitacio').style.display = 'none';
+                    document.getElementById('resum-fallades').innerHTML = '';
                 }
-                actualitzarBotonsNivell();
             }
+
 
             function guardarEstadistiques(temps) {
                 const dadesUsuari = getDadesUsuari();
