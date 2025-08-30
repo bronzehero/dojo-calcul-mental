@@ -1,37 +1,27 @@
-// URL del teu Google Sheet publicat com a CSV
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ08s3soO6nF4jR3sAGJ91aarrow_forwardTR2a3w_T4iS2-G4LwL3sUa2wd0mea-k2EUOFhMZxIlwep2z/pub?gid=0&single=true&output=csv';
+// URL CORRECTA del teu Google Sheet publicat com a CSV
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ08s3soO6nF4jR3sAGJ91aTR2a3w_T4iS2-G4LwL3sUa2wd0mea-k2EUOFhMZxIlwep2z/pub?gid=0&single=true&output=csv';
 
 /**
  * Mostra els botons per seleccionar un usuari a la pantalla principal.
- * Aquesta funció s'integra amb l'element <div id="user-selection"> de l'index.html
- * i crida a la funció seleccionarUsuari(nom) definida a main.js.
- * @param {Array<Object>} usuaris - La llista d'usuaris a mostrar.
+ * @param {Array<Object>} llistaUsuaris - La llista d'usuaris a mostrar.
  */
-function mostrarBotonsUsuari(usuaris) {
+function mostrarBotonsUsuari(llistaUsuaris) {
   const contenidorUsuaris = document.getElementById('user-selection');
+  contenidorUsuaris.innerHTML = ''; // Neteja el missatge "Carregant..."
 
-  // Neteja el missatge "Carregant usuaris..."
-  contenidorUsuaris.innerHTML = '';
-
-  // Crea un botó per cada usuari
-  usuaris.forEach(usuari => {
-    // Assegurem que l'usuari tingui un nom abans de crear el botó
+  llistaUsuaris.forEach(usuari => {
     if (usuari && usuari.nom) {
       const boto = document.createElement('button');
       boto.textContent = usuari.nom;
-      boto.className = 'user-button'; // Pots afegir una classe per estils
-      
-      // Quan es fa clic, crida a la funció de main.js per iniciar el procés
+      boto.className = 'user-button';
       boto.onclick = () => seleccionarUsuari(usuari.nom);
-      
       contenidorUsuaris.appendChild(boto);
     }
   });
 }
 
 /**
- * Carrega els usuaris des del Google Sheet.
- * Si falla, carrega els usuaris des del fitxer local usuaris.js com a fallback.
+ * Carrega els usuaris des del Google Sheet o, si falla, des del fitxer local usuaris.js.
  */
 async function carregarUsuaris() {
   try {
@@ -40,30 +30,31 @@ async function carregarUsuaris() {
       throw new Error('Error en la resposta de la xarxa');
     }
     const data = await response.text();
-    const usuarisSheet = Papa.parse(data, { header: true }).data.map(row => ({ nom: row.nom }));
+    const usuarisSheet = Papa.parse(data, { header: true }).data;
     
-    // Filtrem usuaris sense nom que poden venir de files buides a l'spreadsheet
     const usuarisFiltrats = usuarisSheet.filter(u => u.nom && u.nom.trim() !== '');
 
     if (usuarisFiltrats.length > 0) {
-        mostrarBotonsUsuari(usuarisFiltrats);
+      mostrarBotonsUsuari(usuarisFiltrats);
     } else {
-        // Si el CSV està buit o mal format, fem servir la còpia local
-        throw new Error('No s\'han trobat usuaris vàlids al CSV');
+      throw new Error('No s\'han trobat usuaris vàlids al CSV');
     }
   } catch (error) {
     console.error('Error en carregar usuaris del Sheet, usant còpia local:', error);
-    // La variable 'usuaris' ve del fitxer usuaris.js que s'importa a l'index.html
-    mostrarBotonsUsuari(usuaris); 
+    // Comprovem si la variable 'usuaris' del fitxer local usuaris.js existeix
+    if (typeof usuaris !== 'undefined') {
+      mostrarBotonsUsuari(usuaris);
+    } else {
+      console.error('La variable local "usuaris" no està definida. Assegura\'t que usuaris.js es carrega correctament abans d\'api.js a l\'index.html.');
+      document.getElementById('user-selection').textContent = 'Error crític: no s\'han pogut carregar els usuaris locals.';
+    }
   }
 }
 
 // TODO: Funció per desar els resultats (a implementar)
 function desarResultat(resultat) {
-  // Aquí anirà la lògica per enviar les dades al Google Sheet mitjançant Google Apps Script
   console.log('Desant resultat (funcionalitat pendent):', resultat);
-  // Hauràs de fer una petició POST a la URL de la teva Web App de Google Apps Script
 }
 
-// Inicia la càrrega d'usuaris quan l'script es carrega
+// Inicia la càrrega d'usuaris
 carregarUsuaris();
