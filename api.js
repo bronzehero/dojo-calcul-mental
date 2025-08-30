@@ -1,6 +1,13 @@
 // URL CORRECTA del teu Google Sheet publicat com a CSV
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ08s3soO6nF4jR3sAGJ91aTR2a3w_T4iS2-G4LwL3sUa2wd0mea-k2EUOFhMZxIlwep2z/pub?gid=0&single=true&output=csv';
 
+// Llista d'usuaris local com a fallback si falla la connexió amb el Google Sheet
+const usuarisLocals = [
+  { nom: 'Anna' },
+  { nom: 'Carles' },
+  { nom: 'Berta' }
+];
+
 /**
  * Mostra els botons per seleccionar un usuari a la pantalla principal.
  * @param {Array<Object>} llistaUsuaris - La llista d'usuaris a mostrar.
@@ -10,7 +17,7 @@ function mostrarBotonsUsuari(llistaUsuaris) {
   contenidorUsuaris.innerHTML = ''; // Neteja el missatge "Carregant..."
 
   llistaUsuaris.forEach(usuari => {
-    if (usuari && usuari.nom) {
+    if (usuari && usuari.nom && usuari.nom.trim() !== '') {
       const boto = document.createElement('button');
       boto.textContent = usuari.nom;
       boto.className = 'user-button';
@@ -21,7 +28,7 @@ function mostrarBotonsUsuari(llistaUsuaris) {
 }
 
 /**
- * Carrega els usuaris des del Google Sheet o, si falla, des del fitxer local usuaris.js.
+ * Carrega els usuaris des del Google Sheet o, si falla, des de la llista local.
  */
 async function carregarUsuaris() {
   try {
@@ -32,29 +39,25 @@ async function carregarUsuaris() {
     const data = await response.text();
     const usuarisSheet = Papa.parse(data, { header: true }).data;
     
-    const usuarisFiltrats = usuarisSheet.filter(u => u.nom && u.nom.trim() !== '');
-
-    if (usuarisFiltrats.length > 0) {
-      mostrarBotonsUsuari(usuarisFiltrats);
+    if (usuarisSheet.length > 0) {
+      mostrarBotonsUsuari(usuarisSheet);
     } else {
-      throw new Error('No s\'han trobat usuaris vàlids al CSV');
+      throw new Error('El CSV està buit o mal format');
     }
   } catch (error) {
     console.error('Error en carregar usuaris del Sheet, usant còpia local:', error);
-    // Comprovem si la variable 'usuaris' del fitxer local usuaris.js existeix
-    if (typeof usuaris !== 'undefined') {
-      mostrarBotonsUsuari(usuaris);
-    } else {
-      console.error('La variable local "usuaris" no està definida. Assegura\'t que usuaris.js es carrega correctament abans d\'api.js a l\'index.html.');
-      document.getElementById('user-selection').textContent = 'Error crític: no s\'han pogut carregar els usuaris locals.';
-    }
+    mostrarBotonsUsuari(usuarisLocals);
   }
 }
 
-// TODO: Funció per desar els resultats (a implementar)
+/**
+ * Funció per desar els resultats (placeholder).
+ * @param {Object} resultat - Objecte amb nom, puntuació, etc.
+ */
 function desarResultat(resultat) {
   console.log('Desant resultat (funcionalitat pendent):', resultat);
+  // Aquí anirà la lògica per enviar dades al Google Sheet amb Apps Script.
 }
 
-// Inicia la càrrega d'usuaris
+// Inicia la càrrega d'usuaris quan l'script es carrega.
 carregarUsuaris();
