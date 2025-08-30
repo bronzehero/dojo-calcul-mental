@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         usuariActual = nom;
         ui.elements.menuBenvinguda.textContent = `Carregant dades de ${usuariActual}...`;
         mostrarPantalla('menuPrincipal');
+
         fetch(`${URL_APP_SCRIPT}?action=getUserData&user=${encodeURIComponent(nom)}`).then(r => r.json()).then(historial => {
             processarDadesServidor(historial);
             ui.elements.menuBenvinguda.textContent = `Hola, ${usuariActual}!`;
@@ -421,6 +422,3 @@ document.addEventListener('DOMContentLoaded', () => {
     carregarUsuaris();
     mostrarPantalla('login');
 });
-</script>
-</body>
-</html>
