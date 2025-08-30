@@ -342,13 +342,28 @@
             function comprovarResposta() {
                 if (ui.elements.respostaInput.value.trim() === '') return;
                 const respostaUsuari = parseInt(ui.elements.respostaInput.value);
-                if (respostaUsuari === estatJoc.respostaCorrecta) estatJoc.encerts++;
-                else estatJoc.errades++;
-                
+                if (respostaUsuari === estatJoc.respostaCorrecta) {
+                    estatJoc.encerts++;
+                    estatJoc.preguntaActualIndex++;
+                    seguentPregunta();
+                } else {
+                    estatJoc.errades++;
+                    alert(`Resposta incorrecta! La resposta correcta era: ${estatJoc.respostaCorrecta}`);
+                    // Aquí NO avanzamos índice aún, lo re-preguntaremos tras la pregunta-pont
+                    gestionarError(estatJoc.preguntes[estatJoc.preguntaActualIndex]);
+                }
+            }
+            function gestionarError(preguntaFallada) {
+                // Coger la siguiente pregunta como "puente"
+                const indexActual = estatJoc.preguntaActualIndex;
+                const preguntaPont = estatJoc.preguntes[indexActual + 1];
+            
+                // Insertar la fallada justo después del puente
+                estatJoc.preguntes.splice(indexActual + 2, 0, preguntaFallada);
+            
+                // Avanzar a la pregunta-pont
                 estatJoc.preguntaActualIndex++;
-                if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) {
-                    finalitzarSessio(true);
-                } else { seguentPregunta(); }
+                seguentPregunta();
             }
 
             function actualitzarProgres() {
