@@ -416,14 +416,12 @@
                     document.getElementById('encerts').innerText = estatJoc.encerts;
                     document.getElementById('errades').innerText = estatJoc.errades;
             
-                    // Missatge de felicitació si tot correcte
                     if (estatJoc.errades === 0) {
                         document.getElementById('missatge-felicitacio').style.display = 'block';
                     } else {
                         document.getElementById('missatge-felicitacio').style.display = 'none';
                     }
             
-                    // 🔥 Mostrar listado de fallades
                     if (estatJoc.fallades && estatJoc.fallades.length > 0) {
                         const llista = estatJoc.fallades.map(f =>
                             `<p>${f.text} → resposta correcta: <strong>${f.correcta}</strong> (vas escriure: ${f.respostaUsuari})</p>`
@@ -434,8 +432,9 @@
                         document.getElementById('resum-fallades').innerHTML = '';
                     }
             
-                    // Guardar resultats a Google Sheets
-                    guardarResultats(estatJoc.tipus, estatJoc.encerts, estatJoc.errades, tempsTotal);
+                    // --- CORRECCIÓ 1: Nom de la funció corregit ---
+                    guardarEstadistiques(tempsTotal);
+
                 } else {
                     document.getElementById('resum-titol').innerText = 'Sessió cancel·lada';
                     document.getElementById('temps-total').innerText = '-';
@@ -460,10 +459,15 @@
                 dadesUsuari.estadistiques[estatJoc.tipus].push(sessioDades);
                 setDadesUsuari(dadesUsuari);
                 const dadesPerEnviar = { secret: CLAU_SECRETA, usuari: usuariActual, ...sessioDades };
+                
+                // --- CORRECCIÓ 2: S'ha eliminat "mode: 'no-cors'" ---
                 fetch(URL_APP_SCRIPT, {
-                    method: 'POST', mode: 'no-cors', cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dadesPerEnviar)
-                }).then(() => console.log("Dades enviades.")).catch(e => console.error("Error enviant:", e));
+                    method: 'POST',
+                    cache: 'no-cache',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dadesPerEnviar)
+                }).then(() => console.log("Dades enviades correctament al cloud."))
+                  .catch(e => console.error("Error enviant les dades al cloud:", e));
             }
             
             function obtenirNivell(tipus) { return getDadesUsuari().nivells[tipus] || 0; }
