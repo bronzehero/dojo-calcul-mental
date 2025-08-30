@@ -92,5 +92,5 @@ function generarGrafiques(dades) {
     const errCtx = document.getElementById('errors-chart').getContext('2d');
     chartInstances.errors = new Chart(errCtx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Errades per sessió', data: erradesData, borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
     const timesCtx = document.getElementById('times-chart').getContext('2d');
-    chartInstances.times = new Chart(timesCtx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Temps per sessió (segons)', data: tempsData, borderColor: 'rgba(54, 162, 235, 1)', backgroundColor: 'rgba(54, 162, 235, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true } } } } });
+    chartInstances.times = new Chart(timesCtx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Temps per sessió (segons)', data: tempsData, borderColor: 'rgba(54, 162, 235, 1)', backgroundColor: 'rgba(54, 162, 235, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true } } } });
 }
