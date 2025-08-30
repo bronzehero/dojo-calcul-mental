@@ -167,7 +167,7 @@
                     historialContingut: document.getElementById('historial-contingut')
                 }
             };
-
+            let timerInterval;
             let usuariActual = null;
             let estatJoc = {};
             let usuarisCarregats = [];
@@ -389,7 +389,9 @@
             }
 
            function finalitzarSessio(completada) {
-                clearInterval(timerInterval);
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                }
             
                 const tempsTotal = Math.floor((new Date() - estatJoc.startTime) / 1000);
             
