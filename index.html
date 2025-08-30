@@ -347,13 +347,25 @@
                 actualitzarProgres();
             }
 
-            function comprovarResposta() {
+                        function comprovarResposta() {
                 if (ui.elements.respostaInput.value.trim() === '') return;
                 const respostaUsuari = parseInt(ui.elements.respostaInput.value);
+                
                 if (respostaUsuari === estatJoc.respostaCorrecta) {
                     estatJoc.encerts++;
                     estatJoc.preguntaActualIndex++;
-                    seguentPregunta();
+
+                    // --- INICI DE LA CORRECCIÓ ---
+                    // Comprovem si ja hem respost a totes les preguntes
+                    if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) {
+                        // Si és així, finalitzem la sessió com a completada
+                        finalitzarSessio(true);
+                    } else {
+                        // Si no, anem a la següent pregunta
+                        seguentPregunta();
+                    }
+                    // --- FI DE LA CORRECCIÓ ---
+
                 } else {
                     estatJoc.errades++;
                     // 🔥 Guardar la pregunta fallada
