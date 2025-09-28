@@ -24,7 +24,8 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         .hidden {
-            display: none;
+            /* ¡CORRECCIÓN CRÍTICA! Se añade !important para asegurar que siempre oculte el elemento */
+            display: none !important;
         }
         #game-container, #menu {
             width: 300px;
@@ -65,7 +66,7 @@
             border-radius: 5px;
             transition: width 0.3s ease-in-out;
         }
-        /* --- NUEVOS Estilos para el Modal de Gráficos --- */
+        /* Estilos para el Modal de Gráficos */
         .modal {
             position: fixed;
             z-index: 100;
@@ -75,6 +76,7 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0,0,0,0.5);
+            /* Por defecto, display:flex es correcto, pero será anulado por .hidden */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -106,14 +108,14 @@
 </head>
 <body>
     <div class="container">
-        <!-- Pantalla de Login -->
+        <!-- Pantalla de Login (debe ser visible al inicio) -->
         <div id="login-screen">
             <h2>Bienvenida al Dojo</h2>
             <input type="text" id="username-input" placeholder="Escribe tu nombre">
             <button id="login-btn">Entrar</button>
         </div>
 
-        <!-- Pantalla Principal -->
+        <!-- Pantalla Principal (oculta al inicio) -->
         <div id="main-screen" class="hidden">
             <div id="menu">
                 <h2>Dojo de Cálculo Mental</h2>
@@ -125,9 +127,7 @@
                     <option value="division">Divisiones</option>
                 </select>
                 <button id="start-btn">Empezar Sesión Normal</button>
-                <!-- ¡NUEVO! -->
                 <button id="review-btn" style="background-color: #28a745;">Iniciar Sesión de Repaso</button>
-                <!-- ¡NUEVO! -->
                 <button id="show-challenges-btn" style="background-color: #ffc107; color: black;">Ver mis 10 Retos</button>
                 <button id="logout-btn" style="background-color: #6c757d;">Salir</button>
             </div>
@@ -142,14 +142,14 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- ¡NUEVO! Modal para el gráfico de errores -->
-        <div id="challenges-modal" class="modal hidden">
-            <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h3>Mis Retos Más Frecuentes</h3>
-                <canvas id="challenges-chart"></canvas>
-            </div>
+    <!-- Modal para el gráfico de errores (oculto al inicio) -->
+    <div id="challenges-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3>Mis Retos Más Frecuentes</h3>
+            <canvas id="challenges-chart"></canvas>
         </div>
     </div>
 
@@ -182,7 +182,7 @@
             let currentUser = localStorage.getItem('dojo_username');
             let gameState = {};
             let currentOperation = {};
-            let chartInstance = null; // Para la instancia del gráfico
+            let chartInstance = null;
 
             // --- Inicialización ---
             if (currentUser) {
@@ -220,24 +220,19 @@
 
             answerInput.addEventListener('keydown', (e) => (e.key === 'Enter') && comprobarRespuesta());
             
-            // --- FASE 1: Registro de errores ---
             function registrarError(operacion, tipo) {
                 const data = { action: 'registerError', username: currentUser, operacion, tipo };
-                // Usamos 'sendBeacon' si es posible para un envío más fiable al cerrar la página
                 if (navigator.sendBeacon) {
                      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
                      navigator.sendBeacon(scriptURL, blob);
                 } else {
                     fetch(scriptURL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        body: JSON.stringify(data),
+                        method: 'POST', mode: 'no-cors', body: JSON.stringify(data),
                         headers: { 'Content-Type': 'application/json' }
                     }).catch(error => console.error('Error en fetch al registrar error:', error));
                 }
             }
             
-            // --- FASE 2: Visualización de errores ---
             async function obtenerErrores() {
                 const url = new URL(scriptURL);
                 url.searchParams.append('action', 'getErrors');
@@ -258,16 +253,12 @@
                     alert("¡Felicidades! No hay errores registrados para mostrar.");
                     return;
                 }
-
                 const top10 = errores.slice(0, 10).reverse();
                 const labels = top10.map(e => e.operacion);
                 const data = top10.map(e => e.fallos);
-
                 challengesModal.classList.remove('hidden');
                 const ctx = document.getElementById('challenges-chart').getContext('2d');
-                
-                if (chartInstance) chartInstance.destroy(); // Limpiar gráfico anterior
-                
+                if (chartInstance) chartInstance.destroy();
                 chartInstance = new Chart(ctx, {
                     type: 'bar',
                     data: { labels, datasets: [{
@@ -277,15 +268,14 @@
                         borderWidth: 1
                     }]},
                     options: {
-                        indexAxis: 'y', // Barras horizontales
-                        scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, // Eje X empieza en 0 y va de 1 en 1
+                        indexAxis: 'y',
+                        scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
                         responsive: true, maintainAspectRatio: false,
                         plugins: { legend: { display: false }, title: { display: false } }
                     }
                 });
             }
 
-            // --- FASE 3: Modo de repaso inteligente ---
             async function iniciarModoRepaso() {
                 const errores = await obtenerErrores();
                 if (errores.length === 0) {
@@ -293,12 +283,10 @@
                     iniciarSesionNormal('suma');
                     return;
                 }
-
                 const TOTAL_PREGUNTAS = 20;
                 const NUM_PREGUNTAS_DIFICILES = Math.ceil(TOTAL_PREGUNTAS * 0.7);
                 const NUM_PREGUNTAS_REFUERZO = TOTAL_PREGUNTAS - NUM_PREGUNTAS_DIFICILES;
                 let preguntasRepaso = [];
-
                 const listaPonderada = errores.flatMap(error => Array(error.fallos).fill(error));
                 for (let i = 0; i < NUM_PREGUNTAS_DIFICILES && listaPonderada.length > 0; i++) {
                     const randomIndex = Math.floor(Math.random() * listaPonderada.length);
@@ -308,9 +296,7 @@
                     const num1 = Math.floor(Math.random() * 5) + 1, num2 = Math.floor(Math.random() * 5) + 1;
                     preguntasRepaso.push({ operacion: `${num1}+${num2}`, tipo: 'suma' });
                 }
-                
                 shuffleArray(preguntasRepaso);
-
                 gameState = { isReviewMode: true, questions: preguntasRepaso.slice(0, TOTAL_PREGUNTAS), currentQuestionIndex: 0, aciertos: 0, fallos: 0 };
                 operationTitle.textContent = "Sesión de Repaso";
                 menu.classList.add('hidden');
@@ -318,7 +304,6 @@
                 siguientePregunta();
             }
 
-            // --- Lógica del Juego (Original + Modificaciones) ---
             function shuffleArray(array) {
                 for (let i = array.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
@@ -344,7 +329,6 @@
             
             function generarPregunta(tipo, nivel) {
                 let num1, num2;
-                // CORREGIDO: Se respeta tu lógica original de nivel * 10
                 const max_num = (tipo === 'suma' || tipo === 'resta') ? nivel * 10 : 10;
                 switch(tipo) {
                     case 'suma':
@@ -365,24 +349,20 @@
             function siguientePregunta() {
                 const total = gameState.isReviewMode ? gameState.questions.length : gameState.total_preguntas;
                 const hechas = gameState.isReviewMode ? gameState.currentQuestionIndex : gameState.preguntas_hechas;
-
                 if (hechas >= total) {
-                    finalizarSesion();
-                    return;
+                    finalizarSesion(); return;
                 }
-
                 if (gameState.isReviewMode) {
                     const qData = gameState.questions[hechas];
                     const op_str = qData.operacion;
                     const text = op_str.replace('x', ' × ').replace('+', ' + ').replace('-', ' – ').replace('÷', ' ÷ ');
-                    const answer = Math.round(eval(op_str.replace('x', '*').replace('÷', '/'))); // Se usa eval por simplicidad
+                    const answer = Math.round(eval(op_str.replace('x', '*').replace('÷', '/')));
                     currentOperation = { text, answer, op_str, type: qData.tipo };
                     gameState.currentQuestionIndex++;
                 } else {
                     currentOperation = generarPregunta(gameState.type, gameState.level);
                     gameState.preguntas_hechas++;
                 }
-                
                 questionEl.textContent = currentOperation.text;
                 feedbackEl.textContent = '';
                 answerInput.value = '';
@@ -393,7 +373,6 @@
             function comprobarRespuesta() {
                 if (answerInput.value === '') return;
                 const userAnswer = parseInt(answerInput.value, 10);
-
                 if (userAnswer === currentOperation.answer) {
                     feedbackEl.textContent = '¡Correcto!';
                     feedbackEl.className = 'correct';
@@ -404,18 +383,14 @@
                     feedbackEl.className = 'incorrect';
                     gameState.fallos++;
                     if (!gameState.isReviewMode) gameState.aciertos_consecutivos = 0;
-                    // Llamada clave de la Fase 1
                     registrarError(currentOperation.op_str, currentOperation.type);
                 }
-                
-                // Lógica original de subida de nivel
                 if (!gameState.isReviewMode && gameState.aciertos_consecutivos >= 3) {
                     gameState.level++;
                     gameState.aciertos_consecutivos = 0;
                     localStorage.setItem(`dojo_level_${gameState.type}_${currentUser}`, JSON.stringify(gameState.level));
                     feedbackEl.textContent += ' ¡Has subido de nivel!';
                 }
-
                 setTimeout(siguientePregunta, 1200);
             }
             
@@ -427,7 +402,6 @@
                 showMainScreen();
             }
             
-            // Función refactorizada y mejorada
             function guardarEstadisticas() {
                 let stats = { action: 'saveStats', username: currentUser };
                 ['suma', 'resta', 'multiplicacion', 'division'].forEach(op => {
@@ -436,9 +410,10 @@
                     stats[`aciertos_${op}`] = isCurrentOp ? gameState.aciertos : 0;
                     stats[`fallos_${op}`] = isCurrentOp ? gameState.fallos : 0;
                 });
-                
                 const data = new Blob([JSON.stringify(stats)], { type: 'application/json' });
-                navigator.sendBeacon(scriptURL, data);
+                if (navigator.sendBeacon) {
+                    navigator.sendBeacon(scriptURL, data);
+                }
             }
         });
     </script>
