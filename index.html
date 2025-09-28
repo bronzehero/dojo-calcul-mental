@@ -86,7 +86,6 @@
                         mostrarBotonsUsuari(usuarisCarregats);
                     });
             }
-
             function iniciarSessioUsuari(nom) {
                 usuariActual = nom;
                 ui.elements.menuBenvinguda.textContent = `Carregant dades de ${usuariActual}...`;
@@ -104,12 +103,13 @@
             }
              async function obtenirErrors() { return fetchJSONP(URL_APP_SCRIPT, { action: 'getErrors', username: usuariActual }); }
 
+            // --- ¡¡AQUÍ ESTÁ LA CORRECCIÓN!! ---
             function registrarError(operacion, tipo) {
                 fetch(URL_APP_SCRIPT, {
                     method: 'POST',
+                    mode: 'no-cors', // Le decimos al navegador: "envía esto y no te preocupes por la respuesta"
                     body: JSON.stringify({ action: 'registerError', username: usuariActual, operacion, tipo })
-                })
-                .catch(error => console.error('Error en fetch al registrar error:', error));
+                });
             }
             function guardarEstadistiques(temps) {
                 actualitzarNivell(estatJoc.tipus, estatJoc.errades === 0);
@@ -120,10 +120,9 @@
                 const dadesPerEnviar = { secret: CLAU_SECRETA, usuari: usuariActual, ...sessioDades };
                  fetch(URL_APP_SCRIPT, {
                     method: 'POST',
+                    mode: 'no-cors', // Hacemos lo mismo aquí
                     body: JSON.stringify(dadesPerEnviar)
-                })
-                .then(() => console.log("Dades enviades correctament al cloud."))
-                .catch(e => console.error("Error enviant les dades al cloud:", e));
+                });
             }
             
             async function mostrarGraficErrors() { const result = await obtenirErrors(); if (!result || result.status !== "success" || result.data.length === 0) { alert("Felicitats! No hi ha errors registrats per mostrar."); return; } const top10 = result.data.slice(0, 10).reverse(); const labels = top10.map(e => e.operacion); const data = top10.map(e => e.fallos); pantallas.retosModal.style.display = 'flex'; const ctx = document.getElementById('retos-chart').getContext('2d'); if (chartInstances.retos) chartInstances.retos.destroy(); chartInstances.retos = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Número d\'Errades', data, backgroundColor: '#ffafcc', borderColor: '#cdb4db', borderWidth: 2 }] }, options: { indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); }
@@ -149,22 +148,14 @@
             function mostrarHistorial(tipus) { const historial = getDadesUsuari().estadistiques[tipus] || []; ui.elements.historialTitol.textContent = `Historial de ${tipus}`; ui.elements.historialContingut.innerHTML = ''; if (historial.length === 0) { ui.elements.historialContingut.innerHTML = '<p>Encara no hi ha dades.</p>'; if (chartInstances.errors) { chartInstances.errors.destroy(); chartInstances.errors = null; } if (chartInstances.times) { chartInstances.times.destroy(); chartInstances.times = null; } } else { historial.slice().reverse().forEach(s => { const p = document.createElement('p'); p.textContent = `${s.data} - Errades: ${s.errades}, Temps: ${s.temps}s`; ui.elements.historialContingut.appendChild(p); }); generarGrafiques(historial); } ui.elements.historialDetallat.style.display = 'block'; }
             function generarGrafiques(dades) { if (chartInstances.errors) chartInstances.errors.destroy(); if (chartInstances.times) chartInstances.times.destroy(); const labels = dades.map((s, i) => `${s.data} (#${i+1})`); const erradesData = dades.map(s => s.errades); const tempsData = dades.map(s => s.temps); const errCtx = document.getElementById('errors-chart').getContext('2d'); chartInstances.errors = new Chart(errCtx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Errades per sessió', data: erradesData, borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } }); const timesCtx = document.getElementById('times-chart').getContext('2d'); chartInstances.times = new Chart(timesCtx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Temps per sessió (segons)', data: tempsData, borderColor: 'rgba(54, 162, 235, 1)', backgroundColor: 'rgba(54, 162, 235, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true } } } }); }
             
-            // --- ¡¡AQUÍ ESTABA MI ERROR!! Había borrado esta sección por accidente ---
             ui.buttons.crearUsuari.addEventListener('click', crearUsuariNou); 
             ui.buttons.canviarUsuari.addEventListener('click', canviarUsuari); 
             ui.buttons.multiplicacions.addEventListener('click', () => iniciarJoc('multiplicacions')); 
             ui.buttons.sumes.addEventListener('click', () => iniciarJoc('sumes')); 
             ui.buttons.restes.addEventListener('click', () => iniciarJoc('restes')); 
             ui.buttons.estadistiques.addEventListener('click', () => { mostrarPantalla('estadistiques'); mostrarEstadistiquesGlobals(); ui.elements.historialDetallat.style.display = 'none'; }); 
-            
-            // --- ¡¡ESTA ES LA LÍNEA QUE FALLABA!! Ahora está corregida ---
-            ui.elements.respostaInput.addEventListener('input', () => { 
-                ui.buttons.comprovar.disabled = ui.elements.respostaInput.value.trim() === ''; 
-            }); 
-            ui.elements.respostaInput.addEventListener('keyup', (e) => { 
-                if (e.key === 'Enter' && !ui.buttons.comprovar.disabled) comprovarResposta(); 
-            }); 
-
+            ui.elements.respostaInput.addEventListener('input', () => { ui.buttons.comprovar.disabled = ui.elements.respostaInput.value.trim() === ''; }); 
+            ui.elements.respostaInput.addEventListener('keyup', (e) => { if (e.key === 'Enter' && !ui.buttons.comprovar.disabled) comprovarResposta(); }); 
             ui.buttons.comprovar.addEventListener('click', comprovarResposta); 
             document.querySelectorAll('.btn-finalitzar').forEach(btn => btn.addEventListener('click', () => finalitzarSessio(false))); 
             ui.buttons.tornarMenu.addEventListener('click', () => { mostrarPantalla('menuPrincipal'); actualitzarBotonsNivell(); }); 
