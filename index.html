@@ -56,7 +56,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzhXbANaTJdjzUiKggI_jGfZhDmhWwy7z3n9NC1kGrv4xtxHo48RBCl6IYqpNn_ddPM/exec";
-            // ... el resto de tus constantes y selectores ...
             const CLAU_SECRETA = "dojo-secret-key-2025";
             const pantallas = { login: document.getElementById('pantalla-login'), menuPrincipal: document.getElementById('menu-principal'), joc: document.getElementById('pantalla-joc'), resum: document.getElementById('pantalla-resum'), estadistiques: document.getElementById('pantalla-estadistiques'), retosModal: document.getElementById('retos-modal') };
             const ui = { buttons: { crearUsuari: document.getElementById('btn-crear-usuari'), canviarUsuari: document.getElementById('btn-canviar-usuari'), multiplicacions: document.getElementById('btn-multiplicacions'), sumes: document.getElementById('btn-sumes'), restes: document.getElementById('btn-restes'), estadistiques: document.getElementById('btn-estadistiques'), repaso: document.getElementById('btn-repaso'), misRetos: document.getElementById('btn-mis-retos'), comprovar: document.getElementById('btn-comprovar'), tornarMenu: document.getElementById('btn-tornar-menu'), tornarMenuStats: document.getElementById('btn-tornar-menu-stats'), historial: document.querySelectorAll('#botons-historial button'), retosModalClose: document.getElementById('retos-modal-close') }, elements: { usuarisExistents: document.getElementById('usuaris-existents'), nouUsuariNom: document.getElementById('nou-usuari-nom'), menuBenvinguda: document.getElementById('menu-benvinguda'), jocTitol: document.getElementById('joc-titol'), preguntaText: document.getElementById('pregunta-text'), respostaInput: document.getElementById('resposta-input'), progressBar: document.getElementById('progress-bar'), tempsTotal: document.getElementById('temps-total'), encerts: document.getElementById('encerts'), errades: document.getElementById('errades'), missatgeFelicitacio: document.getElementById('missatge-felicitacio'), resumTitol: document.getElementById('resum-titol'), statsGlobals: document.getElementById('stats-globals'), historialDetallat: document.getElementById('historial-detallat'), historialTitol: document.getElementById('historial-titol'), historialContingut: document.getElementById('historial-contingut') } };
@@ -87,6 +86,7 @@
                         mostrarBotonsUsuari(usuarisCarregats);
                     });
             }
+
             function iniciarSessioUsuari(nom) {
                 usuariActual = nom;
                 ui.elements.menuBenvinguda.textContent = `Carregant dades de ${usuariActual}...`;
@@ -104,13 +104,10 @@
             }
              async function obtenirErrors() { return fetchJSONP(URL_APP_SCRIPT, { action: 'getErrors', username: usuariActual }); }
 
-            // --- ¡¡AQUÍ ESTÁ LA CORRECCIÓN!! ---
-            // Se elimina la cabecera 'Content-Type' para evitar el preflight de CORS
             function registrarError(operacion, tipo) {
                 fetch(URL_APP_SCRIPT, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'registerError', username: usuariActual, operacion, tipo })
-                    // Sin cabeceras. El navegador usará text/plain, que no requiere preflight.
                 })
                 .catch(error => console.error('Error en fetch al registrar error:', error));
             }
@@ -124,13 +121,11 @@
                  fetch(URL_APP_SCRIPT, {
                     method: 'POST',
                     body: JSON.stringify(dadesPerEnviar)
-                     // Sin cabeceras.
                 })
                 .then(() => console.log("Dades enviades correctament al cloud."))
                 .catch(e => console.error("Error enviant les dades al cloud:", e));
             }
             
-            // --- El resto de tu código no necesita cambios ---
             async function mostrarGraficErrors() { const result = await obtenirErrors(); if (!result || result.status !== "success" || result.data.length === 0) { alert("Felicitats! No hi ha errors registrats per mostrar."); return; } const top10 = result.data.slice(0, 10).reverse(); const labels = top10.map(e => e.operacion); const data = top10.map(e => e.fallos); pantallas.retosModal.style.display = 'flex'; const ctx = document.getElementById('retos-chart').getContext('2d'); if (chartInstances.retos) chartInstances.retos.destroy(); chartInstances.retos = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Número d\'Errades', data, backgroundColor: '#ffafcc', borderColor: '#cdb4db', borderWidth: 2 }] }, options: { indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); }
             async function iniciarModeRepas() { const result = await obtenirErrors(); if (!result || result.status !== "success" || result.data.length === 0) { alert("No hi ha errors per repassar! Començant una sessió normal de sumes."); iniciarJoc('sumes'); return; } const TOTAL_PREGUNTES = 20, NUM_PREGUNTES_DIFICILS = Math.ceil(TOTAL_PREGUNTES * 0.7), NUM_PREGUNTES_REFORC = TOTAL_PREGUNTES - NUM_PREGUNTES_DIFICILS; let preguntesRepas = []; const llistaPonderada = result.data.flatMap(error => Array(error.fallos).fill(error)); for (let i = 0; i < NUM_PREGUNTES_DIFICILS && llistaPonderada.length > 0; i++) { const randomIndex = Math.floor(Math.random() * llistaPonderada.length); preguntesRepas.push(llistaPonderada[randomIndex]); } for (let i = 0; i < NUM_PREGUNTES_REFORC; i++) { const num1 = Math.floor(Math.random() * 5) + 1, num2 = Math.floor(Math.random() * 5) + 1; preguntesRepas.push({ operacion: `${num1}+${num2}`, tipo: 'sumes' }); } const preguntesFormatejades = preguntesRepas.slice(0, TOTAL_PREGUNTES).map(p => { const text = p.operacion.replace('x', 'x').replace('+', '+').replace('-', '-'); const resposta = Math.round(eval(text.replace('x', '*'))); return { text: text.replace('x', ' x ').replace('+', ' + ').replace('-', ' - '), resposta }; }); estatJoc = { tipus: 'repas', preguntes: shuffle(preguntesFormatejades), preguntaActualIndex: 0, encerts: 0, errades: 0, startTime: new Date(), fallades: [], isRepasMode: true }; ui.elements.jocTitol.textContent = "Sessió de Repàs"; mostrarPantalla('joc'); seguentPregunta(); }
             function comprovarResposta() { if (ui.elements.respostaInput.value.trim() === '') return; const respostaUsuari = parseInt(ui.elements.respostaInput.value); const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex]; if (respostaUsuari === estatJoc.respostaCorrecta) { estatJoc.encerts++; estatJoc.preguntaActualIndex++; if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) { finalitzarSessio(true); } else { seguentPregunta(); } } else { estatJoc.errades++; estatJoc.fallades.push({ text: preguntaActual.text, correcta: estatJoc.respostaCorrecta, respostaUsuari: respostaUsuari }); const tipoOperacion = estatJoc.tipus === 'repas' ? (preguntaActual.text.includes('+') ? 'sumes' : (preguntaActual.text.includes('x') ? 'multiplicacions' : 'restes')) : estatJoc.tipus; const operacionStr = preguntaActual.text.replace(/\s/g, ''); registrarError(operacionStr, tipoOperacion); alert(`Resposta incorrecta! La resposta correcta era: ${estatJoc.respostaCorrecta}`); if (!estatJoc.isRepasMode) { gestionarError(preguntaActual); } else { estatJoc.preguntaActualIndex++; if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) { finalitzarSessio(true); } else { seguentPregunta(); } } } }
@@ -154,7 +149,31 @@
             function mostrarHistorial(tipus) { const historial = getDadesUsuari().estadistiques[tipus] || []; ui.elements.historialTitol.textContent = `Historial de ${tipus}`; ui.elements.historialContingut.innerHTML = ''; if (historial.length === 0) { ui.elements.historialContingut.innerHTML = '<p>Encara no hi ha dades.</p>'; if (chartInstances.errors) { chartInstances.errors.destroy(); chartInstances.errors = null; } if (chartInstances.times) { chartInstances.times.destroy(); chartInstances.times = null; } } else { historial.slice().reverse().forEach(s => { const p = document.createElement('p'); p.textContent = `${s.data} - Errades: ${s.errades}, Temps: ${s.temps}s`; ui.elements.historialContingut.appendChild(p); }); generarGrafiques(historial); } ui.elements.historialDetallat.style.display = 'block'; }
             function generarGrafiques(dades) { if (chartInstances.errors) chartInstances.errors.destroy(); if (chartInstances.times) chartInstances.times.destroy(); const labels = dades.map((s, i) => `${s.data} (#${i+1})`); const erradesData = dades.map(s => s.errades); const tempsData = dades.map(s => s.temps); const errCtx = document.getElementById('errors-chart').getContext('2d'); chartInstances.errors = new Chart(errCtx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Errades per sessió', data: erradesData, borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } }); const timesCtx = document.getElementById('times-chart').getContext('2d'); chartInstances.times = new Chart(timesCtx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Temps per sessió (segons)', data: tempsData, borderColor: 'rgba(54, 162, 235, 1)', backgroundColor: 'rgba(54, 162, 235, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true } } } }); }
             
-            ui.buttons.crearUsuari.addEventListener('click', crearUsuariNou); ui.buttons.canviarUsuari.addEventListener('click', canviarUsuari); ui.buttons.multiplicacions.addEventListener('click', () => iniciarJoc('multiplicacions')); ui.buttons.sumes.addEventListener('click', () => iniciarJoc('sumes')); ui.buttons.restes.addEventListener('click', () => iniciarJoc('restes')); ui.buttons.estadistiques.addEventListener('click', () => { mostrarPantalla('estadistiques'); mostrarEstadistiquesGlobals(); ui.elements.historialDetallat.style.display = 'none'; }); ui.buttons.respostaInput.addEventListener('input', () => { ui.buttons.comprovar.disabled = ui.elements.respostaInput.value.trim() === ''; }); ui.buttons.respostaInput.addEventListener('keyup', (e) => { if (e.key === 'Enter' && !ui.buttons.comprovar.disabled) comprovarResposta(); }); ui.buttons.comprovar.addEventListener('click', comprovarResposta); document.querySelectorAll('.btn-finalitzar').forEach(btn => btn.addEventListener('click', () => finalitzarSessio(false))); ui.buttons.tornarMenu.addEventListener('click', () => { mostrarPantalla('menuPrincipal'); actualitzarBotonsNivell(); }); ui.buttons.tornarMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal')); ui.buttons.historial.forEach(btn => btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipus))); ui.buttons.repaso.addEventListener('click', iniciarModeRepas); ui.buttons.misRetos.addEventListener('click', mostrarGraficErrors); ui.buttons.retosModalClose.addEventListener('click', () => { pantallas.retosModal.style.display = 'none'; }); window.addEventListener('click', (e) => { if (e.target == pantallas.retosModal) { pantallas.retosModal.style.display = 'none'; } });
+            // --- ¡¡AQUÍ ESTABA MI ERROR!! Había borrado esta sección por accidente ---
+            ui.buttons.crearUsuari.addEventListener('click', crearUsuariNou); 
+            ui.buttons.canviarUsuari.addEventListener('click', canviarUsuari); 
+            ui.buttons.multiplicacions.addEventListener('click', () => iniciarJoc('multiplicacions')); 
+            ui.buttons.sumes.addEventListener('click', () => iniciarJoc('sumes')); 
+            ui.buttons.restes.addEventListener('click', () => iniciarJoc('restes')); 
+            ui.buttons.estadistiques.addEventListener('click', () => { mostrarPantalla('estadistiques'); mostrarEstadistiquesGlobals(); ui.elements.historialDetallat.style.display = 'none'; }); 
+            
+            // --- ¡¡ESTA ES LA LÍNEA QUE FALLABA!! Ahora está corregida ---
+            ui.elements.respostaInput.addEventListener('input', () => { 
+                ui.buttons.comprovar.disabled = ui.elements.respostaInput.value.trim() === ''; 
+            }); 
+            ui.elements.respostaInput.addEventListener('keyup', (e) => { 
+                if (e.key === 'Enter' && !ui.buttons.comprovar.disabled) comprovarResposta(); 
+            }); 
+
+            ui.buttons.comprovar.addEventListener('click', comprovarResposta); 
+            document.querySelectorAll('.btn-finalitzar').forEach(btn => btn.addEventListener('click', () => finalitzarSessio(false))); 
+            ui.buttons.tornarMenu.addEventListener('click', () => { mostrarPantalla('menuPrincipal'); actualitzarBotonsNivell(); }); 
+            ui.buttons.tornarMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal')); 
+            ui.buttons.historial.forEach(btn => btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipus))); 
+            ui.buttons.repaso.addEventListener('click', iniciarModeRepas); 
+            ui.buttons.misRetos.addEventListener('click', mostrarGraficErrors); 
+            ui.buttons.retosModalClose.addEventListener('click', () => { pantallas.retosModal.style.display = 'none'; }); 
+            window.addEventListener('click', (e) => { if (e.target == pantallas.retosModal) { pantallas.retosModal.style.display = 'none'; } });
 
             carregarUsuaris();
             mostrarPantalla('login');
