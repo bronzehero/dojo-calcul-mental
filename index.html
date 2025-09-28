@@ -9,30 +9,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root {
-            --c-pink: #ffafcc; --c-blue: #a2d2ff; --c-green: #bde0fe;
-            --c-purple: #cdb4db; --c-dark: #333; --c-light: #fff;
-            --c-shadow: rgba(100, 100, 150, 0.15); --font-main: 'Baloo 2', cursive;
-        }
-        body {
-            font-family: var(--font-main); display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; margin: 0; background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
-            text-align: center; padding: 15px; box-sizing: border-box;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); padding: 25px;
-            border-radius: 20px; box-shadow: 0 8px 32px 0 var(--c-shadow);
-            border: 1px solid rgba(255, 255, 255, 0.18); width: 100%; max-width: 420px;
-        }
+        :root { --c-pink: #ffafcc; --c-blue: #a2d2ff; --c-green: #bde0fe; --c-purple: #cdb4db; --c-dark: #333; --c-light: #fff; --c-shadow: rgba(100, 100, 150, 0.15); --font-main: 'Baloo 2', cursive; }
+        body { font-family: var(--font-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%); text-align: center; padding: 15px; box-sizing: border-box; }
+        .container { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); padding: 25px; border-radius: 20px; box-shadow: 0 8px 32px 0 var(--c-shadow); border: 1px solid rgba(255, 255, 255, 0.18); width: 100%; max-width: 420px; }
         h1, h2 { color: var(--c-dark); margin-top: 0; }
         h1 { font-size: 2.5em; } h2 { font-size: 2em; }
-        button {
-            display: block; width: 100%; padding: 15px; margin: 12px 0; border: none;
-            border-radius: 15px; color: var(--c-dark); font-size: 1.3em;
-            font-family: var(--font-main); font-weight: 700; cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 15px 0 var(--c-shadow);
-        }
+        button { display: block; width: 100%; padding: 15px; margin: 12px 0; border: none; border-radius: 15px; color: var(--c-dark); font-size: 1.3em; font-family: var(--font-main); font-weight: 700; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 15px 0 var(--c-shadow); }
         button:hover { transform: translateY(-3px); box-shadow: 0 6px 20px 0 rgba(100, 100, 150, 0.25); }
         button:disabled { background-color: #cccccc !important; cursor: not-allowed; transform: none; box-shadow: none; }
         #btn-multiplicacions { background-color: var(--c-pink); }
@@ -43,541 +25,166 @@
         #btn-mis-retos { background-color: #ffca7b; }
         .btn-usuari { background-color: #fff; border: 2px solid var(--c-purple); }
         .btn-finalitzar, #btn-canviar-usuari { background-color: #ff758f; }
-        input[type="number"], input[type="text"] {
-            width: calc(100% - 22px); padding: 12px; margin-bottom: 15px; border: 2px solid #ddd;
-            border-radius: 12px; font-size: 1.5em; text-align: center; font-family: var(--font-main);
-            transition: border-color 0.2s;
-        }
+        input[type="number"], input[type="text"] { width: calc(100% - 22px); padding: 12px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 1.5em; text-align: center; font-family: var(--font-main); transition: border-color 0.2s; }
         input:focus { outline: none; border-color: var(--c-purple); }
         .progress-container { width: 100%; background-color: #eee; border-radius: 15px; margin: 20px 0; overflow: hidden; }
-        .progress-bar {
-            width: 0%; height: 30px; background: linear-gradient(to right, #a2d2ff, #cdb4db);
-            text-align: center; line-height: 30px; color: var(--c-dark); font-weight: 700;
-            border-radius: 15px; transition: width 0.3s ease;
-        }
+        .progress-bar { width: 0%; height: 30px; background: linear-gradient(to right, #a2d2ff, #cdb4db); text-align: center; line-height: 30px; color: var(--c-dark); font-weight: 700; border-radius: 15px; transition: width 0.3s ease; }
         .stats-card { background: #fff; border-radius: 15px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px 0 var(--c-shadow); }
-        .stats-card h3 { margin-top: 0; }
         .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 1.1em; }
         .stat-item { background: #f8f9fa; padding: 10px; border-radius: 10px; }
         .stat-item .value { font-size: 1.5em; font-weight: 700; color: var(--c-purple); }
         #historial-contingut { text-align: left; max-height: 200px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; padding: 10px; margin-top: 15px; }
         #historial-contingut p { margin: 8px 0; }
         .chart-container { margin-top: 20px; }
-        .modal {
-            display: none;
-            position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-            overflow: auto; background-color: rgba(0,0,0,0.6);
-            align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 25px;
-            border-radius: 20px; box-shadow: 0 8px 32px 0 var(--c-shadow);
-            border: 1px solid rgba(255, 255, 255, 0.18); width: 90%; max-width: 500px;
-            position: relative;
-        }
-        .modal-close {
-            position: absolute; top: 15px; right: 25px; color: #aaa;
-            font-size: 30px; font-weight: bold; cursor: pointer;
-        }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; }
+        .modal-content { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 25px; border-radius: 20px; box-shadow: 0 8px 32px 0 var(--c-shadow); border: 1px solid rgba(255, 255, 255, 0.18); width: 90%; max-width: 500px; position: relative; }
+        .modal-close { position: absolute; top: 15px; right: 25px; color: #aaa; font-size: 30px; font-weight: bold; cursor: pointer; }
         .modal-close:hover { color: var(--c-dark); }
     </style>
 </head>
 <body>
     <div id="app-container">
-        
-        <div id="pantalla-login" class="container">
-            <h2>Qui està jugant?</h2>
-            <div id="usuaris-existents"><p>Carregant usuaris...</p></div>
-            <hr>
-            <p>o crea un usuari nou:</p>
-            <input type="text" id="nou-usuari-nom" placeholder="Escriu el teu nom">
-            <button id="btn-crear-usuari">Entrar</button>
-        </div>
-
-        <div id="menu-principal" class="container" style="display:none;">
-            <h1 id="menu-benvinguda">🧠 Dojo Mental 🧠</h1>
-            <button id="btn-multiplicacions">Sessió de Multiplicacions</button>
-            <button id="btn-sumes">Sumes</button>
-            <button id="btn-restes">Restes</button>
-            <button id="btn-repaso">Sessió de Repàs Intel·ligent</button>
-            <button id="btn-mis-retos">Els meus 10 Reptes</button>
-            <button id="btn-estadistiques">📊 Estadístiques</button>
-            <button id="btn-canviar-usuari">Canviar d'Usuari</button>
-        </div>
-
-        <div id="pantalla-joc" class="container" style="display:none;">
-            <h2 id="joc-titol"></h2>
-            <p id="pregunta-text" style="font-size: 1.8em; font-weight: 700;"></p>
-            <input type="number" id="resposta-input" inputmode="numeric">
-            <button id="btn-comprovar" disabled>Comprovar</button>
-            <div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div>
-            <button class="btn-finalitzar">Sortir</button>
-        </div>
-
-        <div id="pantalla-resum" class="container" style="display:none;">
-            <h2 id="resum-titol">Ben fet!</h2>
-            <p>Temps total: <strong id="temps-total"></strong> segons</p>
-            <p>Encerts: <strong id="encerts"></strong> ✅</p>
-            <p>Errades: <strong id="errades"></strong> ❌</p>
-            <p id="missatge-felicitacio" style="display:none; font-size: 1.5em;">⭐ PERFECTE! ⭐</p>
-            <div id="resum-fallades" style="text-align:left; margin-top:15px;"></div>
-            <button id="btn-tornar-menu">Tornar al Menú</button>
-        </div>
-
-        <div id="pantalla-estadistiques" class="container" style="display:none;">
-            <h2>📊 Estadístiques</h2>
-            <div id="stats-globals" class="stats-card"></div>
-            <div id="botons-historial">
-                <button data-tipus="multiplicacions">Historial Multiplicacions</button>
-                <button data-tipus="sumes">Historial Sumes</button>
-                <button data-tipus="restes">Historial Restes</button>
-            </div>
-            <div id="historial-detallat" style="display:none;">
-                <h3 id="historial-titol"></h3>
-                <div class="chart-container"><canvas id="errors-chart"></canvas></div>
-                <div class="chart-container"><canvas id="times-chart"></canvas></div>
-                <div id="historial-contingut"></div>
-            </div>
-            <button id="btn-tornar-menu-stats">Tornar al Menú Principal</button>
-        </div>
+        <!-- Tus divs de HTML se quedan igual -->
+        <div id="pantalla-login" class="container"><h2>Qui està jugant?</h2><div id="usuaris-existents"><p>Carregant usuaris...</p></div><hr><p>o crea un usuari nou:</p><input type="text" id="nou-usuari-nom" placeholder="Escriu el teu nom"><button id="btn-crear-usuari">Entrar</button></div>
+        <div id="menu-principal" class="container" style="display:none;"><h1 id="menu-benvinguda">🧠 Dojo Mental 🧠</h1><button id="btn-multiplicacions">Sessió de Multiplicacions</button><button id="btn-sumes">Sumes</button><button id="btn-restes">Restes</button><button id="btn-repaso">Sessió de Repàs Intel·ligent</button><button id="btn-mis-retos">Els meus 10 Reptes</button><button id="btn-estadistiques">📊 Estadístiques</button><button id="btn-canviar-usuari">Canviar d'Usuari</button></div>
+        <div id="pantalla-joc" class="container" style="display:none;"><h2 id="joc-titol"></h2><p id="pregunta-text" style="font-size: 1.8em; font-weight: 700;"></p><input type="number" id="resposta-input" inputmode="numeric"><button id="btn-comprovar" disabled>Comprovar</button><div class="progress-container"><div id="progress-bar" class="progress-bar"></div></div><button class="btn-finalitzar">Sortir</button></div>
+        <div id="pantalla-resum" class="container" style="display:none;"><h2 id="resum-titol">Ben fet!</h2><p>Temps total: <strong id="temps-total"></strong> segons</p><p>Encerts: <strong id="encerts"></strong> ✅</p><p>Errades: <strong id="errades"></strong> ❌</p><p id="missatge-felicitacio" style="display:none; font-size: 1.5em;">⭐ PERFECTE! ⭐</p><div id="resum-fallades" style="text-align:left; margin-top:15px;"></div><button id="btn-tornar-menu">Tornar al Menú</button></div>
+        <div id="pantalla-estadistiques" class="container" style="display:none;"><h2>📊 Estadístiques</h2><div id="stats-globals" class="stats-card"></div><div id="botons-historial"><button data-tipus="multiplicacions">Historial Multiplicacions</button><button data-tipus="sumes">Historial Sumes</button><button data-tipus="restes">Historial Restes</button></div><div id="historial-detallat" style="display:none;"><h3 id="historial-titol"></h3><div class="chart-container"><canvas id="errors-chart"></canvas></div><div class="chart-container"><canvas id="times-chart"></canvas></div><div id="historial-contingut"></div></div><button id="btn-tornar-menu-stats">Tornar al Menú Principal</button></div>
     </div>
-    
-    <div id="retos-modal" class="modal">
-        <div class="modal-content">
-            <span id="retos-modal-close" class="modal-close">&times;</span>
-            <h2>Els Meus Reptes Freqüents</h2>
-            <div class="chart-container" style="height: 40vh;"><canvas id="retos-chart"></canvas></div>
-        </div>
-    </div>
+    <div id="retos-modal" class="modal"><div class="modal-content"><span id="retos-modal-close" class="modal-close">&times;</span><h2>Els Meus Reptes Freqüents</h2><div class="chart-container" style="height: 40vh;"><canvas id="retos-chart"></canvas></div></div></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzkLHcHZ1KkSf17f2CEFeOujipdga21AVpGqAdeFXE6XpcIBTGK1L7VJ3sKO7FyXVNk/exec";
+            const URL_APP_SCRIPT = "https://script.google.com/macros/s/AKfycbzkLHcHZ1KkSf17f2CEFeOujipdga21AVpGqAdeFXE6XpcIBTGK1L7VJ3sKO7FyXVNk/exec"; // <-- ¡¡IMPORTANTE!! Usa la nueva URL que generes
             const CLAU_SECRETA = "dojo-secret-key-2025";
-            
-            const pantallas = {
-                login: document.getElementById('pantalla-login'),
-                menuPrincipal: document.getElementById('menu-principal'),
-                joc: document.getElementById('pantalla-joc'),
-                resum: document.getElementById('pantalla-resum'),
-                estadistiques: document.getElementById('pantalla-estadistiques'),
-                retosModal: document.getElementById('retos-modal')
-            };
+            const pantallas = { login: document.getElementById('pantalla-login'), menuPrincipal: document.getElementById('menu-principal'), joc: document.getElementById('pantalla-joc'), resum: document.getElementById('pantalla-resum'), estadistiques: document.getElementById('pantalla-estadistiques'), retosModal: document.getElementById('retos-modal') };
+            const ui = { buttons: { crearUsuari: document.getElementById('btn-crear-usuari'), canviarUsuari: document.getElementById('btn-canviar-usuari'), multiplicacions: document.getElementById('btn-multiplicacions'), sumes: document.getElementById('btn-sumes'), restes: document.getElementById('btn-restes'), estadistiques: document.getElementById('btn-estadistiques'), repaso: document.getElementById('btn-repaso'), misRetos: document.getElementById('btn-mis-retos'), comprovar: document.getElementById('btn-comprovar'), tornarMenu: document.getElementById('btn-tornar-menu'), tornarMenuStats: document.getElementById('btn-tornar-menu-stats'), historial: document.querySelectorAll('#botons-historial button'), retosModalClose: document.getElementById('retos-modal-close') }, elements: { usuarisExistents: document.getElementById('usuaris-existents'), nouUsuariNom: document.getElementById('nou-usuari-nom'), menuBenvinguda: document.getElementById('menu-benvinguda'), jocTitol: document.getElementById('joc-titol'), preguntaText: document.getElementById('pregunta-text'), respostaInput: document.getElementById('resposta-input'), progressBar: document.getElementById('progress-bar'), tempsTotal: document.getElementById('temps-total'), encerts: document.getElementById('encerts'), errades: document.getElementById('errades'), missatgeFelicitacio: document.getElementById('missatge-felicitacio'), resumTitol: document.getElementById('resum-titol'), statsGlobals: document.getElementById('stats-globals'), historialDetallat: document.getElementById('historial-detallat'), historialTitol: document.getElementById('historial-titol'), historialContingut: document.getElementById('historial-contingut') } };
+            let usuariActual = null, estatJoc = {}, usuarisCarregats = [], chartInstances = { errors: null, times: null, retos: null };
+            const nivellsSuma = [ { min: 0, max: 4 }, { min: 0, max: 5 }, { min: 0, max: 6 }, { min: 0, max: 7 }, { min: 0, max: 8 }, { min: 0, max: 9 }, { min: 0, max: 10 } ];
+            const nivellsResta = [ { min: 0, max: 10 }, { min: 10, max: 20 }, { min: 20, max: 30 }, { min: 30, max: 40 }, { min: 40, max: 50 }, { min: 50, max: 75 }, { min: 75, max: 100 } ];
 
-            const ui = {
-                buttons: {
-                    crearUsuari: document.getElementById('btn-crear-usuari'),
-                    canviarUsuari: document.getElementById('btn-canviar-usuari'),
-                    multiplicacions: document.getElementById('btn-multiplicacions'),
-                    sumes: document.getElementById('btn-sumes'),
-                    restes: document.getElementById('btn-restes'),
-                    estadistiques: document.getElementById('btn-estadistiques'),
-                    repaso: document.getElementById('btn-repaso'),
-                    misRetos: document.getElementById('btn-mis-retos'),
-                    comprovar: document.getElementById('btn-comprovar'),
-                    tornarMenu: document.getElementById('btn-tornar-menu'),
-                    tornarMenuStats: document.getElementById('btn-tornar-menu-stats'),
-                    historial: document.querySelectorAll('#botons-historial button'),
-                    retosModalClose: document.getElementById('retos-modal-close')
-                },
-                elements: {
-                    usuarisExistents: document.getElementById('usuaris-existents'),
-                    nouUsuariNom: document.getElementById('nou-usuari-nom'),
-                    menuBenvinguda: document.getElementById('menu-benvinguda'),
-                    jocTitol: document.getElementById('joc-titol'),
-                    preguntaText: document.getElementById('pregunta-text'),
-                    respostaInput: document.getElementById('resposta-input'),
-                    progressBar: document.getElementById('progress-bar'),
-                    tempsTotal: document.getElementById('temps-total'),
-                    encerts: document.getElementById('encerts'),
-                    errades: document.getElementById('errades'),
-                    missatgeFelicitacio: document.getElementById('missatge-felicitacio'),
-                    resumTitol: document.getElementById('resum-titol'),
-                    statsGlobals: document.getElementById('stats-globals'),
-                    historialDetallat: document.getElementById('historial-detallat'),
-                    historialTitol: document.getElementById('historial-titol'),
-                    historialContingut: document.getElementById('historial-contingut')
-                }
-            };
-            let timerInterval;
-            let usuariActual = null;
-            let estatJoc = {};
-            let usuarisCarregats = [];
-            let chartInstances = { errors: null, times: null, retos: null };
+            // --- ¡NUEVA FUNCIÓN MÁGICA: fetchJSONP! ---
+            function fetchJSONP(url, params) {
+                return new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+                    const script = document.createElement('script');
+                    
+                    window[callbackName] = function(data) {
+                        delete window[callbackName];
+                        document.head.removeChild(script);
+                        resolve(data);
+                    };
 
-            const nivellsSuma = [
-                { min: 0, max: 4 }, { min: 0, max: 5 }, { min: 0, max: 6 },
-                { min: 0, max: 7 }, { min: 0, max: 8 }, { min: 0, max: 9 }, { min: 0, max: 10 }
-            ];
-            const nivellsResta = [
-                { min: 0, max: 10 }, { min: 10, max: 20 }, { min: 20, max: 30 },
-                { min: 30, max: 40 }, { min: 40, max: 50 }, { min: 50, max: 75 }, { min: 75, max: 100 }
-            ];
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        document.head.removeChild(script);
+                        reject(new Error('JSONP request failed'));
+                    };
 
-            function registrarError(operacion, tipo) {
-                const data = { action: 'registerError', username: usuariActual, operacion, tipo };
-                fetch(URL_APP_SCRIPT, {
-                    method: 'POST',
-                    // mode: 'no-cors', // <-- ESTA LÍNEA ES LA CAUSA DEL ERROR 500. SE HA ELIMINADO.
-                    body: JSON.stringify(data),
-                    headers: { 'Content-Type': 'application/json' }
-                }).catch(error => console.error('Error en fetch al registrar error:', error));
-            }
-
-            async function obtenirErrors() {
-                const url = new URL(URL_APP_SCRIPT);
-                url.searchParams.append('action', 'getErrors');
-                url.searchParams.append('username', usuariActual);
-                try {
-                    const response = await fetch(url);
-                    const result = await response.json();
-                    return (result.status === 'success') ? result.data : [];
-                } catch (error) {
-                    console.error('Error de red al obtenir errors:', error);
-                    return [];
-                }
-            }
-
-            async function mostrarGraficErrors() {
-                const errors = await obtenirErrors();
-                if (errors.length === 0) {
-                    alert("Felicitats! No hi ha errors registrats per mostrar.");
-                    return;
-                }
-                const top10 = errors.slice(0, 10).reverse();
-                const labels = top10.map(e => e.operacion);
-                const data = top10.map(e => e.fallos);
-                pantallas.retosModal.style.display = 'flex';
-                const ctx = document.getElementById('retos-chart').getContext('2d');
-                if (chartInstances.retos) chartInstances.retos.destroy();
-                chartInstances.retos = new Chart(ctx, {
-                    type: 'bar',
-                    data: { labels, datasets: [{
-                        label: 'Número d\'Errades', data,
-                        backgroundColor: '#ffafcc', borderColor: '#cdb4db', borderWidth: 2
-                    }]},
-                    options: {
-                        indexAxis: 'y',
-                        scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false } }
-                    }
+                    const searchParams = new URLSearchParams(params);
+                    searchParams.append('callback', callbackName);
+                    script.src = `${url}?${searchParams.toString()}`;
+                    document.head.appendChild(script);
                 });
             }
-            
-            async function iniciarModeRepas() {
-                const errors = await obtenirErrors();
-                if (errors.length === 0) {
-                    alert("No hi ha errors per repassar! Començant una sessió normal de sumes.");
-                    iniciarJoc('sumes');
-                    return;
-                }
-                const TOTAL_PREGUNTES = 20;
-                const NUM_PREGUNTES_DIFICILS = Math.ceil(TOTAL_PREGUNTES * 0.7);
-                const NUM_PREGUNTES_REFORC = TOTAL_PREGUNTES - NUM_PREGUNTES_DIFICILS;
-                let preguntesRepas = [];
-                const llistaPonderada = errors.flatMap(error => Array(error.fallos).fill(error));
-                for (let i = 0; i < NUM_PREGUNTES_DIFICILS && llistaPonderada.length > 0; i++) {
-                    const randomIndex = Math.floor(Math.random() * llistaPonderada.length);
-                    preguntesRepas.push(llistaPonderada[randomIndex]);
-                }
-                for (let i = 0; i < NUM_PREGUNTES_REFORC; i++) {
-                    const num1 = Math.floor(Math.random() * 5) + 1, num2 = Math.floor(Math.random() * 5) + 1;
-                    preguntesRepas.push({ operacion: `${num1}+${num2}`, tipo: 'sumes' });
-                }
-                const preguntesFormatejades = preguntesRepas.slice(0, TOTAL_PREGUNTES).map(p => {
-                    const text = p.operacion.replace('x', 'x').replace('+', '+').replace('-', '-');
-                    const resposta = Math.round(eval(text.replace('x', '*')));
-                    return { text: text.replace('x', ' x ').replace('+', ' + ').replace('-', ' - '), resposta };
-                });
-                estatJoc = {
-                    tipus: 'repas',
-                    preguntes: shuffle(preguntesFormatejades),
-                    preguntaActualIndex: 0, encerts: 0, errades: 0,
-                    startTime: new Date(), fallades: [], isRepasMode: true
-                };
-                ui.elements.jocTitol.textContent = "Sessió de Repàs";
-                mostrarPantalla('joc');
-                seguentPregunta();
-            }
 
-            function comprovarResposta() {
-                if (ui.elements.respostaInput.value.trim() === '') return;
-                const respostaUsuari = parseInt(ui.elements.respostaInput.value);
-                const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex];
-                if (respostaUsuari === estatJoc.respostaCorrecta) {
-                    estatJoc.encerts++;
-                    estatJoc.preguntaActualIndex++;
-                    if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) {
-                        finalitzarSessio(true);
-                    } else {
-                        seguentPregunta();
-                    }
-                } else {
-                    estatJoc.errades++;
-                    estatJoc.fallades.push({
-                        text: preguntaActual.text,
-                        correcta: estatJoc.respostaCorrecta,
-                        respostaUsuari: respostaUsuari
-                    });
-                    const tipoOperacion = estatJoc.tipus === 'repas' 
-                        ? (preguntaActual.text.includes('+') ? 'sumes' : (preguntaActual.text.includes('x') ? 'multiplicacions' : 'restes'))
-                        : estatJoc.tipus;
-                    const operacionStr = preguntaActual.text.replace(/\s/g, '');
-                    registrarError(operacionStr, tipoOperacion);
-                    alert(`Resposta incorrecta! La resposta correcta era: ${estatJoc.respostaCorrecta}`);
-                    if (!estatJoc.isRepasMode) {
-                        gestionarError(preguntaActual);
-                    } else {
-                        estatJoc.preguntaActualIndex++;
-                         if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) {
-                            finalitzarSessio(true);
-                        } else {
-                            seguentPregunta();
-                        }
-                    }
-                }
-            }
-            
-            function guardarEstadistiques(temps) {
-                actualitzarNivell(estatJoc.tipus, estatJoc.errades === 0);
-                const dadesUsuari = getDadesUsuari();
-                const sessioDades = {
-                    data: new Date().toLocaleDateString('ca-ES'),
-                    tipus: estatJoc.tipus,
-                    encerts: estatJoc.encerts,
-                    errades: estatJoc.errades,
-                    temps: temps,
-                    totalPreguntes: estatJoc.preguntes.length
-                };
-                if(dadesUsuari.estadistiques[estatJoc.tipus]) {
-                    dadesUsuari.estadistiques[estatJoc.tipus].push(sessioDades);
-                }
-                setDadesUsuari(dadesUsuari);
-                const dadesPerEnviar = { secret: CLAU_SECRETA, usuari: usuariActual, ...sessioDades };
-                
-                fetch(URL_APP_SCRIPT, {
-                    method: 'POST',
-                    // mode: 'no-cors', // <-- ESTA LÍNEA ES LA CAUSA DEL ERROR 500. SE HA ELIMINADO.
-                    cache: 'no-cache',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dadesPerEnviar)
-                }).then(() => console.log("Dades enviades correctament al cloud."))
-                  .catch(e => console.error("Error enviant les dades al cloud:", e));
-            }
-
-            // --- El resto del código es el tuyo original y no necesita cambios ---
-            
+            // --- FUNCIONES DE LECTURA MODIFICADAS PARA USAR JSONP ---
             function carregarUsuaris() {
                 ui.elements.usuarisExistents.innerHTML = '<p>Carregant usuaris...</p>';
-                fetch(`${URL_APP_SCRIPT}?action=getUsers`).then(r => r.json()).then(usuaris => {
-                    if (Array.isArray(usuaris)) {
-                        usuarisCarregats = usuaris;
-                        mostrarBotonsUsuari(usuaris);
-                    } else { throw new Error("Format de resposta incorrecte."); }
-                }).catch(error => {
-                    console.error("Error en carregar usuaris del Sheet, usant còpia local:", error);
-                    usuarisCarregats = JSON.parse(localStorage.getItem('dojoUsuaris')) || [];
-                    mostrarBotonsUsuari(usuarisCarregats);
-                });
-            }
-            
-            function mostrarBotonsUsuari(usuaris) {
-                ui.elements.usuarisExistents.innerHTML = usuaris.length === 0 ? '<p>Crea el primer usuari!</p>' : '';
-                usuaris.forEach(nom => {
-                    const boto = document.createElement('button');
-                    boto.textContent = nom;
-                    boto.className = 'btn-usuari';
-                    boto.onclick = () => iniciarSessioUsuari(nom);
-                    ui.elements.usuarisExistents.appendChild(boto);
-                });
+                fetchJSONP(URL_APP_SCRIPT, { action: 'getUsers' })
+                    .then(usuaris => {
+                        if (Array.isArray(usuaris)) {
+                            usuarisCarregats = usuaris;
+                            mostrarBotonsUsuari(usuaris);
+                        } else { throw new Error("Format de resposta incorrecte."); }
+                    }).catch(error => {
+                        console.error("Error en carregar usuaris del Sheet, usant còpia local:", error);
+                        usuarisCarregats = JSON.parse(localStorage.getItem('dojoUsuaris')) || [];
+                        mostrarBotonsUsuari(usuarisCarregats);
+                    });
             }
 
             function iniciarSessioUsuari(nom) {
                 usuariActual = nom;
                 ui.elements.menuBenvinguda.textContent = `Carregant dades de ${usuariActual}...`;
                 mostrarPantalla('menuPrincipal');
-                fetch(`${URL_APP_SCRIPT}?action=getUserData&user=${encodeURIComponent(nom)}`).then(r => r.json()).then(historial => {
-                    processarDadesServidor(historial);
-                    ui.elements.menuBenvinguda.textContent = `Hola, ${usuariActual}!`;
-                    actualitzarBotonsNivell();
-                }).catch(error => {
-                    console.error("Error en descarregar historial, usant dades locals:", error);
-                    ui.elements.menuBenvinguda.textContent = `Hola, ${usuariActual}! (mode offline)`;
-                    actualitzarBotonsNivell();
-                });
+
+                fetchJSONP(URL_APP_SCRIPT, { action: 'getUserData', user: nom })
+                    .then(historial => {
+                        processarDadesServidor(historial);
+                        ui.elements.menuBenvinguda.textContent = `Hola, ${usuariActual}!`;
+                        actualitzarBotonsNivell();
+                    }).catch(error => {
+                        console.error("Error en descarregar historial, usant dades locals:", error);
+                        ui.elements.menuBenvinguda.textContent = `Hola, ${usuariActual}! (mode offline)`;
+                        actualitzarBotonsNivell();
+                    });
+            }
+             async function obtenirErrors() {
+                return fetchJSONP(URL_APP_SCRIPT, { action: 'getErrors', username: usuariActual });
             }
 
-            function processarDadesServidor(historial) {
-                let dades = {
-                    estadistiques: { multiplicacions: [], sumes: [], restes: [] },
-                    nivells: { sumes: 0, restes: 0 }, ratxes: { sumes: 0, restes: 0 }
-                };
-                const historialNormalitzat = historial.map(s => ({
-                    tipus: s.tipus, errades: s.errades, data: s.data, temps: s.temps,
-                    encerts: s.encerts != null ? s.encerts : (s.totalpreguntes - s.errades),
-                    totalPreguntes: s.totalpreguntes
-                }));
-                historialNormalitzat.forEach(sessio => {
-                    const { tipus, errades } = sessio;
-                    if (tipus === 'sumes' || tipus === 'restes') {
-                        const maxNivell = (tipus === 'sumes' ? nivellsSuma.length : nivellsResta.length) - 1;
-                        if (errades === 0) {
-                            dades.ratxes[tipus] = (dades.ratxes[tipus] || 0) + 1;
-                            if (dades.ratxes[tipus] >= 3 && dades.nivells[tipus] < maxNivell) {
-                                dades.nivells[tipus]++;
-                                dades.ratxes[tipus] = 0;
-                            }
-                        } else { dades.ratxes[tipus] = 0; }
-                    }
-                    if (dades.estadistiques[tipus]) dades.estadistiques[tipus].push(sessio);
-                });
-                setDadesUsuari(dades);
+            // --- FUNCIONES DE ESCRITURA (POST) SE QUEDAN IGUAL (CON FETCH NORMAL) ---
+            function registrarError(operacion, tipo) {
+                fetch(URL_APP_SCRIPT, { method: 'POST', body: JSON.stringify({ action: 'registerError', username: usuariActual, operacion, tipo }), headers: { 'Content-Type': 'application/json' } })
+                .catch(error => console.error('Error en fetch al registrar error:', error));
             }
-
-            function crearUsuariNou() {
-                const nom = ui.elements.nouUsuariNom.value.trim();
-                if (!nom) return alert("Si us plau, escriu un nom.");
-                if (!usuarisCarregats.includes(nom)) {
-                    usuarisCarregats.push(nom);
-                    localStorage.setItem('dojoUsuaris', JSON.stringify(usuarisCarregats));
-                }
-                ui.elements.nouUsuariNom.value = '';
-                iniciarSessioUsuari(nom);
+            function guardarEstadistiques(temps) {
+                actualitzarNivell(estatJoc.tipus, estatJoc.errades === 0);
+                const dadesUsuari = getDadesUsuari();
+                const sessioDades = { data: new Date().toLocaleDateString('ca-ES'), tipus: estatJoc.tipus, encerts: estatJoc.encerts, errades: estatJoc.errades, temps: temps, totalPreguntes: estatJoc.preguntes.length };
+                if(dadesUsuari.estadistiques[estatJoc.tipus]) { dadesUsuari.estadistiques[estatJoc.tipus].push(sessioDades); }
+                setDadesUsuari(dadesUsuari);
+                const dadesPerEnviar = { secret: CLAU_SECRETA, usuari: usuariActual, ...sessioDades };
+                fetch(URL_APP_SCRIPT, { method: 'POST', body: JSON.stringify(dadesPerEnviar), headers: { 'Content-Type': 'application/json' } })
+                .then(() => console.log("Dades enviades correctament al cloud."))
+                .catch(e => console.error("Error enviant les dades al cloud:", e));
             }
-
+            
+            // --- El resto de tu código no necesita cambios ---
+            async function mostrarGraficErrors() {
+                const result = await obtenirErrors();
+                if (!result || result.status !== "success" || result.data.length === 0) { alert("Felicitats! No hi ha errors registrats per mostrar."); return; }
+                const top10 = result.data.slice(0, 10).reverse();
+                const labels = top10.map(e => e.operacion); const data = top10.map(e => e.fallos);
+                pantallas.retosModal.style.display = 'flex';
+                const ctx = document.getElementById('retos-chart').getContext('2d');
+                if (chartInstances.retos) chartInstances.retos.destroy();
+                chartInstances.retos = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Número d\'Errades', data, backgroundColor: '#ffafcc', borderColor: '#cdb4db', borderWidth: 2 }] }, options: { indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+            }
+            async function iniciarModeRepas() {
+                const result = await obtenirErrors();
+                if (!result || result.status !== "success" || result.data.length === 0) { alert("No hi ha errors per repassar! Començant una sessió normal de sumes."); iniciarJoc('sumes'); return; }
+                const TOTAL_PREGUNTES = 20, NUM_PREGUNTES_DIFICILS = Math.ceil(TOTAL_PREGUNTES * 0.7), NUM_PREGUNTES_REFORC = TOTAL_PREGUNTES - NUM_PREGUNTES_DIFICILS; let preguntesRepas = [];
+                const llistaPonderada = result.data.flatMap(error => Array(error.fallos).fill(error));
+                for (let i = 0; i < NUM_PREGUNTES_DIFICILS && llistaPonderada.length > 0; i++) { const randomIndex = Math.floor(Math.random() * llistaPonderada.length); preguntesRepas.push(llistaPonderada[randomIndex]); }
+                for (let i = 0; i < NUM_PREGUNTES_REFORC; i++) { const num1 = Math.floor(Math.random() * 5) + 1, num2 = Math.floor(Math.random() * 5) + 1; preguntesRepas.push({ operacion: `${num1}+${num2}`, tipo: 'sumes' }); }
+                const preguntesFormatejades = preguntesRepas.slice(0, TOTAL_PREGuntes).map(p => { const text = p.operacion.replace('x', 'x').replace('+', '+').replace('-', '-'); const resposta = Math.round(eval(text.replace('x', '*'))); return { text: text.replace('x', ' x ').replace('+', ' + ').replace('-', ' - '), resposta }; });
+                estatJoc = { tipus: 'repas', preguntes: shuffle(preguntesFormatejades), preguntaActualIndex: 0, encerts: 0, errades: 0, startTime: new Date(), fallades: [], isRepasMode: true };
+                ui.elements.jocTitol.textContent = "Sessió de Repàs"; mostrarPantalla('joc'); seguentPregunta();
+            }
+            function comprovarResposta() { if (ui.elements.respostaInput.value.trim() === '') return; const respostaUsuari = parseInt(ui.elements.respostaInput.value); const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex]; if (respostaUsuari === estatJoc.respostaCorrecta) { estatJoc.encerts++; estatJoc.preguntaActualIndex++; if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) { finalitzarSessio(true); } else { seguentPregunta(); } } else { estatJoc.errades++; estatJoc.fallades.push({ text: preguntaActual.text, correcta: estatJoc.respostaCorrecta, respostaUsuari: respostaUsuari }); const tipoOperacion = estatJoc.tipus === 'repas' ? (preguntaActual.text.includes('+') ? 'sumes' : (preguntaActual.text.includes('x') ? 'multiplicacions' : 'restes')) : estatJoc.tipus; const operacionStr = preguntaActual.text.replace(/\s/g, ''); registrarError(operacionStr, tipoOperacion); alert(`Resposta incorrecta! La resposta correcta era: ${estatJoc.respostaCorrecta}`); if (!estatJoc.isRepasMode) { gestionarError(preguntaActual); } else { estatJoc.preguntaActualIndex++; if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) { finalitzarSessio(true); } else { seguentPregunta(); } } } }
+            function processarDadesServidor(historial) { let dades = { estadistiques: { multiplicacions: [], sumes: [], restes: [] }, nivells: { sumes: 0, restes: 0 }, ratxes: { sumes: 0, restes: 0 } }; const historialNormalitzat = historial.map(s => ({ tipus: s.tipus, errades: s.errades, data: s.data, temps: s.temps, encerts: s.encerts != null ? s.encerts : (s.totalpreguntes - s.errades), totalPreguntes: s.totalpreguntes })); historialNormalitzat.forEach(sessio => { const { tipus, errades } = sessio; if (tipus === 'sumes' || tipus === 'restes') { const maxNivell = (tipus === 'sumes' ? nivellsSuma.length : nivellsResta.length) - 1; if (errades === 0) { dades.ratxes[tipus] = (dades.ratxes[tipus] || 0) + 1; if (dades.ratxes[tipus] >= 3 && dades.nivells[tipus] < maxNivell) { dades.nivells[tipus]++; dades.ratxes[tipus] = 0; } } else { dades.ratxes[tipus] = 0; } } if (dades.estadistiques[tipus]) dades.estadistiques[tipus].push(sessio); }); setDadesUsuari(dades); }
+            function mostrarBotonsUsuari(usuaris) { ui.elements.usuarisExistents.innerHTML = usuaris.length === 0 ? '<p>Crea el primer usuari!</p>' : ''; usuaris.forEach(nom => { const boto = document.createElement('button'); boto.textContent = nom; boto.className = 'btn-usuari'; boto.onclick = () => iniciarSessioUsuari(nom); ui.elements.usuarisExistents.appendChild(boto); }); }
+            function crearUsuariNou() { const nom = ui.elements.nouUsuariNom.value.trim(); if (!nom) return alert("Si us plau, escriu un nom."); if (!usuarisCarregats.includes(nom)) { usuarisCarregats.push(nom); localStorage.setItem('dojoUsuaris', JSON.stringify(usuarisCarregats)); } ui.elements.nouUsuariNom.value = ''; iniciarSessioUsuari(nom); }
             function canviarUsuari() { usuariActual = null; carregarUsuaris(); mostrarPantalla('login'); }
             function getDadesUsuari() { return JSON.parse(localStorage.getItem(`dojoDades_${usuariActual}`)) || { estadistiques: { multiplicacions: [], sumes: [], restes: [] }, nivells: { sumes: 0, restes: 0 }, ratxes: { sumes: 0, restes: 0 } }; }
             function setDadesUsuari(dades) { localStorage.setItem(`dojoDades_${usuariActual}`, JSON.stringify(dades)); }
             function mostrarPantalla(id) { Object.values(pantallas).forEach(p => { if(p.id !== 'retos-modal') p.style.display = 'none' }); pantallas[id].style.display = 'block'; if (id === 'menuPrincipal') pantallas.login.style.display = 'none'; }
             function shuffle(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]]; } return array; }
-
-            function iniciarJoc(tipus) {
-                let preguntes = []; let titol = '';
-                if (tipus === 'multiplicacions') {
-                    titol = 'Multiplicacions';
-                    for (let i = 2; i <= 9; i++) { for (let j = i; j <= 9; j++) { preguntes.push({ text: `${i} x ${j}`, resposta: i * j }); if (i !== j) preguntes.push({ text: `${j} x ${i}`, resposta: j * i }); } }
-                } else if (tipus === 'sumes') {
-                    titol = 'Sumes'; const nivell = nivellsSuma[obtenirNivell('sumes')];
-                    for (let i = nivell.min; i <= nivell.max; i++) { for (let j = i; j <= nivell.max; j++) { preguntes.push({ text: `${i} + ${j}`, resposta: i + j }); if (i !== j) preguntes.push({ text: `${j} + ${i}`, resposta: j + i }); } }
-                } else if (tipus === 'restes') {
-                    titol = 'Restes'; const nivell = nivellsResta[obtenirNivell('restes')];
-                    for (let i = nivell.min; i <= nivell.max; i++) { for (let j = nivell.min; j <= i; j++) { preguntes.push({ text: `${i} - ${j}`, resposta: i - j }); } }
-                }
-                estatJoc = { tipus: tipus, preguntes: shuffle(preguntes), preguntaActualIndex: 0, encerts: 0, errades: 0, startTime: new Date(), fallades: [], isRepasMode: false };
-                ui.elements.jocTitol.textContent = titol; mostrarPantalla('joc'); seguentPregunta();
-            }
-
-            function seguentPregunta() {
-                const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex];
-                ui.elements.preguntaText.textContent = preguntaActual.text; estatJoc.respostaCorrecta = preguntaActual.resposta;
-                ui.elements.respostaInput.value = ''; ui.elements.respostaInput.focus(); actualitzarProgres();
-            }
-            
-            function gestionarError(preguntaFallada) {
-                const indexActual = estatJoc.preguntaActualIndex;
-                if (indexActual + 1 < estatJoc.preguntes.length) { estatJoc.preguntes.splice(indexActual + 2, 0, preguntaFallada); estatJoc.preguntaActualIndex++; } 
-                else { estatJoc.preguntes.push(preguntaFallada); estatJoc.preguntaActualIndex++; }
-                seguentPregunta();
-            }
-
-            function actualitzarProgres() {
-                const total = estatJoc.preguntes.length; const actual = estatJoc.preguntaActualIndex; const progres = total > 0 ? (actual / total) * 100 : 0;
-                ui.elements.progressBar.style.width = `${progres}%`; ui.elements.progressBar.textContent = `${actual}/${total}`;
-            }
-
-           function finalitzarSessio(completada) {
-                if (timerInterval) clearInterval(timerInterval);
-                const tempsTotal = Math.floor((new Date() - estatJoc.startTime) / 1000);
-                mostrarPantalla('resum');
-                if (completada) {
-                    ui.elements.resumTitol.innerText = 'Ben fet!'; ui.elements.tempsTotal.innerText = tempsTotal;
-                    ui.elements.encerts.innerText = estatJoc.encerts; ui.elements.errades.innerText = estatJoc.errades;
-                    ui.elements.missatgeFelicitacio.style.display = (estatJoc.errades === 0) ? 'block' : 'none';
-                    if (estatJoc.fallades && estatJoc.fallades.length > 0) {
-                        const llista = estatJoc.fallades.map(f => `<p>${f.text} → correcta: <strong>${f.correcta}</strong> (tu: ${f.respostaUsuari})</p>`).join("");
-                        document.getElementById('resum-fallades').innerHTML = `<h3>Preguntes fallades:</h3>${llista}`;
-                    } else { document.getElementById('resum-fallades').innerHTML = ''; }
-                    if(!estatJoc.isRepasMode) guardarEstadistiques(tempsTotal);
-                } else {
-                    ui.elements.resumTitol.innerText = 'Sessió cancel·lada'; ui.elements.tempsTotal.innerText = '-';
-                    ui.elements.encerts.innerText = '-'; ui.elements.errades.innerText = '-';
-                    ui.elements.missatgeFelicitacio.style.display = 'none'; document.getElementById('resum-fallades').innerHTML = '';
-                }
-            }
-
+            function iniciarJoc(tipus) { let preguntes = []; let titol = ''; if (tipus === 'multiplicacions') { titol = 'Multiplicacions'; for (let i = 2; i <= 9; i++) { for (let j = i; j <= 9; j++) { preguntes.push({ text: `${i} x ${j}`, resposta: i * j }); if (i !== j) preguntes.push({ text: `${j} x ${i}`, resposta: j * i }); } } } else if (tipus === 'sumes') { titol = 'Sumes'; const nivell = nivellsSuma[obtenirNivell('sumes')]; for (let i = nivell.min; i <= nivell.max; i++) { for (let j = i; j <= nivell.max; j++) { preguntes.push({ text: `${i} + ${j}`, resposta: i + j }); if (i !== j) preguntes.push({ text: `${j} + ${i}`, resposta: j + i }); } } } else if (tipus === 'restes') { titol = 'Restes'; const nivell = nivellsResta[obtenirNivell('restes')]; for (let i = nivell.min; i <= nivell.max; i++) { for (let j = nivell.min; j <= i; j++) { preguntes.push({ text: `${i} - ${j}`, resposta: i - j }); } } } estatJoc = { tipus: tipus, preguntes: shuffle(preguntes), preguntaActualIndex: 0, encerts: 0, errades: 0, startTime: new Date(), fallades: [], isRepasMode: false }; ui.elements.jocTitol.textContent = titol; mostrarPantalla('joc'); seguentPregunta(); }
+            function seguentPregunta() { const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex]; ui.elements.preguntaText.textContent = preguntaActual.text; estatJoc.respostaCorrecta = preguntaActual.resposta; ui.elements.respostaInput.value = ''; ui.elements.respostaInput.focus(); actualitzarProgres(); }
+            function gestionarError(preguntaFallada) { const indexActual = estatJoc.preguntaActualIndex; if (indexActual + 1 < estatJoc.preguntes.length) { estatJoc.preguntes.splice(indexActual + 2, 0, preguntaFallada); estatJoc.preguntaActualIndex++; } else { estatJoc.preguntes.push(preguntaFallada); estatJoc.preguntaActualIndex++; } seguentPregunta(); }
+            function actualitzarProgres() { const total = estatJoc.preguntes.length; const actual = estatJoc.preguntaActualIndex; const progres = total > 0 ? (actual / total) * 100 : 0; ui.elements.progressBar.style.width = `${progres}%`; ui.elements.progressBar.textContent = `${actual}/${total}`; }
+            function finalitzarSessio(completada) { const tempsTotal = Math.floor((new Date() - estatJoc.startTime) / 1000); mostrarPantalla('resum'); if (completada) { ui.elements.resumTitol.innerText = 'Ben fet!'; ui.elements.tempsTotal.innerText = tempsTotal; ui.elements.encerts.innerText = estatJoc.encerts; ui.elements.errades.innerText = estatJoc.errades; ui.elements.missatgeFelicitacio.style.display = (estatJoc.errades === 0) ? 'block' : 'none'; if (estatJoc.fallades && estatJoc.fallades.length > 0) { const llista = estatJoc.fallades.map(f => `<p>${f.text} → correcta: <strong>${f.correcta}</strong> (tu: ${f.respostaUsuari})</p>`).join(""); document.getElementById('resum-fallades').innerHTML = `<h3>Preguntes fallades:</h3>${llista}`; } else { document.getElementById('resum-fallades').innerHTML = ''; } if(!estatJoc.isRepasMode) guardarEstadistiques(tempsTotal); } else { ui.elements.resumTitol.innerText = 'Sessió cancel·lada'; ui.elements.tempsTotal.innerText = '-'; ui.elements.encerts.innerText = '-'; ui.elements.errades.innerText = '-'; ui.elements.missatgeFelicitacio.style.display = 'none'; document.getElementById('resum-fallades').innerHTML = ''; } }
             function obtenirNivell(tipus) { return getDadesUsuari().nivells[tipus] || 0; }
-            function actualitzarNivell(tipus, senseErrades) {
-                if (tipus !== 'sumes' && tipus !== 'restes') return;
-                const dadesUsuari = getDadesUsuari();
-                const maxNivell = (tipus === 'sumes' ? nivellsSuma.length : nivellsResta.length) - 1;
-                if (senseErrades) {
-                    dadesUsuari.ratxes[tipus] = (dadesUsuari.ratxes[tipus] || 0) + 1;
-                    if (dadesUsuari.ratxes[tipus] >= 3 && dadesUsuari.nivells[tipus] < maxNivell) {
-                        dadesUsuari.nivells[tipus]++; dadesUsuari.ratxes[tipus] = 0;
-                    }
-                } else { dadesUsuari.ratxes[tipus] = 0; }
-                setDadesUsuari(dadesUsuari);
-            }
-            function actualitzarBotonsNivell() {
-                const dadesUsuari = getDadesUsuari();
-                const progresSuma = ((dadesUsuari.ratxes.sumes || 0) / 3) * 100;
-                const nivellSuma = (dadesUsuari.nivells.sumes || 0) + 1;
-                ui.buttons.sumes.style.background = `linear-gradient(to right, #ffafcc ${progresSuma}%, var(--c-blue) ${progresSuma}%)`;
-                ui.buttons.sumes.innerHTML = `Sumes <br>(Nivell ${nivellSuma}/${nivellsSuma.length})`;
-                const progresResta = ((dadesUsuari.ratxes.restes || 0) / 3) * 100;
-                const nivellResta = (dadesUsuari.nivells.restes || 0) + 1;
-                ui.buttons.restes.style.background = `linear-gradient(to right, #ffafcc ${progresResta}%, var(--c-green) ${progresResta}%)`;
-                ui.buttons.restes.innerHTML = `Restes <br>(Nivell ${nivellResta}/${nivellsResta.length})`;
-            }
-            function mostrarEstadistiquesGlobals() {
-                const dadesUsuari = getDadesUsuari(); const totesLesSessions = Object.values(dadesUsuari.estadistiques).flat();
-                if (totesLesSessions.length === 0) { ui.elements.statsGlobals.innerHTML = `<h3>Resum General (${usuariActual})</h3><p>No hi ha dades.</p>`; return; }
-                const totalSessions = totesLesSessions.length; const totalEncerts = totesLesSessions.reduce((s, a) => s + (a.encerts || 0), 0);
-                const totalPreguntes = totesLesSessions.reduce((s, a) => s + (a.totalPreguntes || 0), 0);
-                const precisio = totalPreguntes > 0 ? ((totalEncerts / totalPreguntes) * 100).toFixed(1) : 0;
-                const tempsTotal = totesLesSessions.reduce((s, a) => s + a.temps, 0); const tempsMitja = (tempsTotal / totalSessions).toFixed(1);
-                ui.elements.statsGlobals.innerHTML = `<h3>Resum General (${usuariActual})</h3><div class="stats-grid"><div class="stat-item"><div>Sessions</div><div class="value">${totalSessions}</div></div><div class="stat-item"><div>Precisió</div><div class="value">${precisio}%</div></div><div class="stat-item"><div>Temps Mitjà</div><div class="value">${tempsMitja}s</div></div></div>`;
-            }
-            function mostrarHistorial(tipus) {
-                const historial = getDadesUsuari().estadistiques[tipus] || [];
-                ui.elements.historialTitol.textContent = `Historial de ${tipus}`; ui.elements.historialContingut.innerHTML = '';
-                if (historial.length === 0) {
-                    ui.elements.historialContingut.innerHTML = '<p>Encara no hi ha dades.</p>';
-                    if (chartInstances.errors) { chartInstances.errors.destroy(); chartInstances.errors = null; }
-                    if (chartInstances.times) { chartInstances.times.destroy(); chartInstances.times = null; }
-                } else {
-                    historial.slice().reverse().forEach(s => { const p = document.createElement('p'); p.textContent = `${s.data} - Errades: ${s.errades}, Temps: ${s.temps}s`; ui.elements.historialContingut.appendChild(p); });
-                    generarGrafiques(historial);
-                }
-                ui.elements.historialDetallat.style.display = 'block';
-            }
-            function generarGrafiques(dades) {
-                if (chartInstances.errors) chartInstances.errors.destroy(); if (chartInstances.times) chartInstances.times.destroy();
-                const labels = dades.map((s, i) => `${s.data} (#${i+1})`); const erradesData = dades.map(s => s.errades);
-                const tempsData = dades.map(s => s.temps); const errCtx = document.getElementById('errors-chart').getContext('2d');
-                chartInstances.errors = new Chart(errCtx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Errades per sessió', data: erradesData, borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
-                const timesCtx = document.getElementById('times-chart').getContext('2d');
-                chartInstances.times = new Chart(timesCtx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Temps per sessió (segons)', data: tempsData, borderColor: 'rgba(54, 162, 235, 1)', backgroundColor: 'rgba(54, 162, 235, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true } } } });
-            }
+            function actualitzarNivell(tipus, senseErrades) { if (tipus !== 'sumes' && tipus !== 'restes') return; const dadesUsuari = getDadesUsuari(); const maxNivell = (tipus === 'sumes' ? nivellsSuma.length : nivellsResta.length) - 1; if (senseErrades) { dadesUsuari.ratxes[tipus] = (dadesUsuari.ratxes[tipus] || 0) + 1; if (dadesUsuari.ratxes[tipus] >= 3 && dadesUsuari.nivells[tipus] < maxNivell) { dadesUsuari.nivells[tipus]++; dadesUsuari.ratxes[tipus] = 0; } } else { dadesUsuari.ratxes[tipus] = 0; } setDadesUsuari(dadesUsuari); }
+            function actualitzarBotonsNivell() { const dadesUsuari = getDadesUsuari(); const progresSuma = ((dadesUsuari.ratxes.sumes || 0) / 3) * 100; const nivellSuma = (dadesUsuari.nivells.sumes || 0) + 1; ui.buttons.sumes.style.background = `linear-gradient(to right, #ffafcc ${progresSuma}%, var(--c-blue) ${progresSuma}%)`; ui.buttons.sumes.innerHTML = `Sumes <br>(Nivell ${nivellSuma}/${nivellsSuma.length})`; const progresResta = ((dadesUsuari.ratxes.restes || 0) / 3) * 100; const nivellResta = (dadesUsuari.nivells.restes || 0) + 1; ui.buttons.restes.style.background = `linear-gradient(to right, #ffafcc ${progresResta}%, var(--c-green) ${progresResta}%)`; ui.buttons.restes.innerHTML = `Restes <br>(Nivell ${nivellResta}/${nivellsResta.length})`; }
+            function mostrarEstadistiquesGlobals() { const dadesUsuari = getDadesUsuari(); const totesLesSessions = Object.values(dadesUsuari.estadistiques).flat(); if (totesLesSessions.length === 0) { ui.elements.statsGlobals.innerHTML = `<h3>Resum General (${usuariActual})</h3><p>No hi ha dades.</p>`; return; } const totalSessions = totesLesSessions.length; const totalEncerts = totesLesSessions.reduce((s, a) => s + (a.encerts || 0), 0); const totalPreguntes = totesLesSessions.reduce((s, a) => s + (a.totalPreguntes || 0), 0); const precisio = totalPreguntes > 0 ? ((totalEncerts / totalPreguntes) * 100).toFixed(1) : 0; const tempsTotal = totesLesSessions.reduce((s, a) => s + a.temps, 0); const tempsMitja = (tempsTotal / totalSessions).toFixed(1); ui.elements.statsGlobals.innerHTML = `<h3>Resum General (${usuariActual})</h3><div class="stats-grid"><div class="stat-item"><div>Sessions</div><div class="value">${totalSessions}</div></div><div class="stat-item"><div>Precisió</div><div class="value">${precisio}%</div></div><div class="stat-item"><div>Temps Mitjà</div><div class="value">${tempsMitja}s</div></div></div>`; }
+            function mostrarHistorial(tipus) { const historial = getDadesUsuari().estadistiques[tipus] || []; ui.elements.historialTitol.textContent = `Historial de ${tipus}`; ui.elements.historialContingut.innerHTML = ''; if (historial.length === 0) { ui.elements.historialContingut.innerHTML = '<p>Encara no hi ha dades.</p>'; if (chartInstances.errors) { chartInstances.errors.destroy(); chartInstances.errors = null; } if (chartInstances.times) { chartInstances.times.destroy(); chartInstances.times = null; } } else { historial.slice().reverse().forEach(s => { const p = document.createElement('p'); p.textContent = `${s.data} - Errades: ${s.errades}, Temps: ${s.temps}s`; ui.elements.historialContingut.appendChild(p); }); generarGrafiques(historial); } ui.elements.historialDetallat.style.display = 'block'; }
+            function generarGrafiques(dades) { if (chartInstances.errors) chartInstances.errors.destroy(); if (chartInstances.times) chartInstances.times.destroy(); const labels = dades.map((s, i) => `${s.data} (#${i+1})`); const erradesData = dades.map(s => s.errades); const tempsData = dades.map(s => s.temps); const errCtx = document.getElementById('errors-chart').getContext('2d'); chartInstances.errors = new Chart(errCtx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Errades per sessió', data: erradesData, borderColor: 'rgba(255, 99, 132, 1)', backgroundColor: 'rgba(255, 99, 132, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } }); const timesCtx = document.getElementById('times-chart').getContext('2d'); chartInstances.times = new Chart(timesCtx, { type: 'line', data: { labels: labels, datasets: [{ label: 'Temps per sessió (segons)', data: tempsData, borderColor: 'rgba(54, 162, 235, 1)', backgroundColor: 'rgba(54, 162, 235, 0.2)', fill: true, tension: 0.1 }] }, options: { scales: { y: { beginAtZero: true } } } }); }
             
-            ui.buttons.crearUsuari.addEventListener('click', crearUsuariNou);
-            ui.buttons.canviarUsuari.addEventListener('click', canviarUsuari);
-            ui.buttons.multiplicacions.addEventListener('click', () => iniciarJoc('multiplicacions'));
-            ui.buttons.sumes.addEventListener('click', () => iniciarJoc('sumes'));
-            ui.buttons.restes.addEventListener('click', () => iniciarJoc('restes'));
-            ui.buttons.estadistiques.addEventListener('click', () => { mostrarPantalla('estadistiques'); mostrarEstadistiquesGlobals(); ui.elements.historialDetallat.style.display = 'none'; });
-            ui.elements.respostaInput.addEventListener('input', () => { ui.buttons.comprovar.disabled = ui.elements.respostaInput.value.trim() === ''; });
-            ui.elements.respostaInput.addEventListener('keyup', (e) => { if (e.key === 'Enter' && !ui.buttons.comprovar.disabled) comprovarResposta(); });
-            ui.buttons.comprovar.addEventListener('click', comprovarResposta);
-            document.querySelectorAll('.btn-finalitzar').forEach(btn => btn.addEventListener('click', () => finalitzarSessio(false)));
-            ui.buttons.tornarMenu.addEventListener('click', () => { mostrarPantalla('menuPrincipal'); actualitzarBotonsNivell(); });
-            ui.buttons.tornarMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal'));
-            ui.buttons.historial.forEach(btn => btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipus)));
-            ui.buttons.repaso.addEventListener('click', iniciarModeRepas);
-            ui.buttons.misRetos.addEventListener('click', mostrarGraficErrors);
-            ui.buttons.retosModalClose.addEventListener('click', () => { pantallas.retosModal.style.display = 'none'; });
-            window.addEventListener('click', (e) => { if (e.target == pantallas.retosModal) { pantallas.retosModal.style.display = 'none'; } });
+            ui.buttons.crearUsuari.addEventListener('click', crearUsuariNou); ui.buttons.canviarUsuari.addEventListener('click', canviarUsuari); ui.buttons.multiplicacions.addEventListener('click', () => iniciarJoc('multiplicacions')); ui.buttons.sumes.addEventListener('click', () => iniciarJoc('sumes')); ui.buttons.restes.addEventListener('click', () => iniciarJoc('restes')); ui.buttons.estadistiques.addEventListener('click', () => { mostrarPantalla('estadistiques'); mostrarEstadistiquesGlobals(); ui.elements.historialDetallat.style.display = 'none'; }); ui.elements.respostaInput.addEventListener('input', () => { ui.buttons.comprovar.disabled = ui.elements.respostaInput.value.trim() === ''; }); ui.elements.respostaInput.addEventListener('keyup', (e) => { if (e.key === 'Enter' && !ui.buttons.comprovar.disabled) comprovarResposta(); }); ui.buttons.comprovar.addEventListener('click', comprovarResposta); document.querySelectorAll('.btn-finalitzar').forEach(btn => btn.addEventListener('click', () => finalitzarSessio(false))); ui.buttons.tornarMenu.addEventListener('click', () => { mostrarPantalla('menuPrincipal'); actualitzarBotonsNivell(); }); ui.buttons.tornarMenuStats.addEventListener('click', () => mostrarPantalla('menuPrincipal')); ui.buttons.historial.forEach(btn => btn.addEventListener('click', () => mostrarHistorial(btn.dataset.tipus))); ui.buttons.repaso.addEventListener('click', iniciarModeRepas); ui.buttons.misRetos.addEventListener('click', mostrarGraficErrors); ui.buttons.retosModalClose.addEventListener('click', () => { pantallas.retosModal.style.display = 'none'; }); window.addEventListener('click', (e) => { if (e.target == pantallas.retosModal) { pantallas.retosModal.style.display = 'none'; } });
 
             carregarUsuaris();
             mostrarPantalla('login');
