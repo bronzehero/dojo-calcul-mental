@@ -1,60 +1,101 @@
 # 🧠 Dojo de Cálculo Mental
 
-¡Bienvenido al Dojo! Esta es una aplicación web progresiva (PWA) diseñada para practicar operaciones matemáticas básicas (suma, resta, multiplicación y división).
+Una Aplicación Web Progresiva (PWA) diseñada para el entrenamiento de operaciones matemáticas básicas.
 
-El objetivo principal es ayudar a los niños a ganar fluidez y confianza con las matemáticas mediante un enfoque **amigable, adaptativo y libre de estrés**. Especialmente diseñado pensando en la dislexia y en evitar la saturación cognitiva.
-
-## ✨ Características Principales
-
-*   **Diseño "Kawaii" y Amigable:** Una interfaz visualmente agradable con colores pastel y tipografías claras (`Baloo 2`) para reducir la ansiedad visual.
-*   **Sin Temporizador Visible:** Se registra el tiempo para estadísticas internas, pero no se muestra una cuenta atrás para no estresar al estudiante.
-*   **Refuerzo Positivo:** Mensajes de ánimo y barras de progreso visuales.
-*   **Multi-usuario:** Permite guardar el progreso de diferentes perfiles en la misma aplicación.
-*   **Persistencia de Datos en la Nube:** Todos los resultados y el historial se guardan en una hoja de cálculo de Google Sheets, permitiendo a los padres monitorear el progreso y detectar dificultades específicas.
-
-## 🎮 Modos de Juego y Estrategias de Aprendizaje
-
-### 1. ➕ Sumas (Progresión por Niveles)
-El sistema guía al estudiante a través de niveles de dificultad incremental.
-*   **Mecánica:** Para avanzar de nivel, se requieren **3 aciertos consecutivos**.
-*   **Niveles:** Desde sumas básicas (hasta 4) hasta sumas más complejas.
-
-### 2. ➖ Restas (Sin Negativos)
-Práctica de sustracción asegurando que el resultado nunca sea menor que cero.
-*   **Lógica:** Se generan combinaciones basadas en el nivel actual (ej. 0-10, 10-20).
-*   **Sesiones Cortas:** Aunque existen muchas combinaciones posibles, la sesión se limita para no cansar al estudiante.
-
-### 3. ✖️ Multiplicaciones (Sesión Inteligente & Anti-Estrés)
-Olvídate de hacer 64 multiplicaciones seguidas. Este modo está optimizado para aprender sin saturar.
-*   **Límite de Preguntas:** Cada sesión consta de un **máximo de 30 preguntas**.
-*   **Flujo Continuo:** Siempre se avanza a la siguiente pregunta, se acierte o se falle, para mantener el ritmo y evitar bloqueos.
-*   **Algoritmo de Selección Híbrido:**
-    *   **Primeras 15 preguntas:** Se seleccionan priorizando los **últimos errores cometidos**. El sistema "recuerda" lo que cuesta más y lo presenta primero para reforzar.
-    *   **Siguientes 15 preguntas:** Se seleccionan de forma **totalmente aleatoria** del total de las tablas (2 al 9) para repasar conocimientos generales.
-
-### 4. ➗ Divisiones
-Práctica básica de divisiones exactas.
-
-## 🚀 Funcionalidades Especiales
-
-### 📉 Registro y Visualización de "Retos"
-El sistema cuenta con un "Libro de Fallos" interno.
-*   Cada vez que se falla una operación específica (ej. "7 x 8"), se registra.
-*   **Botón "Ver mis 10 Retos":** Muestra un gráfico visual con las 10 operaciones que más le cuestan al niño en este momento. Esto ayuda a visualizar el "enemigo" y convertirlo en un objetivo concreto a batir.
-
-### 🔄 Modo de Repaso Inteligente
-Un botón específico que genera una sesión personalizada basada puramente en los fallos históricos registrados, mezclando operaciones difíciles con otras fáciles para mantener la motivación alta.
-
-## 🛠️ Tecnologías
-
-*   **Frontend:** HTML5, CSS3, JavaScript (Vanilla).
-*   **Gráficos:** Chart.js para la visualización de estadísticas.
-*   **Backend / Base de Datos:** Google Apps Script + Google Sheets (actúa como API y base de datos).
-*   **Conexión:** Fetch API / JSONP para superar restricciones de CORS en entornos estáticos.
-
-## 📦 Instalación
-
-No requiere instalación. Al ser una página web, se puede acceder desde cualquier navegador. Se recomienda "Añadir a la pantalla de inicio" en tabletas o móviles para usarla como una App nativa a pantalla completa.
+El objetivo principal es ayudar a niños con dificultades de aprendizaje (como dislexia) a ganar fluidez y confianza con las matemáticas. El diseño prioriza un entorno **amigable, adaptativo y libre de estrés**, evitando la saturación cognitiva mediante sesiones cortas y refuerzo positivo.
 
 ---
-*Hecho con ❤️ para aprender mates sonriendo.*
+
+## 🎯 Filosofía del Proyecto
+
+1.  **Cero Estrés:** Aunque medimos el tiempo internamente para las estadísticas, **nunca** mostramos una cuenta atrás al niño. La ansiedad bloquea el aprendizaje.
+2.  **Diseño "Kawaii" y Accesible:**
+    *   Uso de la tipografía `Baloo 2` para alta legibilidad.
+    *   Colores pastel (rosa, azul, verde, lila) para diferenciar operaciones sin saturar la vista.
+    *   Interfaz limpia: botones grandes y claros.
+3.  **Persistencia en la Nube:** Los datos no se pierden al cerrar el navegador. Todo se sincroniza con Google Sheets.
+4.  **Adaptabilidad:** El sistema detecta fallos y propone mecanismos de repaso específicos.
+
+---
+
+## 🛠️ Arquitectura Técnica
+
+Es vital entender esto para mantener el proyecto:
+
+*   **Frontend:** HTML5, CSS3, JavaScript (Vanilla). Todo en un único fichero `index.html` para facilitar el despliegue en GitHub Pages.
+*   **Backend (Serverless):** Google Apps Script (`Code.gs`) conectado a una hoja de cálculo de Google Sheets.
+*   **Base de Datos:** Google Sheets. Pestañas principales:
+    *   `Estadisticas`: Historial de sesiones completadas.
+    *   `Errores`: Registro acumulativo de fallos específicos (ej: "7x8").
+*   **Comunicación Cliente-Servidor (JSONP):**
+    *   Debido a las restricciones de CORS y las redirecciones de Google Apps Script, **NO usamos `fetch` estándar para leer datos**.
+    *   Usamos una implementación personalizada de **JSONP** (`fetchJSONP` en el código) para las peticiones `GET` (cargar usuarios, cargar historial, cargar errores).
+    *   Las peticiones `POST` (guardar datos) se hacen mediante `fetch` con `mode: 'no-cors'` (estrategia "fire and forget"), ya que no necesitamos leer la respuesta, solo asegurar que llegue.
+
+---
+
+## 🎮 Lógica de las Operaciones
+
+### 1. ➕ Sumas (Progresión Escalonada)
+El sistema guía al estudiante por niveles de dificultad basados en el número máximo a sumar.
+*   **Niveles:**
+    *   Nivel 1: Números hasta 4.
+    *   ... progresando hasta ...
+    *   Nivel 7: Números hasta 10.
+*   **Subida de Nivel:** Se requiere una racha de **3 aciertos consecutivos** sin fallos para subir automáticamente de nivel en la misma sesión.
+*   **Mecánica de Fallo:** Si se falla, se reinicia la racha de aciertos consecutivos.
+
+### 2. ➖ Restas (Sin Negativos)
+El objetivo es practicar la sustracción básica garantizando que el niño nunca se enfrente a números negativos.
+*   **Regla de Oro:** `Minuendo >= Sustraendo`. El resultado siempre es $\ge 0$.
+*   **Rango:** Se trabaja con números de **1 dígito (0 al 9)** y el 10.
+*   **Niveles (Combinaciones):**
+    *   Al igual que las sumas, se escala por el número máximo disponible.
+    *   Nivel 1 (Max 4): 15 combinaciones posibles.
+    *   ...
+    *   Nivel 7 (Max 10): 66 combinaciones posibles.
+*   **Sesión:** Aunque el "pool" de preguntas sea de 66, la sesión no obliga a responderlas todas para evitar fatiga.
+
+### 3. ✖️ Multiplicaciones (Sesión Híbrida Inteligente)
+Este modo está rediseñado para evitar la fatiga de hacer las 64 combinaciones (tablas del 2 al 9) de una vez.
+*   **Límite Estricto:** La sesión dura **máximo 30 preguntas**.
+*   **Flujo Continuo:** Siempre se avanza a la siguiente pregunta, se acierte o se falle. No hay "pregunta puente" en este modo para mantener el ritmo.
+*   **Algoritmo de Selección de Preguntas (Híbrido):**
+    1.  **Las primeras 15:** El sistema consulta la hoja de `Errores`. Selecciona las multiplicaciones que más ha fallado el usuario históricamente. Si tiene menos de 15 fallos registrados, rellena con aleatorias.
+    2.  **Las siguientes 15:** Selección totalmente aleatoria de las tablas del 2 al 9 para asegurar repaso general.
+
+### 4. ➗ Divisiones
+Práctica de divisiones exactas básicas derivadas de las tablas de multiplicar.
+
+---
+
+## 🚀 Funcionalidades de "Entrenador Personal"
+
+### El "Libro de Fallos" (`Errores` en Sheets)
+El sistema registra cada operación específica que se falla.
+*   *Ejemplo:* Si falla "7 x 8", se guarda esa operación concreta y se incrementa un contador.
+*   Esto permite al sistema saber *qué* números específicos le cuestan más al niño, no solo qué operación general.
+
+### Visualización de Retos
+*   **Botón "Mis 10 Retos":** Muestra un gráfico de barras horizontales con las 10 operaciones más falladas.
+*   **Objetivo:** Gamificar la dificultad. Ver gráficamente cuáles son los "enemigos" a batir ayuda al niño a focalizarse.
+
+### Modo de Repaso Inteligente
+Un botón dedicado que genera una sesión personalizada.
+*   **Composición:**
+    *   **70%** de las preguntas son operaciones extraídas de su lista de fallos frecuentes (ponderadas: a más fallos, más probabilidad de salir).
+    *   **30%** son operaciones muy fáciles (refuerzo positivo) para mantener la moral alta y dar "descansos mentales".
+
+---
+
+## 📋 Lista de Tareas Pendientes (Roadmap)
+
+- [x] Implementar JSONP para solucionar errores CORS en lectura.
+- [x] Implementar `no-cors` para escritura robusta en Sheets.
+- [x] Crear sistema de registro de errores granulares.
+- [x] Crear gráfico de "Mis 10 Retos".
+- [ ] **Ajustar lógica de Restas:** Implementar los niveles progresivos (1 al 7) para que coincidan con la dificultad de las sumas y evitar el pool inicial de 66 preguntas.
+- [ ] **Ajustar lógica de Multiplicaciones:** Implementar el límite de 30 preguntas y el algoritmo híbrido (15 fallos + 15 random).
+
+---
+*Documentación actualizada a Diciembre 2025.*
