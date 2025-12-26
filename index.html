@@ -165,36 +165,56 @@
             function shuffle(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]]; } return array; }
             async function iniciarJoc(tipus) {
                 let preguntes = []; let titol = '';
+                const result = await obtenirErrors(); // Cargamos errores para todos los modos al principio por si acaso
+
                 if (tipus === 'multiplicacions') {
                     titol = 'Multiplicacions (Entrenament)';
-                    const result = await obtenirErrors();
                     let listaErrores = [];
-                    // 1. Conseguir hasta 15 errores
                     if (result && result.status === "success") {
                         listaErrores = result.data.filter(e => e.operacion.includes('x')).slice(0, 15).map(f => {
                             const p = f.operacion.replace(/\s/g, '').split('x');
                             return { text: `${p[0]} x ${p[1]}`, resposta: parseInt(p[0]) * parseInt(p[1]) };
                         });
                     }
-                    // 2. Calcular cuántas faltan para llegar a 30 exactas
-                    const faltanParaTreinta = 30 - listaErrores.length;
+                    const faltan = 30 - listaErrores.length;
                     const listaAleatorias = [];
-                    for (let k = 0; k < faltanParaTreinta; k++) {
+                    for (let k = 0; k < faltan; k++) {
                         const n1 = Math.floor(Math.random() * 8) + 2; const n2 = Math.floor(Math.random() * 8) + 2;
                         listaAleatorias.push({ text: `${n1} x ${n2}`, resposta: n1 * n2 });
                     }
-                    // 3. Juntar: Errores primero, relleno aleatorio después
                     preguntes = [...listaErrores, ...listaAleatorias];
-                    
+
                 } else if (tipus === 'sumes') {
-                    titol = 'Sumes'; const nivell = nivellsSuma[obtenirNivell('sumes')];
-                    for (let i = nivell.min; i <= nivell.max; i++) { for (let j = i; j <= nivell.max; j++) { preguntes.push({ text: `${i} + ${j}`, resposta: i + j }); if (i !== j) preguntes.push({ text: `${j} + ${i}`, resposta: j + i }); } }
-                    preguntes = shuffle(preguntes);
+                    const nivellIdx = obtenirNivell('sumes');
+                    const cfg = nivellsSuma[nivellIdx]; // Obtenemos configuración del nivel actual (min y max)
+                    titol = `Sumes (Nivell ${nivellIdx + 1})`;
+                    
+                    let listaErrores = [];
+                    if (result && result.status === "success") {
+                        // Filtramos fallos que tengan '+'
+                        listaErrores = result.data.filter(e => e.operacion.includes('+')).slice(0, 15).map(f => {
+                            const p = f.operacion.replace(/\s/g, '').split('+');
+                            return { text: `${p[0]} + ${p[1]}`, resposta: parseInt(p[0]) + parseInt(p[1]) };
+                        });
+                    }
+
+                    const faltan = 30 - listaErrores.length;
+                    const listaAleatorias = [];
+                    for (let k = 0; k < faltan; k++) {
+                        // Generamos números aleatorios RESPETANDO el rango del nivel actual (cfg.min a cfg.max)
+                        const n1 = Math.floor(Math.random() * (cfg.max - cfg.min + 1)) + cfg.min;
+                        const n2 = Math.floor(Math.random() * (cfg.max - cfg.min + 1)) + cfg.min;
+                        listaAleatorias.push({ text: `${n1} + ${n2}`, resposta: n1 + n2 });
+                    }
+                    preguntes = [...listaErrores, ...listaAleatorias];
+
                 } else if (tipus === 'restes') {
+                    // Logica antigua para restas (sin cambios por ahora)
                     titol = 'Restes'; const nivell = nivellsResta[obtenirNivell('restes')];
                     for (let i = nivell.min; i <= nivell.max; i++) { for (let j = nivell.min; j <= i; j++) { preguntes.push({ text: `${i} - ${j}`, resposta: i - j }); } }
                     preguntes = shuffle(preguntes);
                 }
+                
                 estatJoc = { tipus: tipus, preguntes: preguntes, preguntaActualIndex: 0, encerts: 0, errades: 0, startTime: new Date(), fallades: [], isRepasMode: false };
                 ui.elements.jocTitol.textContent = titol; mostrarPantalla('joc'); seguentPregunta();
             }
