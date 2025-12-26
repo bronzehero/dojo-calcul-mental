@@ -127,7 +127,34 @@
             
             async function mostrarGraficErrors() { const result = await obtenirErrors(); if (!result || result.status !== "success" || result.data.length === 0) { alert("Felicitats! No hi ha errors registrats per mostrar."); return; } const top10 = result.data.slice(0, 10).reverse(); const labels = top10.map(e => e.operacion); const data = top10.map(e => e.fallos); pantallas.retosModal.style.display = 'flex'; const ctx = document.getElementById('retos-chart').getContext('2d'); if (chartInstances.retos) chartInstances.retos.destroy(); chartInstances.retos = new Chart(ctx, { type: 'bar', data: { labels, datasets: [{ label: 'Número d\'Errades', data, backgroundColor: '#ffafcc', borderColor: '#cdb4db', borderWidth: 2 }] }, options: { indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); }
             async function iniciarModeRepas() { const result = await obtenirErrors(); if (!result || result.status !== "success" || result.data.length === 0) { alert("No hi ha errors per repassar! Començant una sessió normal de sumes."); iniciarJoc('sumes'); return; } const TOTAL_PREGUNTES = 20, NUM_PREGUNTES_DIFICILS = Math.ceil(TOTAL_PREGUNTES * 0.7), NUM_PREGUNTES_REFORC = TOTAL_PREGUNTES - NUM_PREGUNTES_DIFICILS; let preguntesRepas = []; const llistaPonderada = result.data.flatMap(error => Array(error.fallos).fill(error)); for (let i = 0; i < NUM_PREGUNTES_DIFICILS && llistaPonderada.length > 0; i++) { const randomIndex = Math.floor(Math.random() * llistaPonderada.length); preguntesRepas.push(llistaPonderada[randomIndex]); } for (let i = 0; i < NUM_PREGUNTES_REFORC; i++) { const num1 = Math.floor(Math.random() * 5) + 1, num2 = Math.floor(Math.random() * 5) + 1; preguntesRepas.push({ operacion: `${num1}+${num2}`, tipo: 'sumes' }); } const preguntesFormatejades = preguntesRepas.slice(0, TOTAL_PREGUNTES).map(p => { const text = p.operacion.replace('x', 'x').replace('+', '+').replace('-', '-'); const resposta = Math.round(eval(text.replace('x', '*'))); return { text: text.replace('x', ' x ').replace('+', ' + ').replace('-', ' - '), resposta }; }); estatJoc = { tipus: 'repas', preguntes: shuffle(preguntesFormatejades), preguntaActualIndex: 0, encerts: 0, errades: 0, startTime: new Date(), fallades: [], isRepasMode: true }; ui.elements.jocTitol.textContent = "Sessió de Repàs"; mostrarPantalla('joc'); seguentPregunta(); }
-            function comprovarResposta() { if (ui.elements.respostaInput.value.trim() === '') return; const respostaUsuari = parseInt(ui.elements.respostaInput.value); const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex]; if (respostaUsuari === estatJoc.respostaCorrecta) { estatJoc.encerts++; estatJoc.preguntaActualIndex++; if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) { finalitzarSessio(true); } else { seguentPregunta(); } } else { estatJoc.errades++; estatJoc.fallades.push({ text: preguntaActual.text, correcta: estatJoc.respostaCorrecta, respostaUsuari: respostaUsuari }); const tipoOperacion = estatJoc.tipus === 'repas' ? (preguntaActual.text.includes('+') ? 'sumes' : (preguntaActual.text.includes('x') ? 'multiplicacions' : 'restes')) : estatJoc.tipus; const operacionStr = preguntaActual.text.replace(/\s/g, ''); registrarError(operacionStr, tipoOperacion); alert(`Resposta incorrecta! La resposta correcta era: ${estatJoc.respostaCorrecta}`); if (!estatJoc.isRepasMode) { gestionarError(preguntaActual); } else { estatJoc.preguntaActualIndex++; if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) { finalitzarSessio(true); } else { seguentPregunta(); } } } }
+            function comprovarResposta() {
+                if (ui.elements.respostaInput.value.trim() === '') return;
+                const respostaUsuari = parseInt(ui.elements.respostaInput.value);
+                const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex];
+
+                if (respostaUsuari === estatJoc.respostaCorrecta) {
+                    estatJoc.encerts++;
+                    estatJoc.preguntaActualIndex++;
+                    if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) { finalitzarSessio(true); } else { seguentPregunta(); }
+                } else {
+                    estatJoc.errades++;
+                    estatJoc.fallades.push({ text: preguntaActual.text, correcta: estatJoc.respostaCorrecta, respostaUsuari: respostaUsuari });
+                    
+                    const tipoOperacion = estatJoc.tipus === 'repas' ? (preguntaActual.text.includes('+') ? 'sumes' : (preguntaActual.text.includes('x') ? 'multiplicacions' : 'restes')) : estatJoc.tipus;
+                    const operacionStr = preguntaActual.text.replace(/\s/g, '');
+                    registrarError(operacionStr, tipoOperacion);
+                    
+                    alert(`Resposta incorrecta! La resposta correcta era: ${estatJoc.respostaCorrecta}`);
+                    
+                    // Lógica modificada: Si es repaso O multiplicaciones, AVANZAMOS. Si no, REPETIMOS.
+                    if (!estatJoc.isRepasMode && estatJoc.tipus !== 'multiplicacions') {
+                        gestionarError(preguntaActual);
+                    } else {
+                        estatJoc.preguntaActualIndex++;
+                        if (estatJoc.preguntaActualIndex >= estatJoc.preguntes.length) { finalitzarSessio(true); } else { seguentPregunta(); }
+                    }
+                }
+            }
             function processarDadesServidor(historial) { let dades = { estadistiques: { multiplicacions: [], sumes: [], restes: [] }, nivells: { sumes: 0, restes: 0 }, ratxes: { sumes: 0, restes: 0 } }; const historialNormalitzat = historial.map(s => ({ tipus: s.tipus, errades: s.errades, data: s.data, temps: s.temps, encerts: s.encerts != null ? s.encerts : (s.totalpreguntes - s.errades), totalPreguntes: s.totalpreguntes })); historialNormalitzat.forEach(sessio => { const { tipus, errades } = sessio; if (tipus === 'sumes' || tipus === 'restes') { const maxNivell = (tipus === 'sumes' ? nivellsSuma.length : nivellsResta.length) - 1; if (errades === 0) { dades.ratxes[tipus] = (dades.ratxes[tipus] || 0) + 1; if (dades.ratxes[tipus] >= 3 && dades.nivells[tipus] < maxNivell) { dades.nivells[tipus]++; dades.ratxes[tipus] = 0; } } else { dades.ratxes[tipus] = 0; } } if (dades.estadistiques[tipus]) dades.estadistiques[tipus].push(sessio); }); setDadesUsuari(dades); }
             function mostrarBotonsUsuari(usuaris) { ui.elements.usuarisExistents.innerHTML = usuaris.length === 0 ? '<p>Crea el primer usuari!</p>' : ''; usuaris.forEach(nom => { const boto = document.createElement('button'); boto.textContent = nom; boto.className = 'btn-usuari'; boto.onclick = () => iniciarSessioUsuari(nom); ui.elements.usuarisExistents.appendChild(boto); }); }
             function crearUsuariNou() { const nom = ui.elements.nouUsuariNom.value.trim(); if (!nom) return alert("Si us plau, escriu un nom."); if (!usuarisCarregats.includes(nom)) { usuarisCarregats.push(nom); localStorage.setItem('dojoUsuaris', JSON.stringify(usuarisCarregats)); } ui.elements.nouUsuariNom.value = ''; iniciarSessioUsuari(nom); }
@@ -136,7 +163,36 @@
             function setDadesUsuari(dades) { localStorage.setItem(`dojoDades_${usuariActual}`, JSON.stringify(dades)); }
             function mostrarPantalla(id) { Object.values(pantallas).forEach(p => { if(p.id !== 'retos-modal') p.style.display = 'none' }); pantallas[id].style.display = 'block'; if (id === 'menuPrincipal') pantallas.login.style.display = 'none'; }
             function shuffle(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]]; } return array; }
-            function iniciarJoc(tipus) { let preguntes = []; let titol = ''; if (tipus === 'multiplicacions') { titol = 'Multiplicacions'; for (let i = 2; i <= 9; i++) { for (let j = i; j <= 9; j++) { preguntes.push({ text: `${i} x ${j}`, resposta: i * j }); if (i !== j) preguntes.push({ text: `${j} x ${i}`, resposta: j * i }); } } } else if (tipus === 'sumes') { titol = 'Sumes'; const nivell = nivellsSuma[obtenirNivell('sumes')]; for (let i = nivell.min; i <= nivell.max; i++) { for (let j = i; j <= nivell.max; j++) { preguntes.push({ text: `${i} + ${j}`, resposta: i + j }); if (i !== j) preguntes.push({ text: `${j} + ${i}`, resposta: j + i }); } } } else if (tipus === 'restes') { titol = 'Restes'; const nivell = nivellsResta[obtenirNivell('restes')]; for (let i = nivell.min; i <= nivell.max; i++) { for (let j = nivell.min; j <= i; j++) { preguntes.push({ text: `${i} - ${j}`, resposta: i - j }); } } } estatJoc = { tipus: tipus, preguntes: shuffle(preguntes), preguntaActualIndex: 0, encerts: 0, errades: 0, startTime: new Date(), fallades: [], isRepasMode: false }; ui.elements.jocTitol.textContent = titol; mostrarPantalla('joc'); seguentPregunta(); }
+            async function iniciarJoc(tipus) {
+                let preguntes = []; let titol = '';
+                if (tipus === 'multiplicacions') {
+                    titol = 'Multiplicacions (Entrenament)';
+                    const result = await obtenirErrors();
+                    let topFallos = [];
+                    if (result && result.status === "success") {
+                        topFallos = result.data.filter(e => e.operacion.includes('x')).slice(0, 15).map(f => {
+                            const p = f.operacion.replace(/\s/g, '').split('x');
+                            return { text: `${p[0]} x ${p[1]}`, resposta: parseInt(p[0]) * parseInt(p[1]) };
+                        });
+                    }
+                    const aleatorias = [];
+                    for (let k = 0; k < 15; k++) {
+                        const n1 = Math.floor(Math.random() * 8) + 2; const n2 = Math.floor(Math.random() * 8) + 2;
+                        aleatorias.push({ text: `${n1} x ${n2}`, resposta: n1 * n2 });
+                    }
+                    preguntes = [...topFallos, ...aleatorias];
+                } else if (tipus === 'sumes') {
+                    titol = 'Sumes'; const nivell = nivellsSuma[obtenirNivell('sumes')];
+                    for (let i = nivell.min; i <= nivell.max; i++) { for (let j = i; j <= nivell.max; j++) { preguntes.push({ text: `${i} + ${j}`, resposta: i + j }); if (i !== j) preguntes.push({ text: `${j} + ${i}`, resposta: j + i }); } }
+                    preguntes = shuffle(preguntes);
+                } else if (tipus === 'restes') {
+                    titol = 'Restes'; const nivell = nivellsResta[obtenirNivell('restes')];
+                    for (let i = nivell.min; i <= nivell.max; i++) { for (let j = nivell.min; j <= i; j++) { preguntes.push({ text: `${i} - ${j}`, resposta: i - j }); } }
+                    preguntes = shuffle(preguntes);
+                }
+                estatJoc = { tipus: tipus, preguntes: preguntes, preguntaActualIndex: 0, encerts: 0, errades: 0, startTime: new Date(), fallades: [], isRepasMode: false };
+                ui.elements.jocTitol.textContent = titol; mostrarPantalla('joc'); seguentPregunta();
+            }
             function seguentPregunta() { const preguntaActual = estatJoc.preguntes[estatJoc.preguntaActualIndex]; ui.elements.preguntaText.textContent = preguntaActual.text; estatJoc.respostaCorrecta = preguntaActual.resposta; ui.elements.respostaInput.value = ''; ui.elements.respostaInput.focus(); actualitzarProgres(); }
             function gestionarError(preguntaFallada) { const indexActual = estatJoc.preguntaActualIndex; if (indexActual + 1 < estatJoc.preguntes.length) { estatJoc.preguntes.splice(indexActual + 2, 0, preguntaFallada); estatJoc.preguntaActualIndex++; } else { estatJoc.preguntes.push(preguntaFallada); estatJoc.preguntaActualIndex++; } seguentPregunta(); }
             function actualitzarProgres() { const total = estatJoc.preguntes.length; const actual = estatJoc.preguntaActualIndex; const progres = total > 0 ? (actual / total) * 100 : 0; ui.elements.progressBar.style.width = `${progres}%`; ui.elements.progressBar.textContent = `${actual}/${total}`; }
