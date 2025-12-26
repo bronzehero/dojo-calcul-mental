@@ -165,7 +165,7 @@
             function shuffle(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[array[i], array[j]] = [array[j], array[i]]; } return array; }
             async function iniciarJoc(tipus) {
                 let preguntes = []; let titol = '';
-                const result = await obtenirErrors(); // Cargamos errores para todos los modos al principio por si acaso
+                const result = await obtenirErrors(); // Cargamos errores al inicio
 
                 if (tipus === 'multiplicacions') {
                     titol = 'Multiplicacions (Entrenament)';
@@ -186,22 +186,19 @@
 
                 } else if (tipus === 'sumes') {
                     const nivellIdx = obtenirNivell('sumes');
-                    const cfg = nivellsSuma[nivellIdx]; // Obtenemos configuración del nivel actual (min y max)
+                    const cfg = nivellsSuma[nivellIdx];
                     titol = `Sumes (Nivell ${nivellIdx + 1})`;
                     
                     let listaErrores = [];
                     if (result && result.status === "success") {
-                        // Filtramos fallos que tengan '+'
                         listaErrores = result.data.filter(e => e.operacion.includes('+')).slice(0, 15).map(f => {
                             const p = f.operacion.replace(/\s/g, '').split('+');
                             return { text: `${p[0]} + ${p[1]}`, resposta: parseInt(p[0]) + parseInt(p[1]) };
                         });
                     }
-
                     const faltan = 30 - listaErrores.length;
                     const listaAleatorias = [];
                     for (let k = 0; k < faltan; k++) {
-                        // Generamos números aleatorios RESPETANDO el rango del nivel actual (cfg.min a cfg.max)
                         const n1 = Math.floor(Math.random() * (cfg.max - cfg.min + 1)) + cfg.min;
                         const n2 = Math.floor(Math.random() * (cfg.max - cfg.min + 1)) + cfg.min;
                         listaAleatorias.push({ text: `${n1} + ${n2}`, resposta: n1 + n2 });
@@ -209,10 +206,29 @@
                     preguntes = [...listaErrores, ...listaAleatorias];
 
                 } else if (tipus === 'restes') {
-                    // Logica antigua para restas (sin cambios por ahora)
-                    titol = 'Restes'; const nivell = nivellsResta[obtenirNivell('restes')];
-                    for (let i = nivell.min; i <= nivell.max; i++) { for (let j = nivell.min; j <= i; j++) { preguntes.push({ text: `${i} - ${j}`, resposta: i - j }); } }
-                    preguntes = shuffle(preguntes);
+                    const nivellIdx = obtenirNivell('restes');
+                    const cfg = nivellsResta[nivellIdx];
+                    titol = `Restes (Nivell ${nivellIdx + 1})`;
+
+                    let listaErrores = [];
+                    if (result && result.status === "success") {
+                        listaErrores = result.data.filter(e => e.operacion.includes('-')).slice(0, 15).map(f => {
+                            const p = f.operacion.replace(/\s/g, '').split('-');
+                            return { text: `${p[0]} - ${p[1]}`, resposta: parseInt(p[0]) - parseInt(p[1]) };
+                        });
+                    }
+                    
+                    const faltan = 30 - listaErrores.length;
+                    const listaAleatorias = [];
+                    for (let k = 0; k < faltan; k++) {
+                        // 1. El primer número (Minuendo) se basa en el nivel
+                        const n1 = Math.floor(Math.random() * (cfg.max - cfg.min + 1)) + cfg.min;
+                        // 2. El segundo número (Sustraendo) es entre 0 y n1.
+                        // Esto garantiza que el resultado NUNCA sea negativo (n1 - n2 >= 0)
+                        const n2 = Math.floor(Math.random() * (n1 + 1));
+                        listaAleatorias.push({ text: `${n1} - ${n2}`, resposta: n1 - n2 });
+                    }
+                    preguntes = [...listaErrores, ...listaAleatorias];
                 }
                 
                 estatJoc = { tipus: tipus, preguntes: preguntes, preguntaActualIndex: 0, encerts: 0, errades: 0, startTime: new Date(), fallades: [], isRepasMode: false };
