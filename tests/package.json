@@ -1,0 +1,11 @@
+{
+  "name": "dojo-tests",
+  "private": true,
+  "description": "Pruebas automáticas del Dojo (Playwright). Ejecutar con ./run.sh",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

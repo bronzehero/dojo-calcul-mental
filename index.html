@@ -1,0 +1,2389 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Dojo">
+    <meta name="format-detection" content="telephone=no">
+    <title>Dojo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --c-pink: #ffafcc;
+            --c-pink-dark: #f08080;
+            --c-lavender: #cdb4db;
+            --c-blue: #a2d2ff;
+            --c-blue-soft: #e2f0d9;
+            --c-mint: #b7e4c7;
+            --c-mint-dark: #52b788;
+            --c-orange: #ffe599;
+            --c-orange-dark: #f4a261;
+            --c-coral: #ff758f;
+            --c-red-soft: #ffd8d8;
+            --c-red-text: #b71c1c;
+            --c-dark: #2d3142;
+            --c-light: #ffffff;
+            --c-shadow: rgba(100, 100, 150, 0.15);
+            --font-main: 'Baloo 2', system-ui, -apple-system, cursive, sans-serif;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 15px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #fce4ec 0%, #e8eaf6 50%, #e0f2fe 100%);
+            color: var(--c-dark);
+            text-align: center;
+            letter-spacing: 0.02em;
+        }
+
+        .app-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            padding: 24px;
+            border-radius: 28px;
+            box-shadow: 0 12px 40px var(--c-shadow);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            width: 100%;
+            max-width: 440px;
+            margin: auto;
+            position: relative;
+            transition: max-width 0.3s ease;
+        }
+
+        .app-card.wide {
+            max-width: 820px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin: 6px 0 12px 0;
+            color: #4a4e69;
+            font-weight: 800;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            margin: 8px 0 16px 0;
+            color: #4a4e69;
+        }
+
+        p {
+            font-size: 1.15rem;
+            line-height: 1.4;
+            margin: 8px 0;
+        }
+
+        /* Botones principales */
+        .btn-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 16px 20px;
+            margin: 14px 0;
+            border: none;
+            border-radius: 20px;
+            font-family: var(--font-main);
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--c-dark);
+            background: var(--c-pink);
+            cursor: pointer;
+            box-shadow: 0 6px 18px var(--c-shadow);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 22px rgba(100, 100, 150, 0.25);
+        }
+
+        .btn-action:active {
+            transform: translateY(1px);
+        }
+
+        .btn-secondary {
+            background: #edf2f7;
+            color: #4a5568;
+            font-size: 1.1rem;
+            padding: 12px 16px;
+        }
+
+        .btn-danger {
+            background: var(--c-coral);
+            color: white;
+        }
+
+        .btn-subtle {
+            background: transparent;
+            box-shadow: none;
+            color: #718096;
+            font-size: 0.95rem;
+            padding: 8px 12px;
+            margin: 8px 0 0 0;
+            text-decoration: underline;
+            cursor: pointer;
+            border: none;
+            font-family: var(--font-main);
+        }
+
+        /* Barra superior del juego */
+        .game-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            color: #6c757d;
+        }
+
+        .badge-ciclo {
+            background: #ede7f6;
+            color: #5e35b1;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        .btn-small-exit {
+            background: #fff0f3;
+            color: #c9184a;
+            border: 1px solid #ffccd5;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-family: var(--font-main);
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        /* Tarjeta de Operación */
+        .operation-display {
+            background: #ffffff;
+            border: 3px solid #e0e7ff;
+            border-radius: 24px;
+            padding: 22px 15px;
+            margin: 12px 0 18px 0;
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.08);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .operation-display.success-anim {
+            background-color: #d8f3dc !important;
+            border-color: #74c69d !important;
+        }
+
+        .operation-text {
+            font-size: 3.2rem;
+            font-weight: 800;
+            color: #1e293b;
+            letter-spacing: 0.05em;
+            margin: 0;
+            user-select: none;
+        }
+
+        .answer-box {
+            display: inline-block;
+            min-width: 90px;
+            height: 65px;
+            line-height: 60px;
+            border-bottom: 4px solid var(--c-pink-dark);
+            margin-left: 8px;
+            font-size: 3rem;
+            font-weight: 800;
+            color: #d81b60;
+            vertical-align: middle;
+            background: #fff5f7;
+            border-radius: 12px;
+            padding: 0 10px;
+        }
+
+        .answer-box.empty {
+            color: #cbd5e1;
+            font-size: 2.2rem;
+        }
+
+        /* Teclado numérico táctil amigable */
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            touch-action: manipulation;
+        }
+
+        .key-btn {
+            height: 60px;
+            border-radius: 18px;
+            border: none;
+            background: #ffffff;
+            font-family: var(--font-main);
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #334155;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06), inset 0 -3px 0 rgba(0, 0, 0, 0.08);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s ease, background-color 0.15s ease;
+            user-select: none;
+        }
+
+        .key-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .key-btn.action-back {
+            background: #fee2e2;
+            color: #b91c1c;
+            font-size: 1.4rem;
+        }
+
+        .key-btn.action-submit {
+            background: var(--c-mint);
+            color: #1b4332;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .key-btn.action-submit:disabled {
+            background: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Tarjeta de corrección suave (sin alert invasivo) */
+        .gentle-correction {
+            display: none;
+            background: #fff8f0;
+            border: 2px solid #fed7aa;
+            border-radius: 20px;
+            padding: 18px;
+            margin-top: 15px;
+            text-align: center;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .gentle-correction h3 {
+            margin: 0 0 6px 0;
+            color: #c2410c;
+            font-size: 1.4rem;
+        }
+
+        .gentle-correction .correction-math {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #15803d;
+            background: #f0fdf4;
+            padding: 8px 16px;
+            border-radius: 14px;
+            display: inline-block;
+            margin: 8px 0;
+            border: 2px dashed #86efac;
+        }
+
+        /* Zona Papá - Estilos */
+        .papa-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .papa-tabs {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 8px 14px;
+            border: 2px solid #e2e8f0;
+            background: #f8fafc;
+            border-radius: 12px;
+            font-family: var(--font-main);
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            color: #475569;
+        }
+
+        .tab-btn.active {
+            background: var(--c-lavender);
+            border-color: #b892cf;
+            color: #2e1065;
+        }
+
+        .stats-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .stat-box {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 12px 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .stat-box .title {
+            font-size: 0.85rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .stat-box .number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin-top: 4px;
+        }
+
+        /* Matriz de calor 8x8 */
+        .matrix-container {
+            overflow-x: auto;
+            margin: 16px 0;
+            background: white;
+            border-radius: 18px;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .heatmap-table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            user-select: none;
+        }
+
+        .heatmap-table th, .heatmap-table td {
+            width: 48px;
+            height: 48px;
+            text-align: center;
+            vertical-align: middle;
+            border: 2px solid #ffffff;
+            border-radius: 8px;
+            padding: 2px;
+        }
+
+        .heatmap-table th {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+
+        .heatmap-cell {
+            cursor: pointer;
+            font-weight: 700;
+            transition: transform 0.1s ease;
+            position: relative;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+            z-index: 5;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .cell-nodata { background: #f1f5f9; color: #94a3b8; }
+        .cell-green  { background: #bbf7d0; color: #14532d; }
+        .cell-yellow { background: #fef08a; color: #713f12; }
+        .cell-red    { background: #fecaca; color: #7f1d1d; }
+
+        .cell-subtext {
+            font-size: 0.65rem;
+            display: block;
+            line-height: 1;
+            font-weight: 600;
+            opacity: 0.85;
+        }
+
+        /* Tabla de historial */
+        .log-table-container {
+            max-height: 380px;
+            overflow-y: auto;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            text-align: left;
+        }
+
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .log-table th, .log-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .log-table th {
+            background: #f8fafc;
+            position: sticky;
+            top: 0;
+            color: #475569;
+            font-weight: 700;
+        }
+
+        /* Modal para detalle de celda */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .modal-body {
+            background: white;
+            border-radius: 24px;
+            padding: 22px;
+            max-width: 460px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: left;
+            position: relative;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            font-weight: 700;
+            color: #475569;
+            font-size: 1.1rem;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            background: #ecfdf5;
+            color: #065f46;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        .status-pill.offline {
+            background: #fffbeb;
+            color: #92400e;
+        }
+
+        .pill-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .celebrate-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #15803d;
+            margin-top: 8px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        [hidden] { display: none !important; }
+
+        .intro-ejemplo {
+            background: #f5f3ff;
+            border: 2px dashed #c4b5fd;
+            border-radius: 18px;
+            padding: 12px 16px;
+            margin: 14px auto;
+            max-width: 420px;
+        }
+
+        #intro-ejemplo {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .mision-pasos li.hecho { color: #94a3b8; text-decoration: line-through; }
+
+        /* Misión del día */
+        .mision-card {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 20px;
+            padding: 16px 18px;
+            margin: 16px 0;
+        }
+
+        .mision-label {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #7c3aed;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .mision-titulo {
+            font-size: 1.9rem;
+            font-weight: 800;
+            color: #4a4e69;
+            margin: 2px 0 8px 0;
+        }
+
+        .mision-pasos {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 1.25rem;
+            color: #475569;
+        }
+
+        .mision-pasos li { margin: 4px 0; }
+
+        /* Barra de progreso suave del bloque */
+        .progreso {
+            flex: 1;
+            height: 10px;
+            background: #eef2f7;
+            border-radius: 10px;
+            margin: 0 14px;
+            overflow: hidden;
+        }
+
+        .progreso-barra {
+            height: 100%;
+            width: 0%;
+            background: var(--c-lavender);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .op-largo .operation-text { font-size: 2.6rem; }
+
+        /* ¿Verdad o no? */
+        .vf-botones {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-top: 15px;
+        }
+
+        .vf-btn {
+            height: 110px;
+            border: none;
+            border-radius: 22px;
+            font-family: var(--font-main);
+            font-size: 1.5rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 6px 16px var(--c-shadow);
+        }
+
+        .vf-btn.si { background: var(--c-mint); color: #1b4332; }
+        .vf-btn.no { background: var(--c-red-soft); color: var(--c-red-text); }
+
+        /* Panel para papá (modo oral) */
+        .oral-panel {
+            background: #f5f3ff;
+            border: 2px solid #ddd6fe;
+            border-radius: 20px;
+            padding: 14px;
+            margin-top: 15px;
+        }
+
+        .oral-panel .oral-label {
+            font-size: 1rem;
+            color: #5b21b6;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .oral-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .oral-btn {
+            padding: 14px 8px;
+            border: none;
+            border-radius: 16px;
+            font-family: var(--font-main);
+            font-size: 1.15rem;
+            font-weight: 700;
+            background: #ffffff;
+            color: #334155;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .oral-btn.bien { background: var(--c-mint); color: #1b4332; font-size: 1.4rem; }
+        .oral-btn.mal { background: var(--c-red-soft); color: var(--c-red-text); font-size: 1.4rem; }
+
+        .oral-input {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.4rem;
+            font-family: var(--font-main);
+            border: 2px solid #ddd6fe;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .plan-fila {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin-bottom: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .plan-fila.actual { background: #f5f3ff; border-color: #c4b5fd; }
+        .plan-fila.hecha { background: #f0fdf4; border-color: #bbf7d0; }
+
+        /* Optimizaciones táctiles y anti-rebote para iPad / iOS */
+        html, body {
+            min-height: 100vh;
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        button, .key-btn, .answer-box, .operation-display, .app-card {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* iPad / Tablet vertical (Portrait) */
+        @media (min-width: 600px) {
+            .app-card {
+                max-width: 580px;
+                padding: 32px 28px;
+                border-radius: 34px;
+            }
+            .operation-text {
+                font-size: 3.8rem;
+            }
+            .answer-box {
+                min-width: 110px;
+                height: 74px;
+                line-height: 70px;
+                font-size: 3.5rem;
+            }
+            .key-btn {
+                height: 70px;
+                font-size: 2.2rem;
+                border-radius: 20px;
+            }
+            .keypad-grid {
+                gap: 14px;
+                margin-top: 18px;
+            }
+            .btn-action {
+                padding: 18px 24px;
+                font-size: 1.45rem;
+                border-radius: 22px;
+            }
+        }
+
+        /* iPad / Tablet horizontal (Landscape) */
+        @media (min-width: 768px) and (orientation: landscape) {
+            .app-card {
+                max-width: 860px;
+                padding: 22px 30px;
+            }
+            .game-content-layout {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 22px;
+                align-items: center;
+            }
+            .operation-display {
+                margin: 0;
+                padding: 26px 14px;
+            }
+            .keypad-grid {
+                margin-top: 0;
+                gap: 10px;
+            }
+            .key-btn {
+                height: 62px;
+                font-size: 1.9rem;
+            }
+            .gentle-correction {
+                margin-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Tarjeta Principal de la App -->
+    <div id="main-card" class="app-card">
+
+        <!-- 1. Pantalla de bienvenida -->
+        <div id="screen-home">
+            <div style="font-size: 3.5rem; margin-bottom: 2px;">🌸</div>
+            <h1 id="saludo">Hola!</h1>
+
+            <!-- Solo ve lo que toca hoy -->
+            <div id="mision-card" class="mision-card">
+                <div class="mision-label">Missió d'avui</div>
+                <div id="mision-titulo" class="mision-titulo">...</div>
+                <ul id="mision-pasos" class="mision-pasos"></ul>
+                <button id="btn-leer-mision" class="btn-subtle">🔊 Escoltar</button>
+            </div>
+
+            <button id="btn-start-game" class="btn-action">
+                <span>✨ Començar ✨</span>
+            </button>
+
+            <div id="mision-hecha" class="mision-card" hidden>
+                <div style="font-size: 2.6rem;">🌟</div>
+                <div class="mision-titulo">Missió d'avui complerta!</div>
+                <p style="color: #64748b;">Demà en tindràs una altra. A descansar!</p>
+            </div>
+
+            <button id="btn-open-papa" class="btn-subtle">
+                ⚙️ Zona Papá / Análisis
+            </button>
+        </div>
+
+        <!-- 1b. Presentación de cada bloque de la misión -->
+        <div id="screen-intro" style="display: none;">
+            <div id="intro-icono" style="font-size: 3.5rem;">✖️</div>
+            <h1 id="intro-titulo">Multiplicaciones</h1>
+            <p id="intro-texto" style="font-size: 1.35rem; color: #475569;"></p>
+            <div class="intro-ejemplo">
+                <div class="mision-label">Exemple</div>
+                <div id="intro-ejemplo"></div>
+            </div>
+            <button id="btn-leer-intro" class="btn-subtle">🔊 Escoltar</button>
+            <button id="btn-intro-vamos" class="btn-action" style="background: var(--c-mint);">
+                Som-hi! ➜
+            </button>
+            <button id="btn-intro-parar" class="btn-subtle">Parar per avui</button>
+        </div>
+
+        <!-- 2. Pantalla de Entrenamiento (Cero Estrés) -->
+        <div id="screen-game" style="display: none;">
+            <div class="game-top-bar">
+                <span id="game-badge-ciclo" class="badge-ciclo">Tablas</span>
+                <div class="progreso"><div id="progreso-barra" class="progreso-barra"></div></div>
+                <button id="btn-exit-game" class="btn-small-exit" title="Parar per avui">
+                    Parar per avui 🌸
+                </button>
+            </div>
+
+            <div class="game-content-layout">
+                <div class="game-left-col">
+                    <!-- Operación visual grande -->
+                    <div id="op-card" class="operation-display">
+                        <div class="operation-text">
+                            <span id="op-factors">7 × 8</span>
+                            <span id="op-igual">=</span>
+                            <span id="op-answer" class="answer-box empty">?</span>
+                        </div>
+                        <div id="op-feedback" style="min-height: 28px;"></div>
+                    </div>
+                </div>
+
+                <div class="game-right-col">
+                    <!-- Corrección amable si se equivoca -->
+                    <div id="gentle-correction-box" class="gentle-correction">
+                        <h3 id="correction-title">🌸 Gairebé! Fixa-t'hi bé:</h3>
+                        <div id="correction-math-text" class="correction-math">7 × 8 = 56</div>
+                        <p id="correction-user-response" style="margin: 4px 0; color: #64748b; font-size: 1.05rem;"></p>
+                        <button id="btn-correction-continue" class="btn-action" style="background: var(--c-mint); margin: 10px 0 0 0; padding: 12px;">
+                            Entesos, seguim! ➜
+                        </button>
+                    </div>
+
+                    <!-- Teclado táctil en pantalla -->
+                    <div id="keypad" class="keypad-grid">
+                        <button class="key-btn" data-key="1">1</button>
+                        <button class="key-btn" data-key="2">2</button>
+                        <button class="key-btn" data-key="3">3</button>
+                        <button class="key-btn" data-key="4">4</button>
+                        <button class="key-btn" data-key="5">5</button>
+                        <button class="key-btn" data-key="6">6</button>
+                        <button class="key-btn" data-key="7">7</button>
+                        <button class="key-btn" data-key="8">8</button>
+                        <button class="key-btn" data-key="9">9</button>
+                        <button class="key-btn action-back" data-key="back" aria-label="Borrar">⌫</button>
+                        <button class="key-btn" data-key="0">0</button>
+                        <button id="btn-submit-answer" class="key-btn action-submit" data-key="enter" disabled aria-label="Comprobar">✓</button>
+                    </div>
+
+                    <!-- ¿Verdad o no? -->
+                    <div id="vf-botones" class="vf-botones" hidden>
+                        <button class="vf-btn si" data-vf="V">✔ Està bé</button>
+                        <button class="vf-btn no" data-vf="F">✘ Està malament</button>
+                    </div>
+
+                    <!-- Panel de papá (modo oral) -->
+                    <div id="oral-panel" class="oral-panel" hidden>
+                        <div id="oral-paso-1">
+                            <div class="oral-label">👨 Papá: cuando conteste, pulsa</div>
+                            <div class="oral-grid">
+                                <button class="oral-btn bien" data-oral="bien">✔ Bien</button>
+                                <button class="oral-btn mal" data-oral="mal">✘ Mal</button>
+                            </div>
+                        </div>
+                        <div id="oral-paso-2" hidden>
+                            <div id="oral-dijo-box">
+                                <div class="oral-label">¿Qué ha dicho? (si lo sabes)</div>
+                                <input id="oral-dijo" class="oral-input" type="text" inputmode="numeric" autocomplete="off">
+                            </div>
+                            <div class="oral-label">Pregúntale: ¿cómo lo has sabido?</div>
+                            <div class="oral-grid">
+                                <button class="oral-btn" data-estrategia="memoria">🧠 Lo sabía</button>
+                                <button class="oral-btn" data-estrategia="calculo">🔢 Lo ha calculado</button>
+                                <button class="oral-btn" data-estrategia="cancion">🎵 Canción</button>
+                                <button class="oral-btn" data-estrategia="otro">💡 Truco / otro</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Pantalla de Resumen Amigable -->
+        <div id="screen-summary" style="display: none;">
+            <div style="font-size: 3.5rem;">🌟</div>
+            <h1 id="summary-titulo">Missió complerta!</h1>
+            <p id="summary-texto" style="font-size: 1.25rem; color: #475569;">
+                Cada dia el teu cervell es fa més fort. A descansar i a gaudir del dia!
+            </p>
+            <button id="btn-summary-home" class="btn-action" style="background: var(--c-mint); margin-top: 24px;">
+                Tornar a l'inici 🏠
+            </button>
+        </div>
+
+        <!-- 4. Pantalla de la Zona Papá / Panel de Análisis -->
+        <div id="screen-papa" style="display: none;">
+            <div class="papa-nav">
+                <div style="text-align: left;">
+                    <strong style="font-size: 1.3rem;">📊 Zona Papá • Análisis</strong>
+                    <div id="cloud-status-pill" class="status-pill" style="margin-left: 6px;">
+                        <span class="pill-dot"></span>
+                        <span id="cloud-status-text">Conectando...</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-export-csv" class="btn-small-exit" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd;">
+                        📥 Descargar CSV
+                    </button>
+                    <button id="btn-close-papa" class="btn-small-exit" style="background: #f1f5f9; color: #334155; border-color: #cbd5e1;">
+                        ✕ Volver al juego
+                    </button>
+                </div>
+            </div>
+
+            <!-- Acceso a los datos y ajustes -->
+            <div id="papa-acceso" class="plan-fila" style="flex-wrap: wrap; background: #fffbeb; border-color: #fde68a;">
+                <span>🔒 Los datos solo se ven con la <strong>clau de papà</strong>:</span>
+                <input id="inp-clave" type="password" autocomplete="current-password" style="font-size: 1rem; padding: 6px; border-radius: 10px; border: 1px solid #cbd5e1;">
+                <button id="btn-guardar-clave" class="btn-small-exit" style="background: #fef3c7; color: #92400e; border-color: #fde68a;">Entrar</button>
+                <span id="clave-msg" style="color: #b91c1c; font-size: 0.9rem;"></span>
+            </div>
+            <div class="plan-fila" style="flex-wrap: wrap;">
+                <span>Nombre que ve en la app:</span>
+                <input id="inp-nombre" type="text" autocomplete="off" style="font-size: 1rem; padding: 6px; border-radius: 10px; border: 1px solid #cbd5e1;">
+                <button id="btn-guardar-nombre" class="btn-small-exit" style="background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe;">Guardar</button>
+            </div>
+
+            <!-- Resumen de Métricas -->
+            <div class="stats-summary-grid">
+                <div class="stat-box">
+                    <div class="title">Registros</div>
+                    <div id="stat-total-records" class="number">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="title">% Acierto</div>
+                    <div id="stat-accuracy" class="number">0%</div>
+                </div>
+                <div class="stat-box">
+                    <div class="title">T. Medio</div>
+                    <div id="stat-avg-time" class="number">0s</div>
+                </div>
+                <div class="stat-box">
+                    <div class="title">Vuelta Mazo</div>
+                    <div id="stat-deck-cycle" class="number">1</div>
+                </div>
+            </div>
+
+            <!-- Filtro de distracción -->
+            <div style="margin-bottom: 14px; font-size: 0.9rem; text-align: left; background: #f8fafc; padding: 8px 12px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+                <span>⏱️ Excluir tiempos &gt; 20s en medias (posibles despistes)</span>
+                <input type="checkbox" id="chk-exclude-distractions" checked style="width: 18px; height: 18px; cursor: pointer;">
+            </div>
+
+            <!-- Pestañas de la Zona Papá -->
+            <div class="papa-tabs">
+                <button class="tab-btn active" data-tab="plan">Plan y pruebas</button>
+                <button class="tab-btn" data-tab="heatmap">Matriz 8x8</button>
+                <button class="tab-btn" data-tab="critical">Puntos Críticos</button>
+                <button class="tab-btn" data-tab="logs">Historial Detallado</button>
+            </div>
+
+            <!-- Contenido Pestaña 0: Plan de misiones y resultados de las pruebas -->
+            <div id="tab-plan" class="tab-content" style="text-align: left;">
+                <div id="plan-lista"></div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 12px 0;">
+                    <select id="sel-mision" style="font-family: var(--font-main); font-size: 1rem; padding: 6px; border-radius: 10px;"></select>
+                    <button id="btn-set-mision" class="btn-small-exit" style="background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe;">Poner como misión actual</button>
+                    <button id="btn-permitir-otra" class="btn-small-exit" style="background: #f0fdf4; color: #166534; border-color: #bbf7d0;">Dejar hacer otra hoy</button>
+                </div>
+                <h4 style="margin: 16px 0 6px 0;">Resultados de las pruebas</h4>
+                <div id="plan-resultados" style="font-size: 0.95rem;"></div>
+                <p id="plan-pendientes" style="font-size: 0.85rem; color: #92400e;"></p>
+            </div>
+
+            <!-- Contenido Pestaña 1: Matriz de Calor 8x8 -->
+            <div id="tab-heatmap" class="tab-content" style="display: none;">
+                <p style="font-size: 0.9rem; color: #64748b; margin-top: 0;">
+                    Filas: 1er factor | Columnas: 2º factor. Pulsa cualquier casilla para ver su historial.
+                </p>
+                <div class="matrix-container">
+                    <table class="heatmap-table" id="heatmap-table">
+                        <!-- Generada dinámicamente -->
+                    </table>
+                </div>
+                <div style="display: flex; justify-content: center; gap: 14px; font-size: 0.8rem; margin-top: 8px; flex-wrap: wrap;">
+                    <span><span style="display:inline-block;width:12px;height:12px;background:#bbf7d0;border-radius:3px;"></span> Dominada</span>
+                    <span><span style="display:inline-block;width:12px;height:12px;background:#fef08a;border-radius:3px;"></span> Dudosa / Lenta</span>
+                    <span><span style="display:inline-block;width:12px;height:12px;background:#fecaca;border-radius:3px;"></span> Atascada</span>
+                    <span><span style="display:inline-block;width:12px;height:12px;background:#f1f5f9;border-radius:3px;"></span> Sin datos</span>
+                </div>
+            </div>
+
+            <!-- Contenido Pestaña 2: Puntos Críticos -->
+            <div id="tab-critical" class="tab-content" style="display: none; text-align: left;">
+                <h4 style="margin: 10px 0 6px 0; color: #991b1b;">🔴 Atascadas (Más falladas o peor precisión):</h4>
+                <div id="critical-list" style="margin-bottom: 20px;"></div>
+
+                <h4 style="margin: 10px 0 6px 0; color: #854d0e;">🟡 Dudosas (Acierta pero tarda &gt; 5 segundos):</h4>
+                <div id="hesitant-list"></div>
+            </div>
+
+            <!-- Contenido Pestaña 3: Historial Detallado -->
+            <div id="tab-logs" class="tab-content" style="display: none;">
+                <div class="log-table-container">
+                    <table class="log-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Operación</th>
+                                <th>Puso</th>
+                                <th>Ok</th>
+                                <th>Tiempo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="log-table-body">
+                            <!-- Generado dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal Detalle Operación Concreta (Zona Papá) -->
+    <div id="cell-modal" class="modal-overlay">
+        <div class="modal-body">
+            <button id="btn-modal-close" class="modal-close-btn">✕</button>
+            <h3 id="modal-op-title" style="margin-top: 0; color: #1e293b; font-size: 1.6rem;">7 × 8 = 56</h3>
+            <div id="modal-op-summary" style="margin-bottom: 14px; font-size: 1rem; color: #475569;"></div>
+            <div style="max-height: 250px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 12px;">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Respuesta</th>
+                            <th>Resultado</th>
+                            <th>Tiempo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-op-history"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // ==========================================
+            // CONFIGURACIÓN DE SUPABASE Y CONSTANTES
+            // ==========================================
+            const SUPABASE_CONFIG = {
+                url: 'https://whunzpgdizjutuvkygod.supabase.co',
+                key: 'sb_publishable_2_yNVkd_F44ukTaqtJbvvA_6TuKRxcm'
+            };
+
+            const DISTRACTION_THRESHOLD_SECONDS = 20.0;
+
+            // Las claves antiguas del almacenamiento del iPad se pasan a las nuevas sin perder nada
+            [['dojo_abril_deck', 'dojo_deck'], ['dojo_abril_deck_suma', 'dojo_deck_suma'],
+             ['dojo_abril_deck_resta', 'dojo_deck_resta'], ['dojo_abril_plan', 'dojo_plan'],
+             ['dojo_abril_pendientes', 'dojo_pendientes'], ['dojo_abril_records', 'dojo_records']
+            ].forEach(([viejo, nuevo]) => {
+                try {
+                    const valor = localStorage.getItem(viejo);
+                    if (valor !== null && localStorage.getItem(nuevo) === null) localStorage.setItem(nuevo, valor);
+                    if (valor !== null) localStorage.removeItem(viejo);
+                } catch (e) {}
+            });
+
+            // El nombre no está en el código público: se configura en la Zona Papá y vive solo en el iPad
+            function leerNombre() {
+                try { return (localStorage.getItem('dojo_nombre') || '').trim(); } catch (e) { return ''; }
+            }
+            const conNombre = () => leerNombre() ? `, ${leerNombre()}` : '';
+
+            // ==========================================
+            // PLAN DE MISIONES (una al día)
+            // Fase 0 · Evaluación. En pantalla solo se ve la misión que toca; el plan
+            // se amplía según los resultados. Textos de la alumna en catalán.
+            // ==========================================
+            const PLAN = [
+                { id: 1, titulo: 'Números i taules', bloques: [{ tipo: 'teclear', n: 20 }, { tipo: 'multi', n: 10 }] },
+                { id: 2, titulo: 'Sumes',            bloques: [{ tipo: 'suma', n: 32 }, { tipo: 'multi', n: 10 }] },
+                { id: 3, titulo: 'Està bé o no?',    bloques: [{ tipo: 'vf' }] },
+                { id: 4, titulo: 'Restes',           bloques: [{ tipo: 'resta', n: 32 }, { tipo: 'multi', n: 10 }] },
+                { id: 5, titulo: 'Amb el papa',      bloques: [{ tipo: 'oral' }] },
+                { id: 6, titulo: 'Sumes',            bloques: [{ tipo: 'suma', n: 32 }, { tipo: 'multi', n: 10 }] },
+                { id: 7, titulo: 'Restes',           bloques: [{ tipo: 'resta', n: 32 }, { tipo: 'multi', n: 10 }] }
+            ];
+            const MISION_POR_DEFECTO = { id: 0, titulo: 'Taules', bloques: [{ tipo: 'multi', n: 20 }] };
+
+            const TIPOS = {
+                teclear: { nombre: 'Escriure números', icono: '⌨️', instr: 'Escriu el número que veus. No cal pensar, només copiar-lo!', ejemplo: 'Veus 47 ➜ escrius 47', paso: n => `Escriure ${n} números` },
+                multi:   { nombre: 'Multiplicacions', icono: '✖️', instr: 'Multiplicacions, com sempre. Tranquil·la, al teu ritme.', ejemplo: '7 × 2 ➜ escrius 14', paso: n => `${n} multiplicacions` },
+                suma:    { nombre: 'Sumes', icono: '➕', instr: 'Sumes de números petits. Al teu ritme.', ejemplo: '3 + 4 ➜ escrius 7', paso: n => `${n} sumes` },
+                resta:   { nombre: 'Restes', icono: '➖', instr: 'Restes de números petits. Al teu ritme.', ejemplo: '9 − 4 ➜ escrius 5', paso: n => `${n} restes` },
+                vf:      { nombre: 'Està bé o no?', icono: '🤔', instr: 'Veuràs una multiplicació ja feta. Tu dius si està bé o malament.', ejemplo: '2 × 3 = 6 ➜ ✔ Està bé', paso: () => 'Dir si està bé o malament' },
+                oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
+            };
+
+            // ¿Està bé o no?: sus errores reales (falsas) frente a las correctas, más controles
+            // de las que domina. Tras cada falsa se le enseña la correcta para no reforzar el error.
+            const VF_ITEMS = [
+                [6, 8, 48], [6, 8, 64], [8, 6, 24], [7, 8, 56], [7, 8, 54], [3, 6, 18], [6, 3, 24],
+                [3, 7, 21], [7, 3, 24], [6, 9, 54], [6, 9, 45], [9, 9, 81], [9, 9, 64], [5, 7, 35], [5, 7, 45],
+                [2, 7, 14], [3, 5, 15], [5, 8, 40], [4, 6, 24], [3, 8, 24], [4, 8, 32],
+                [2, 9, 16], [5, 5, 30], [3, 5, 18], [5, 8, 45]
+            ];
+
+            // Oral con papá: atascadas, lentas y controles rápidos (según datos a 29/09/2026)
+            const ORAL_ITEMS = [
+                [6, 8], [7, 8], [9, 9], [3, 6], [3, 7], [6, 9], [5, 7],
+                [5, 9], [2, 6], [4, 9], [4, 7], [7, 9], [8, 9], [5, 6],
+                [2, 3], [3, 5], [5, 8], [2, 7], [4, 8], [4, 6]
+            ];
+
+            // ==========================================
+            // ESTADO DE LA APLICACIÓN
+            // ==========================================
+            let allRecords = []; // Registros de multiplicación (tabla registros)
+            let currentInput = '';
+            let isEvaluating = false;
+            let sesion = null;   // { mision, iBloque, hechos, total, fijos }
+            let item = null;     // ítem en pantalla
+            let tInicio = 0;
+            let teclas = [];     // [ms desde que aparece, tecla]
+            let oralRespuesta = null;
+
+            const screens = {
+                home: document.getElementById('screen-home'),
+                intro: document.getElementById('screen-intro'),
+                game: document.getElementById('screen-game'),
+                summary: document.getElementById('screen-summary'),
+                papa: document.getElementById('screen-papa')
+            };
+
+            const mainCard = document.getElementById('main-card');
+            const opFactorsEl = document.getElementById('op-factors');
+            const opIgualEl = document.getElementById('op-igual');
+            const opAnswerEl = document.getElementById('op-answer');
+            const opCardEl = document.getElementById('op-card');
+            const opFeedbackEl = document.getElementById('op-feedback');
+            const btnSubmit = document.getElementById('btn-submit-answer');
+            const gentleBox = document.getElementById('gentle-correction-box');
+            const correctionTitle = document.getElementById('correction-title');
+            const correctionMathText = document.getElementById('correction-math-text');
+            const correctionUserResponse = document.getElementById('correction-user-response');
+            const keypad = document.getElementById('keypad');
+            const vfBotones = document.getElementById('vf-botones');
+            const oralPanel = document.getElementById('oral-panel');
+
+            const hoy = () => new Date().toLocaleDateString('sv-SE'); // AAAA-MM-DD local
+
+            // ==========================================
+            // SONIDO (Web Audio API) Y VOZ
+            // ==========================================
+            let audioCtx = null;
+            function playFeedbackSound(isSuccess) {
+                try {
+                    if (!audioCtx) {
+                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                    const now = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+
+                    if (isSuccess) {
+                        // Tono dulce y suave ascendente (Do5 -> Sol5)
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(523.25, now);
+                        osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.14);
+                        gain.gain.setValueAtTime(0.12, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    } else {
+                        // Tono de madera suave, nada estridente
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(220, now);
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    }
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } catch (e) {
+                    // Si el navegador bloquea audio, no interrumpir
+                }
+            }
+
+            // Desbloqueo garantizado de AudioContext en iPad / iOS Safari
+            function unlockAudio() {
+                try {
+                    if (!audioCtx) {
+                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                } catch (e) {}
+                ['touchstart', 'touchend', 'click'].forEach(evt => {
+                    window.removeEventListener(evt, unlockAudio);
+                });
+            }
+            ['touchstart', 'touchend', 'click'].forEach(evt => {
+                window.addEventListener(evt, unlockAudio, { passive: true });
+            });
+
+            // Lectura en voz alta en catalán (voz del sistema del iPad)
+            function hablar(texto) {
+                try {
+                    speechSynthesis.cancel();
+                    const u = new SpeechSynthesisUtterance(texto);
+                    u.lang = 'ca-ES';
+                    u.rate = 0.9;
+                    const voz = speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith('ca'));
+                    if (voz) u.voice = voz;
+                    speechSynthesis.speak(u);
+                } catch (e) {}
+            }
+
+            // ==========================================
+            // NAVEGACIÓN ENTRE PANTALLAS
+            // ==========================================
+            function showScreen(screenKey) {
+                Object.values(screens).forEach(s => s.style.display = 'none');
+                screens[screenKey].style.display = 'block';
+                mainCard.classList.toggle('wide', screenKey === 'papa');
+            }
+
+            // ==========================================
+            // MAZOS EQUILIBRADOS (64 CARTAS, DEL 2 AL 9)
+            // Cada carta sale una vez por vuelta (Fisher-Yates)
+            // ==========================================
+            function shuffle(array) {
+                const arr = [...array];
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
+
+            function paresDel2al9() {
+                const cards = [];
+                for (let a = 2; a <= 9; a++) {
+                    for (let b = 2; b <= 9; b++) {
+                        cards.push({ a, b });
+                    }
+                }
+                return cards;
+            }
+
+            const MAZOS = {
+                multi: 'dojo_deck',
+                suma: 'dojo_deck_suma',
+                resta: 'dojo_deck_resta'
+            };
+
+            function getDeckState(tipo = 'multi') {
+                const stored = localStorage.getItem(MAZOS[tipo]);
+                if (stored) {
+                    try { return JSON.parse(stored); } catch (e) {}
+                }
+                return initializeNewDeck(tipo, 1);
+            }
+
+            function initializeNewDeck(tipo, cycleNumber) {
+                const newState = { ciclo: cycleNumber, mazo: shuffle(paresDel2al9()), totalCartas: 64 };
+                localStorage.setItem(MAZOS[tipo], JSON.stringify(newState));
+                return newState;
+            }
+
+            function getNextCard(tipo) {
+                let deckState = getDeckState(tipo);
+                if (!deckState.mazo || deckState.mazo.length === 0) {
+                    deckState = initializeNewDeck(tipo, (deckState.ciclo || 1) + 1);
+                }
+                const card = deckState.mazo.shift();
+                localStorage.setItem(MAZOS[tipo], JSON.stringify(deckState));
+                return { ...card, ciclo: deckState.ciclo };
+            }
+
+            // ==========================================
+            // PLAN: MISIÓN ACTUAL
+            // ==========================================
+            function leerPlan() {
+                try {
+                    const p = JSON.parse(localStorage.getItem('dojo_plan'));
+                    if (p && Array.isArray(p.hechas)) return p;
+                } catch (e) {}
+                return { hechas: [] };
+            }
+
+            function guardarPlan(p) {
+                localStorage.setItem('dojo_plan', JSON.stringify(p));
+            }
+
+            function misionActual() {
+                return PLAN[leerPlan().hechas.length] || MISION_POR_DEFECTO;
+            }
+
+            function misionHechaHoy() {
+                const p = leerPlan();
+                const ultima = p.hechas[p.hechas.length - 1];
+                return !!ultima && ultima.fecha === hoy() && p.permitirOtra !== hoy();
+            }
+
+            function textoMision(m) {
+                return m.bloques.map(b => TIPOS[b.tipo].paso(b.n));
+            }
+
+            function renderHome() {
+                document.getElementById('saludo').textContent = `Hola${conNombre()}!`;
+                const hecha = misionHechaHoy();
+                const m = misionActual();
+                document.getElementById('mision-card').hidden = hecha;
+                document.getElementById('btn-start-game').hidden = hecha;
+                document.getElementById('mision-hecha').hidden = !hecha;
+                document.getElementById('mision-titulo').textContent = m.titulo;
+                const desde = bloqueGuardado(m);
+                document.getElementById('mision-pasos').innerHTML = m.bloques
+                    .map((b, i) => `<li class="${i < desde ? 'hecho' : ''}">${i < desde ? '✅' : TIPOS[b.tipo].icono} ${TIPOS[b.tipo].paso(b.n)}</li>`).join('');
+            }
+
+            // Si se borra el almacenamiento del iPad, reconstruir el plan desde Supabase
+            async function recuperarPlan() {
+                if (leerPlan().hechas.length > 0) return;
+                try {
+                    const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/eventos?modulo=eq.mision&select=item,creado_el&order=creado_el.asc`, { headers: cabeceras() });
+                    if (!res.ok) return;
+                    const filas = await res.json();
+                    if (filas.length > 0 && leerPlan().hechas.length === 0) {
+                        guardarPlan({ hechas: filas.map(f => ({ id: parseInt(f.item, 10), fecha: new Date(f.creado_el).toLocaleDateString('sv-SE') })) });
+                        renderHome();
+                    }
+                } catch (e) {}
+            }
+
+            // ==========================================
+            // FLUJO DE LA MISIÓN
+            // ==========================================
+            function bloqueGuardado(m) {
+                const p = leerPlan();
+                return p.enCurso && p.enCurso.id === m.id ? p.enCurso.bloque : 0;
+            }
+
+            function empezarMision() {
+                const m = misionActual();
+                sesion = { mision: m, iBloque: bloqueGuardado(m), hechos: 0, total: 0, fijos: null };
+                mostrarIntroBloque();
+            }
+
+            function bloqueActual() {
+                return sesion.mision.bloques[sesion.iBloque];
+            }
+
+            function mostrarIntroBloque() {
+                const t = TIPOS[bloqueActual().tipo];
+                document.getElementById('intro-icono').textContent = t.icono;
+                document.getElementById('intro-titulo').textContent = t.nombre;
+                document.getElementById('intro-texto').textContent = t.instr;
+                document.getElementById('intro-ejemplo').textContent = t.ejemplo;
+                showScreen('intro');
+                hablar(t.instr);
+            }
+
+            function empezarBloque() {
+                const b = bloqueActual();
+                sesion.hechos = 0;
+                if (b.tipo === 'vf') {
+                    sesion.fijos = shuffle(VF_ITEMS);
+                } else if (b.tipo === 'oral') {
+                    sesion.fijos = shuffle(ORAL_ITEMS).map(([a, b2]) => Math.random() < 0.5 ? [a, b2] : [b2, a]);
+                } else {
+                    sesion.fijos = null;
+                }
+                sesion.total = sesion.fijos ? sesion.fijos.length : b.n;
+                document.getElementById('game-badge-ciclo').textContent = TIPOS[b.tipo].nombre;
+                showScreen('game');
+                siguienteItem();
+            }
+
+            function finBloque() {
+                sesion.iBloque++;
+                if (sesion.iBloque >= sesion.mision.bloques.length) {
+                    finMision();
+                } else {
+                    const p = leerPlan();
+                    p.enCurso = { id: sesion.mision.id, bloque: sesion.iBloque };
+                    guardarPlan(p);
+                    mostrarIntroBloque();
+                }
+            }
+
+            function finMision() {
+                const p = leerPlan();
+                p.hechas.push({ id: sesion.mision.id, fecha: hoy() });
+                delete p.permitirOtra;
+                delete p.enCurso;
+                guardarPlan(p);
+                guardarEvento({ modulo: 'mision', item: String(sesion.mision.id), detalle: { titulo: sesion.mision.titulo } });
+                document.getElementById('summary-titulo').textContent = `Missió complerta${conNombre()}!`;
+                document.getElementById('summary-texto').textContent = 'Cada dia el teu cervell es fa més fort. A descansar i a gaudir del dia!';
+                sesion = null;
+                showScreen('summary');
+            }
+
+            function pararPorHoy() {
+                // La misión queda pendiente: la próxima vez sigue por el bloque que no ha terminado
+                sesion = null;
+                document.getElementById('summary-titulo').textContent = `Molt bona feina${conNombre()}!`;
+                document.getElementById('summary-texto').textContent = 'Ho deixem aquí per avui. Demà seguim! 🌸';
+                showScreen('summary');
+            }
+
+            function crearItem() {
+                const tipo = bloqueActual().tipo;
+                if (tipo === 'teclear') {
+                    const n = Math.random() < 0.2 ? 1 + Math.floor(Math.random() * 9) : 10 + Math.floor(Math.random() * 90);
+                    return { tipo, texto: String(n), clave: String(n), esperado: String(n) };
+                }
+                if (tipo === 'multi') {
+                    const c = getNextCard('multi');
+                    return { tipo, a: c.a, b: c.b, ciclo: c.ciclo, texto: `${c.a} × ${c.b}`, clave: `${c.a}x${c.b}`, esperado: String(c.a * c.b) };
+                }
+                if (tipo === 'suma') {
+                    const c = getNextCard('suma');
+                    return { tipo, a: c.a, b: c.b, ciclo: c.ciclo, texto: `${c.a} + ${c.b}`, clave: `${c.a}+${c.b}`, esperado: String(c.a + c.b) };
+                }
+                if (tipo === 'resta') {
+                    // Resta inversa de la suma: (a+b) − b = a
+                    const c = getNextCard('resta');
+                    return { tipo, a: c.a + c.b, b: c.b, ciclo: c.ciclo, texto: `${c.a + c.b} − ${c.b}`, clave: `${c.a + c.b}-${c.b}`, esperado: String(c.a) };
+                }
+                if (tipo === 'vf') {
+                    const [a, b, c] = sesion.fijos[sesion.hechos];
+                    return { tipo, a, b, c, texto: `${a} × ${b} = ${c}`, clave: `${a}x${b}=${c}`, esperado: c === a * b ? 'V' : 'F' };
+                }
+                const [a, b] = sesion.fijos[sesion.hechos];
+                return { tipo, a, b, texto: `${a} × ${b}`, clave: `${a}x${b}`, esperado: String(a * b) };
+            }
+
+            function siguienteItem() {
+                if (sesion.hechos >= sesion.total) {
+                    finBloque();
+                    return;
+                }
+                item = crearItem();
+                isEvaluating = false;
+                currentInput = '';
+                teclas = [];
+                oralRespuesta = null;
+
+                const numerico = ['teclear', 'multi', 'suma', 'resta'].includes(item.tipo);
+                opFactorsEl.textContent = item.texto;
+                opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
+                opIgualEl.hidden = item.tipo === 'vf' || item.tipo === 'teclear';
+                opAnswerEl.hidden = !numerico;
+                opCardEl.classList.toggle('op-largo', item.tipo === 'vf');
+                opFeedbackEl.innerHTML = '';
+                opCardEl.classList.remove('success-anim');
+                gentleBox.style.display = 'none';
+                keypad.hidden = !numerico;
+                keypad.style.display = numerico ? 'grid' : 'none';
+                vfBotones.hidden = item.tipo !== 'vf';
+                oralPanel.hidden = item.tipo !== 'oral';
+                if (item.tipo === 'oral') {
+                    document.getElementById('oral-paso-1').hidden = false;
+                    document.getElementById('oral-paso-2').hidden = true;
+                    document.getElementById('oral-dijo').value = '';
+                }
+                updateInputDisplay();
+                document.getElementById('progreso-barra').style.width = `${(sesion.hechos / sesion.total) * 100}%`;
+
+                tInicio = performance.now();
+            }
+
+            function updateInputDisplay() {
+                if (currentInput === '') {
+                    opAnswerEl.textContent = '?';
+                    opAnswerEl.classList.add('empty');
+                    btnSubmit.disabled = true;
+                } else {
+                    opAnswerEl.textContent = currentInput;
+                    opAnswerEl.classList.remove('empty');
+                    btnSubmit.disabled = false;
+                }
+            }
+
+            function handleKeyInput(key) {
+                if (isEvaluating || !item) return;
+                // Registro de cada tecla: permite ver dudas (escribe, borra, cambia)
+                teclas.push([Math.round(performance.now() - tInicio), key]);
+
+                if (key >= '0' && key <= '9') {
+                    // Todas las respuestas tienen como máximo 2 cifras
+                    if (currentInput.length < 2) {
+                        currentInput += key;
+                        updateInputDisplay();
+                    }
+                } else if (key === 'back') {
+                    if (currentInput.length > 0) {
+                        currentInput = currentInput.slice(0, -1);
+                        updateInputDisplay();
+                    }
+                } else if (key === 'enter') {
+                    if (currentInput !== '') {
+                        evaluarNumerico();
+                    }
+                }
+            }
+
+            function celebrar() {
+                playFeedbackSound(true);
+                opCardEl.classList.add('success-anim');
+                const compliments = ['Genial! 🌟', 'Molt bé! 👏', 'Això és! ✨', 'Fantàstic! 🚀', 'Súper! 🌸'];
+                opFeedbackEl.innerHTML = `<div class="celebrate-text">${compliments[Math.floor(Math.random() * compliments.length)]}</div>`;
+                setTimeout(siguienteItem, 800);
+            }
+
+            function mostrarCorreccion(titulo, mates, texto) {
+                playFeedbackSound(false);
+                keypad.style.display = 'none';
+                vfBotones.hidden = true;
+                oralPanel.hidden = true;
+                correctionTitle.textContent = titulo;
+                correctionMathText.textContent = mates;
+                correctionUserResponse.textContent = texto;
+                gentleBox.style.display = 'block';
+            }
+
+            function evaluarNumerico() {
+                if (isEvaluating || currentInput === '') return;
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                const ok = currentInput === item.esperado;
+                registrar(item, currentInput, ok, ms, {});
+
+                if (ok) {
+                    celebrar();
+                } else {
+                    const mates = item.tipo === 'teclear' ? item.texto : `${item.texto} = ${item.esperado}`;
+                    mostrarCorreccion('🌸 Gairebé! Fixa-t\'hi bé:', mates, `Tu has posat: ${currentInput}`);
+                }
+            }
+
+            function responderVF(dice) {
+                if (isEvaluating || !item || item.tipo !== 'vf') return;
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                const ok = dice === item.esperado;
+                registrar(item, dice, ok, ms, {});
+
+                const correcta = `${item.a} × ${item.b} = ${item.a * item.b}`;
+                if (ok && item.esperado === 'V') {
+                    celebrar();
+                } else if (ok) {
+                    // Acierta que está mal: se le enseña igualmente la buena para no dejar el error a la vista
+                    playFeedbackSound(true);
+                    mostrarCorreccion('Molt ben vist! 👀', correcta, 'Sí, aquesta estava malament. La bona és aquesta.');
+                } else if (item.esperado === 'V') {
+                    mostrarCorreccion('🌸 Fixa-t\'hi bé:', correcta, 'Aquesta sí que estava bé.');
+                } else {
+                    mostrarCorreccion('🌸 Fixa-t\'hi bé:', correcta, 'Aquesta estava malament. La bona és aquesta.');
+                }
+            }
+
+            function responderOral(bien) {
+                if (!item || item.tipo !== 'oral' || oralRespuesta) return;
+                oralRespuesta = { ok: bien, ms: Math.round(performance.now() - tInicio) };
+                document.getElementById('oral-paso-1').hidden = true;
+                document.getElementById('oral-paso-2').hidden = false;
+                document.getElementById('oral-dijo-box').hidden = bien;
+            }
+
+            function responderEstrategia(estrategia) {
+                if (!oralRespuesta || isEvaluating) return;
+                isEvaluating = true;
+                const dijo = document.getElementById('oral-dijo').value.trim();
+                const respuesta = oralRespuesta.ok ? item.esperado : (dijo || null);
+                registrar(item, respuesta, oralRespuesta.ok, oralRespuesta.ms, { estrategia });
+                if (oralRespuesta.ok) {
+                    celebrar();
+                } else {
+                    mostrarCorreccion('🌸 Fixa-t\'hi bé:', `${item.texto} = ${item.esperado}`, dijo ? `Has dit: ${dijo}` : '');
+                }
+            }
+
+            // ==========================================
+            // REGISTRO DE RESPUESTAS
+            // ==========================================
+            function registrar(it, respuesta, ok, ms, extra) {
+                sesion.hechos++;
+                const primeraTecla = teclas.length > 0 ? teclas[0][0] : null;
+                const detalle = { mision: sesion.mision.id, teclas, ...extra };
+
+                if (it.tipo === 'multi') {
+                    // Las multiplicaciones tecleadas siguen en su tabla de siempre
+                    const segundos = parseFloat((ms / 1000).toFixed(2));
+                    saveRecord({
+                        operacion: `${it.a} x ${it.b}`,
+                        factor_a: it.a,
+                        factor_b: it.b,
+                        esperado: parseInt(it.esperado, 10),
+                        respuesta_dada: parseInt(respuesta, 10),
+                        correcta: ok,
+                        tiempo_segundos: segundos,
+                        distraccion: segundos > DISTRACTION_THRESHOLD_SECONDS,
+                        ciclo: it.ciclo,
+                        creado_el: new Date().toISOString(),
+                        detalle: { ...detalle, primera_tecla_ms: primeraTecla }
+                    });
+                } else {
+                    if (it.ciclo) detalle.ciclo = it.ciclo;
+                    guardarEvento({
+                        modulo: it.tipo,
+                        item: it.clave,
+                        esperado: it.esperado,
+                        respuesta: respuesta === null ? null : String(respuesta),
+                        correcta: ok,
+                        tiempo_ms: ms,
+                        primera_tecla_ms: primeraTecla,
+                        detalle
+                    });
+                }
+            }
+
+            // ==========================================
+            // ALMACENAMIENTO (COLA LOCAL + SUPABASE)
+            // Todo se guarda primero en el iPad y se sube cuando hay conexión.
+            // ==========================================
+            function cabeceras() {
+                return {
+                    'apikey': SUPABASE_CONFIG.key,
+                    'Authorization': `Bearer ${SUPABASE_CONFIG.key}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=minimal'
+                };
+            }
+
+            function leerCola() {
+                try {
+                    return JSON.parse(localStorage.getItem('dojo_pendientes') || '[]');
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            function escribirCola(cola) {
+                localStorage.setItem('dojo_pendientes', JSON.stringify(cola.slice(-5000)));
+            }
+
+            function encolar(tabla, datos) {
+                const cola = leerCola();
+                cola.push({ tabla, datos });
+                escribirCola(cola);
+                vaciarCola();
+            }
+
+            async function enviar(tabla, datos) {
+                return fetch(`${SUPABASE_CONFIG.url}/rest/v1/${tabla}`, {
+                    method: 'POST',
+                    headers: cabeceras(),
+                    body: JSON.stringify(datos)
+                });
+            }
+
+            let vaciando = false;
+            async function vaciarCola() {
+                if (vaciando) return;
+                vaciando = true;
+                const cola = leerCola();
+                const quedan = [];
+                const tablasCaidas = new Set(); // si una tabla falla, no insistir con el resto de su cola
+                for (const p of cola) {
+                    if (tablasCaidas.has(p.tabla)) {
+                        quedan.push(p);
+                        continue;
+                    }
+                    try {
+                        let res = await enviar(p.tabla, p.datos);
+                        if (!res.ok && res.status === 400 && p.tabla === 'registros' && p.datos.detalle !== undefined) {
+                            // La columna "detalle" aún no existe en registros: guardar sin ella
+                            const { detalle, ...resto } = p.datos;
+                            res = await enviar(p.tabla, resto);
+                        }
+                        if (!res.ok) {
+                            quedan.push(p);
+                            tablasCaidas.add(p.tabla);
+                        }
+                    } catch (e) {
+                        quedan.push(p);
+                        tablasCaidas.add(p.tabla);
+                    }
+                }
+                const nuevos = leerCola().slice(cola.length);
+                escribirCola([...quedan, ...nuevos]);
+                vaciando = false;
+                updateCloudStatus(quedan.length === 0);
+                // Lo que llegó mientras se subía se envía ahora (solo si no ha fallado nada)
+                if (nuevos.length > 0 && tablasCaidas.size === 0) vaciarCola();
+            }
+
+            function saveRecord(record) {
+                let localRecords = getLocalRecords();
+                localRecords.unshift(record);
+                if (localRecords.length > 5000) localRecords = localRecords.slice(0, 5000);
+                localStorage.setItem('dojo_records', JSON.stringify(localRecords));
+                allRecords = localRecords;
+                encolar('registros', record);
+            }
+
+            function guardarEvento(evento) {
+                encolar('eventos', { creado_el: new Date().toISOString(), ...evento });
+            }
+
+            function getLocalRecords() {
+                try {
+                    return JSON.parse(localStorage.getItem('dojo_records') || '[]');
+                } catch (e) {
+                    return [];
+                }
+            }
+
+            // Los datos solo se pueden leer con la clau de papà (función leer_datos en Supabase)
+            let eventosPapa = null;
+
+            function leerClave() {
+                try { return localStorage.getItem('dojo_clave_papa') || ''; } catch (e) { return ''; }
+            }
+
+            async function pedirDatos(clave) {
+                const res = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/rpc/leer_datos`, {
+                    method: 'POST',
+                    headers: cabeceras(),
+                    body: JSON.stringify({ clave })
+                });
+                if (res.status === 401 || res.status === 403 || res.status === 400) return { error: 'clave' };
+                if (!res.ok) return { error: 'red' };
+                return res.json();
+            }
+
+            async function syncCloudRecords() {
+                updateCloudStatus(null);
+                const clave = leerClave();
+                document.getElementById('papa-acceso').hidden = !!clave;
+                if (clave) {
+                    try {
+                        const datos = await pedirDatos(clave);
+                        if (datos && Array.isArray(datos.registros)) {
+                            allRecords = datos.registros;
+                            eventosPapa = datos.eventos;
+                            localStorage.setItem('dojo_records', JSON.stringify(datos.registros));
+                            updateCloudStatus(true);
+                            return;
+                        }
+                        if (datos && datos.error === 'clave') {
+                            localStorage.removeItem('dojo_clave_papa');
+                            document.getElementById('papa-acceso').hidden = false;
+                            document.getElementById('clave-msg').textContent = 'La clau ha canviat o no és correcta.';
+                        }
+                    } catch (e) {}
+                }
+                // Sin clave o sin red: solo lo que hay guardado en este iPad
+                eventosPapa = null;
+                allRecords = getLocalRecords();
+                updateCloudStatus(false);
+            }
+
+            function updateCloudStatus(isOnline) {
+                const pill = document.getElementById('cloud-status-pill');
+                const text = document.getElementById('cloud-status-text');
+                if (!pill || !text) return;
+
+                if (isOnline === true) {
+                    pill.className = 'status-pill';
+                    text.textContent = 'Supabase Conectado';
+                } else if (isOnline === false) {
+                    pill.className = 'status-pill offline';
+                    text.textContent = leerClave() ? 'Modo Local (Offline)' : 'Solo datos de este iPad';
+                } else {
+                    pill.className = 'status-pill offline';
+                    text.textContent = 'Sincronizando...';
+                }
+            }
+
+            // ==========================================
+            // ZONA PAPÁ • PLAN Y RESULTADOS DE LAS PRUEBAS
+            // ==========================================
+            function mediana(valores) {
+                if (valores.length === 0) return null;
+                const v = [...valores].sort((x, y) => x - y);
+                return v[Math.floor(v.length / 2)];
+            }
+
+            async function renderPlan() {
+                const p = leerPlan();
+                const lista = document.getElementById('plan-lista');
+                const sel = document.getElementById('sel-mision');
+                lista.innerHTML = '';
+                sel.innerHTML = '';
+                PLAN.forEach((m, i) => {
+                    const hecha = p.hechas[i];
+                    const div = document.createElement('div');
+                    div.className = `plan-fila ${hecha ? 'hecha' : (i === p.hechas.length ? 'actual' : '')}`;
+                    div.innerHTML = `
+                        <div><strong>${i + 1}. ${m.titulo}</strong>
+                        <div style="font-size:0.85rem; color:#64748b;">${textoMision(m).join(' · ')}</div></div>
+                        <div style="font-size:0.85rem; white-space:nowrap;">${hecha ? '✅ ' + hecha.fecha : (i === p.hechas.length ? '👉 Toca ahora' : '')}</div>`;
+                    lista.appendChild(div);
+                    sel.innerHTML += `<option value="${i}">${i + 1}. ${m.titulo}</option>`;
+                });
+                if (p.hechas.length >= PLAN.length) {
+                    lista.innerHTML += `<p style="font-size:0.9rem; color:#64748b;">Plan de evaluación completado (${p.hechas.length} misiones). Mientras preparamos la siguiente fase: 20 multiplicaciones al día.</p>`;
+                }
+                sel.value = String(Math.min(p.hechas.length, PLAN.length - 1));
+
+                const pendientes = leerCola().length;
+                document.getElementById('plan-pendientes').textContent = pendientes > 0
+                    ? `⏳ ${pendientes} respuestas guardadas en el iPad pendientes de subir.`
+                    : '';
+
+                const cont = document.getElementById('plan-resultados');
+                if (!eventosPapa) {
+                    cont.innerHTML = '<p style="color:#64748b;">Pon la clau de papà para ver los resultados.</p>';
+                    return;
+                }
+                try {
+                    const filas = eventosPapa.filter(f => f.modulo !== 'mision');
+                    if (filas.length === 0) {
+                        cont.innerHTML = '<p style="color:#64748b;">Todavía no hay resultados de pruebas.</p>';
+                        return;
+                    }
+                    const grupos = {};
+                    filas.forEach(f => (grupos[f.modulo] = grupos[f.modulo] || []).push(f));
+                    cont.innerHTML = Object.entries(grupos).map(([mod, fs]) => {
+                        const ok = fs.filter(f => f.correcta).length;
+                        const med = mediana(fs.filter(f => f.correcta && f.tiempo_ms != null).map(f => f.tiempo_ms));
+                        let extra = '';
+                        if (mod === 'oral') {
+                            const est = {};
+                            fs.forEach(f => { const e = f.detalle && f.detalle.estrategia; if (e) est[e] = (est[e] || 0) + 1; });
+                            extra = ' · ' + Object.entries(est).map(([e, n]) => `${e}: ${n}`).join(', ');
+                        }
+                        const nombre = TIPOS[mod] ? TIPOS[mod].nombre : mod;
+                        return `<div class="plan-fila"><strong>${nombre}</strong><span>${ok}/${fs.length} (${Math.round(ok / fs.length * 100)}%) · mediana aciertos ${med != null ? (med / 1000).toFixed(1) + 's' : '-'}${extra}</span></div>`;
+                    }).join('');
+                } catch (e) {
+                    cont.innerHTML = '<p style="color:#92400e;">No se han podido mostrar los resultados.</p>';
+                }
+            }
+
+            // ==========================================
+            // ZONA PAPÁ • PANEL DE MULTIPLICACIONES
+            // ==========================================
+            function renderPapaDashboard() {
+                const excludeDistractions = document.getElementById('chk-exclude-distractions').checked;
+
+                // 1. Resumen superior
+                const total = allRecords.length;
+                document.getElementById('stat-total-records').textContent = total;
+                document.getElementById('stat-deck-cycle').textContent = getDeckState('multi').ciclo || 1;
+
+                if (total === 0) {
+                    document.getElementById('stat-accuracy').textContent = '0%';
+                    document.getElementById('stat-avg-time').textContent = '0s';
+                } else {
+                    const correctCount = allRecords.filter(r => r.correcta).length;
+                    const accuracy = ((correctCount / total) * 100).toFixed(0);
+                    document.getElementById('stat-accuracy').textContent = `${accuracy}%`;
+
+                    const filteredRecords = excludeDistractions
+                        ? allRecords.filter(r => r.tiempo_segundos <= DISTRACTION_THRESHOLD_SECONDS)
+                        : allRecords;
+
+                    if (filteredRecords.length > 0) {
+                        const sumTime = filteredRecords.reduce((acc, r) => acc + (parseFloat(r.tiempo_segundos) || 0), 0);
+                        const avgTime = (sumTime / filteredRecords.length).toFixed(1);
+                        document.getElementById('stat-avg-time').textContent = `${avgTime}s`;
+                    } else {
+                        document.getElementById('stat-avg-time').textContent = '-';
+                    }
+                }
+
+                renderHeatmap();
+                renderCriticalPoints();
+                renderLogTable();
+            }
+
+            function renderHeatmap() {
+                const table = document.getElementById('heatmap-table');
+                table.innerHTML = '';
+
+                // Cabecera superior (Factores B: 2 a 9)
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                headerRow.innerHTML = '<th>×</th>';
+                for (let b = 2; b <= 9; b++) {
+                    headerRow.innerHTML += `<th>${b}</th>`;
+                }
+                thead.appendChild(headerRow);
+                table.appendChild(thead);
+
+                // Cuerpo (Factores A: 2 a 9)
+                const tbody = document.createElement('tbody');
+
+                for (let a = 2; a <= 9; a++) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<th>${a}</th>`;
+
+                    for (let b = 2; b <= 9; b++) {
+                        const td = document.createElement('td');
+                        const cellStats = getOperationStats(a, b);
+
+                        td.className = `heatmap-cell ${cellStats.colorClass}`;
+                        td.innerHTML = `
+                            <div>${cellStats.displayAccuracy}</div>
+                            <span class="cell-subtext">${cellStats.displaySubtext}</span>
+                        `;
+                        td.title = `${a} × ${b} = ${a*b}\nIntentos: ${cellStats.total}\nFallos: ${cellStats.errors}\nTiempo medio: ${cellStats.avgTime}s`;
+                        td.addEventListener('click', () => openCellModal(a, b));
+
+                        tr.appendChild(td);
+                    }
+                    tbody.appendChild(tr);
+                }
+                table.appendChild(tbody);
+            }
+
+            function getOperationStats(a, b) {
+                const excludeDistractions = document.getElementById('chk-exclude-distractions').checked;
+                const matches = allRecords.filter(r => r.factor_a === a && r.factor_b === b);
+                const total = matches.length;
+
+                if (total === 0) {
+                    return {
+                        total: 0,
+                        errors: 0,
+                        colorClass: 'cell-nodata',
+                        displayAccuracy: '-',
+                        displaySubtext: '0 reg',
+                        avgTime: '-'
+                    };
+                }
+
+                const errors = matches.filter(r => !r.correcta).length;
+                const accuracy = Math.round(((total - errors) / total) * 100);
+
+                const timePool = excludeDistractions 
+                    ? matches.filter(r => r.tiempo_segundos <= DISTRACTION_THRESHOLD_SECONDS)
+                    : matches;
+                
+                let avgTime = '-';
+                if (timePool.length > 0) {
+                    avgTime = (timePool.reduce((acc, r) => acc + (parseFloat(r.tiempo_segundos) || 0), 0) / timePool.length).toFixed(1);
+                }
+
+                // Clasificación visual de colores:
+                // Rojo: Precisión < 60% o 2 o más fallos
+                // Amarillo: Precisión entre 60% y 85%, o tiempo medio > 6s
+                // Verde: Precisión >= 85% y ágil
+                let colorClass = 'cell-green';
+                if (accuracy < 60 || errors >= 2) {
+                    colorClass = 'cell-red';
+                } else if (accuracy < 85 || (avgTime !== '-' && parseFloat(avgTime) > 6.0)) {
+                    colorClass = 'cell-yellow';
+                }
+
+                return {
+                    total,
+                    errors,
+                    accuracy,
+                    colorClass,
+                    displayAccuracy: `${accuracy}%`,
+                    displaySubtext: `${total - errors}/${total}`,
+                    avgTime
+                };
+            }
+
+            function renderCriticalPoints() {
+                const criticalContainer = document.getElementById('critical-list');
+                const hesitantContainer = document.getElementById('hesitant-list');
+                criticalContainer.innerHTML = '';
+                hesitantContainer.innerHTML = '';
+
+                // Agrupar por operación
+                const opMap = {};
+                for (let a = 2; a <= 9; a++) {
+                    for (let b = 2; b <= 9; b++) {
+                        const key = `${a} x ${b}`;
+                        opMap[key] = { a, b, records: [] };
+                    }
+                }
+
+                allRecords.forEach(r => {
+                    const key = `${r.factor_a} x ${r.factor_b}`;
+                    if (opMap[key]) opMap[key].records.push(r);
+                });
+
+                const opsArray = Object.values(opMap).map(item => {
+                    const total = item.records.length;
+                    const errors = item.records.filter(r => !r.correcta);
+                    const errorCount = errors.length;
+                    const errorRate = total > 0 ? (errorCount / total) : 0;
+                    
+                    // Respuestas erróneas que suele poner
+                    const wrongAnswers = errors.map(e => e.respuesta_dada).filter(x => x !== null && x !== undefined);
+
+                    // Tiempos
+                    const validTimes = item.records.filter(r => r.correcta && r.tiempo_segundos <= DISTRACTION_THRESHOLD_SECONDS);
+                    const avgTime = validTimes.length > 0 
+                        ? (validTimes.reduce((acc, r) => acc + r.tiempo_segundos, 0) / validTimes.length).toFixed(1)
+                        : null;
+
+                    return {
+                        a: item.a,
+                        b: item.b,
+                        opText: `${item.a} × ${item.b}`,
+                        expected: item.a * item.b,
+                        total,
+                        errorCount,
+                        errorRate,
+                        wrongAnswers,
+                        avgTime
+                    };
+                });
+
+                // 1. Filtrar las Atascadas (con al menos 1 fallo, ordenadas por mayor número de fallos y tasa de error)
+                const stuck = opsArray
+                    .filter(o => o.errorCount > 0)
+                    .sort((x, y) => (y.errorCount - x.errorCount) || (y.errorRate - x.errorRate));
+
+                if (stuck.length === 0) {
+                    criticalContainer.innerHTML = '<p style="color:#15803d; font-size:1rem;">🎉 ¡Excelente! De momento no hay operaciones con fallos registrados.</p>';
+                } else {
+                    stuck.slice(0, 10).forEach(item => {
+                        const div = document.createElement('div');
+                        div.style.cssText = 'background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;';
+                        
+                        const wrongText = item.wrongAnswers.length > 0 
+                            ? `<div style="font-size:0.85rem; color:#991b1b;">Suele poner: <strong>${[...new Set(item.wrongAnswers)].join(', ')}</strong></div>`
+                            : '';
+
+                        div.innerHTML = `
+                            <div>
+                                <strong style="font-size:1.25rem; color:#991b1b;">${item.opText} = ${item.expected}</strong>
+                                ${wrongText}
+                            </div>
+                            <div style="text-align:right;">
+                                <span style="background:#fee2e2; color:#b91c1c; padding:3px 8px; border-radius:8px; font-weight:700; font-size:0.9rem;">
+                                    ${item.errorCount} ${item.errorCount === 1 ? 'fallo' : 'fallos'} (${Math.round(item.errorRate * 100)}%)
+                                </span>
+                                <div style="font-size:0.8rem; color:#64748b; margin-top:2px;">de ${item.total} intentos</div>
+                            </div>
+                        `;
+                        criticalContainer.appendChild(div);
+                    });
+                }
+
+                // 2. Filtrar las Dudosas (acertadas pero lentas > 5s)
+                const hesitant = opsArray
+                    .filter(o => o.total > 0 && o.errorCount === 0 && o.avgTime && parseFloat(o.avgTime) > 5.0)
+                    .sort((x, y) => parseFloat(y.avgTime) - parseFloat(x.avgTime));
+
+                if (hesitant.length === 0) {
+                    hesitantContainer.innerHTML = '<p style="color:#64748b; font-size:0.95rem;">No hay multiplicaciones lentas sin fallos.</p>';
+                } else {
+                    hesitant.slice(0, 8).forEach(item => {
+                        const div = document.createElement('div');
+                        div.style.cssText = 'background:#fefce8; border:1px solid #fef08a; border-radius:12px; padding:8px 14px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;';
+                        div.innerHTML = `
+                            <div>
+                                <strong style="font-size:1.15rem; color:#854d0e;">${item.opText} = ${item.expected}</strong>
+                                <span style="font-size:0.85rem; color:#713f12; margin-left:6px;">(Acierta, pero deduciendo)</span>
+                            </div>
+                            <div>
+                                <span style="background:#fef9c3; color:#a16207; padding:3px 8px; border-radius:8px; font-weight:700; font-size:0.9rem;">
+                                    ~${item.avgTime}s
+                                </span>
+                            </div>
+                        `;
+                        hesitantContainer.appendChild(div);
+                    });
+                }
+            }
+
+            function renderLogTable() {
+                const tbody = document.getElementById('log-table-body');
+                tbody.innerHTML = '';
+
+                if (allRecords.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#94a3b8; padding:20px;">Aún no hay registros de respuestas.</td></tr>';
+                    return;
+                }
+
+                allRecords.slice(0, 150).forEach(r => {
+                    const tr = document.createElement('tr');
+                    const d = new Date(r.creado_el);
+                    const formattedDate = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+
+                    tr.innerHTML = `
+                        <td style="font-size:0.85rem; color:#64748b;">${formattedDate}</td>
+                        <td style="font-weight:700;">${r.factor_a} × ${r.factor_b}</td>
+                        <td style="font-weight:700; color:${r.correcta ? '#15803d' : '#b91c1c'};">${r.respuesta_dada !== null ? r.respuesta_dada : '-'}</td>
+                        <td>${r.correcta ? '✅' : '❌'}</td>
+                        <td style="font-size:0.85rem;">${r.tiempo_segundos}s ${r.distraccion ? '⏳' : ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            function openCellModal(a, b) {
+                const modal = document.getElementById('cell-modal');
+                const title = document.getElementById('modal-op-title');
+                const summary = document.getElementById('modal-op-summary');
+                const historyBody = document.getElementById('modal-op-history');
+
+                title.textContent = `${a} × ${b} = ${a * b}`;
+                historyBody.innerHTML = '';
+
+                const matches = allRecords.filter(r => r.factor_a === a && r.factor_b === b);
+                const total = matches.length;
+
+                if (total === 0) {
+                    summary.innerHTML = '<p>Aún no se ha practicado esta multiplicación en ninguna vuelta.</p>';
+                } else {
+                    const errors = matches.filter(r => !r.correcta).length;
+                    const accuracy = Math.round(((total - errors) / total) * 100);
+                    summary.innerHTML = `
+                        <p style="margin:4px 0;"><strong>Intentos totales:</strong> ${total} | <strong>Aciertos:</strong> ${total - errors} | <strong>Fallos:</strong> ${errors}</p>
+                        <p style="margin:4px 0;"><strong>Precisión:</strong> ${accuracy}%</p>
+                    `;
+
+                    matches.forEach(r => {
+                        const tr = document.createElement('tr');
+                        const d = new Date(r.creado_el);
+                        const formattedDate = `${d.toLocaleDateString('es-ES')} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+
+                        tr.innerHTML = `
+                            <td style="font-size:0.85rem; color:#64748b;">${formattedDate}</td>
+                            <td style="font-weight:700;">${r.respuesta_dada}</td>
+                            <td>${r.correcta ? '✅ Acierto' : '❌ Fallo'}</td>
+                            <td style="font-size:0.85rem;">${r.tiempo_segundos}s ${r.distraccion ? '(distracción)' : ''}</td>
+                        `;
+                        historyBody.appendChild(tr);
+                    });
+                }
+
+                modal.style.display = 'flex';
+            }
+
+            // ==========================================
+            // EXPORTACIÓN A EXCEL / CSV
+            // ==========================================
+            function exportToCSV() {
+                if (allRecords.length === 0) {
+                    alert('Aún no hay datos para descargar.');
+                    return;
+                }
+
+                // Encabezados en español
+                const headers = ["Fecha y Hora", "Vuelta/Ciclo", "Operacion", "Factor A", "Factor B", "Resultado Esperado", "Respuesta", "Correcta", "Tiempo Segundos", "Posible Distraccion (>20s)"];
+                
+                const rows = allRecords.map(r => [
+                    `"${r.creado_el || ''}"`,
+                    r.ciclo || 1,
+                    `"${r.factor_a} x ${r.factor_b}"`,
+                    r.factor_a,
+                    r.factor_b,
+                    r.esperado,
+                    r.respuesta_dada !== null ? r.respuesta_dada : '',
+                    r.correcta ? "SI" : "NO",
+                    r.tiempo_segundos,
+                    r.distraccion ? "SI" : "NO"
+                ]);
+
+                // Usamos separador punto y coma (;) compatible 100% con Excel en español
+                const csvContent = "\uFEFF" + [headers.join(";"), ...rows.map(e => e.join(";"))].join("\r\n");
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `dojo_tablas_${new Date().toISOString().slice(0, 10)}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            // ==========================================
+            // EVENTOS Y CONTROLES
+            // ==========================================
+
+            // Inicio: misión del día
+            document.getElementById('btn-start-game').addEventListener('click', empezarMision);
+            document.getElementById('btn-leer-mision').addEventListener('click', () => {
+                const m = misionActual();
+                hablar(`La missió d'avui: ${textoMision(m).join('. ')}.`);
+            });
+
+            // Presentación de cada bloque
+            document.getElementById('btn-intro-vamos').addEventListener('click', empezarBloque);
+            document.getElementById('btn-leer-intro').addEventListener('click', () => {
+                hablar(TIPOS[bloqueActual().tipo].instr);
+            });
+            document.getElementById('btn-intro-parar').addEventListener('click', pararPorHoy);
+
+            // Parar por hoy
+            document.getElementById('btn-exit-game').addEventListener('click', pararPorHoy);
+
+            // Botón continuar tras corrección
+            document.getElementById('btn-correction-continue').addEventListener('click', siguienteItem);
+
+            // Volver al inicio desde resumen
+            document.getElementById('btn-summary-home').addEventListener('click', () => {
+                renderHome();
+                showScreen('home');
+            });
+
+            // Teclado en pantalla
+            keypad.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                const key = btn.dataset.key;
+                if (key) handleKeyInput(key);
+            });
+
+            // ¿Està bé o no?
+            vfBotones.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (btn && btn.dataset.vf) responderVF(btn.dataset.vf);
+            });
+
+            // Panel de papá (oral)
+            oralPanel.addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                if (btn.dataset.oral) responderOral(btn.dataset.oral === 'bien');
+                if (btn.dataset.estrategia) responderEstrategia(btn.dataset.estrategia);
+            });
+
+            // Teclado físico
+            window.addEventListener('keydown', (e) => {
+                if (screens.game.style.display === 'none' || keypad.hidden) return;
+                if (e.key >= '0' && e.key <= '9') {
+                    handleKeyInput(e.key);
+                } else if (e.key === 'Backspace') {
+                    handleKeyInput('back');
+                } else if (e.key === 'Enter') {
+                    handleKeyInput('enter');
+                }
+            });
+
+            // Acceso Zona Papá
+            document.getElementById('btn-open-papa').addEventListener('click', async () => {
+                showScreen('papa');
+                document.getElementById('inp-nombre').value = leerNombre();
+                await syncCloudRecords();
+                renderPlan();
+                renderPapaDashboard();
+            });
+
+            // Clau de papà: se comprueba contra Supabase antes de guardarla en este iPad
+            document.getElementById('btn-guardar-clave').addEventListener('click', async () => {
+                const clave = document.getElementById('inp-clave').value.trim();
+                const msg = document.getElementById('clave-msg');
+                if (!clave) return;
+                msg.textContent = 'Comprovant...';
+                try {
+                    const datos = await pedirDatos(clave);
+                    if (datos && Array.isArray(datos.registros)) {
+                        localStorage.setItem('dojo_clave_papa', clave);
+                        document.getElementById('inp-clave').value = '';
+                        msg.textContent = '';
+                        await syncCloudRecords();
+                        renderPlan();
+                        renderPapaDashboard();
+                    } else {
+                        msg.textContent = datos && datos.error === 'clave' ? 'Clau incorrecta.' : 'Sense connexió.';
+                    }
+                } catch (e) {
+                    msg.textContent = 'Sense connexió.';
+                }
+            });
+
+            // Nombre que se muestra (solo en este iPad)
+            document.getElementById('btn-guardar-nombre').addEventListener('click', () => {
+                const nombre = document.getElementById('inp-nombre').value.trim();
+                try {
+                    if (nombre) localStorage.setItem('dojo_nombre', nombre);
+                    else localStorage.removeItem('dojo_nombre');
+                } catch (e) {}
+                renderHome();
+            });
+
+            // Salir de Zona Papá
+            document.getElementById('btn-close-papa').addEventListener('click', () => {
+                renderHome();
+                showScreen('home');
+            });
+
+            // Cambiar la misión actual (saltar o repetir)
+            document.getElementById('btn-set-mision').addEventListener('click', () => {
+                const destino = parseInt(document.getElementById('sel-mision').value, 10);
+                const p = leerPlan();
+                if (destino < p.hechas.length) {
+                    p.hechas = p.hechas.slice(0, destino);
+                } else {
+                    while (p.hechas.length < destino) {
+                        p.hechas.push({ id: PLAN[p.hechas.length].id, fecha: 'saltada' });
+                    }
+                }
+                delete p.enCurso;
+                p.permitirOtra = hoy();
+                guardarPlan(p);
+                renderPlan();
+            });
+
+            // Permitir otra misión el mismo día
+            document.getElementById('btn-permitir-otra').addEventListener('click', () => {
+                const p = leerPlan();
+                p.permitirOtra = hoy();
+                guardarPlan(p);
+                renderPlan();
+            });
+
+            // Pestañas Zona Papá
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                    btn.classList.add('active');
+                    const target = document.getElementById(`tab-${btn.dataset.tab}`);
+                    if (target) target.style.display = 'block';
+                });
+            });
+
+            // Checkbox filtro distracción
+            document.getElementById('chk-exclude-distractions').addEventListener('change', () => {
+                renderPapaDashboard();
+            });
+
+            // Descargar CSV
+            document.getElementById('btn-export-csv').addEventListener('click', exportToCSV);
+
+            // Cerrar modal de celda
+            document.getElementById('btn-modal-close').addEventListener('click', () => {
+                document.getElementById('cell-modal').style.display = 'none';
+            });
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('cell-modal');
+                if (e.target === modal) modal.style.display = 'none';
+            });
+
+            // ==========================================
+            // INICIALIZACIÓN
+            // ==========================================
+            renderHome();
+            vaciarCola();       // Subir lo que quedara pendiente
+            recuperarPlan();
+            syncCloudRecords(); // Precargar registros en segundo plano
+        });
+    </script>
+</body>
+</html>
