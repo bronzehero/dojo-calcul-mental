@@ -64,13 +64,15 @@ async function teclear(page, numero) {
     await page.click('#btn-submit-answer');
 }
 
-/** Contesta todo el bloque numérico que haya en pantalla. fallarEn: índices a fallar a propósito. */
-async function contestarBloqueNumerico(page, fallarEn = []) {
+/** Contesta todo el bloque numérico que haya en pantalla. fallarEn: índices a fallar a propósito
+ *  (o 'todas'); vistos: si se pasa, se llena con las operaciones en el orden en que salen. */
+async function contestarBloqueNumerico(page, fallarEn = [], vistos = null) {
     let n = 0;
     while (await page.isVisible('#screen-game')) {
         const texto = await page.textContent('#op-factors');
+        if (vistos) vistos.push(texto);
         const ok = respuestaCorrecta(texto);
-        if (fallarEn.includes(n)) {
+        if (fallarEn === 'todas' || fallarEn.includes(n)) {
             await teclear(page, ok === 99 ? 98 : ok + 1);
             await expect(page.locator('#gentle-correction-box')).toBeVisible();
             await page.click('#btn-correction-continue');
@@ -81,6 +83,18 @@ async function contestarBloqueNumerico(page, fallarEn = []) {
         n++;
     }
     return n;
+}
+
+/** Deja el iPad justo antes del último bloque (multiplicaciones) de la misión indicada (1, 2 o 4),
+ *  con permiso para hacer otra misión hoy, y recarga. Sirve para acabar misiones rápido. */
+async function irAlUltimoBloque(page, idMision) {
+    await page.evaluate(id => {
+        const p = JSON.parse(localStorage.getItem('dojo_plan') || '{"hechas":[]}');
+        const hechas = [];
+        for (let i = 1; i < id; i++) hechas.push(p.hechas[i - 1] || { id: i, fecha: '2026-01-01' });
+        localStorage.setItem('dojo_plan', JSON.stringify({ hechas, enCurso: { id, bloque: 1 }, permitirOtra: new Date().toLocaleDateString('sv-SE') }));
+    }, idMision);
+    await page.reload();
 }
 
 async function leerCola(page) {
@@ -99,5 +113,5 @@ const test = base.extend({
 
 module.exports = {
     test, expect, URL_APP, CLAVE_BUENA, simularSupabase, empezarEnMision, respuestaCorrecta,
-    teclear, contestarBloqueNumerico, leerCola
+    teclear, contestarBloqueNumerico, leerCola, irAlUltimoBloque
 };

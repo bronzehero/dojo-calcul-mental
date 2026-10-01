@@ -196,6 +196,84 @@ test.describe('Sumas y restas', () => {
     }
 });
 
+test.describe('Orden de las operaciones', () => {
+    // Parecidas = mismo resultado o mismos números (3+8 y 8+3; 9−4 y 9−5; 3×8 y 8×3)
+    // En las restas, "los mismos números" son 11−6 y 11−5 (las dos de la misma suma 5+6)
+    const numeros = t => t.split(/[×+−]/).map(x => parseInt(x, 10));
+    const resultado = t => respuestaCorrecta(t);
+    const par = t => t.includes('−') ? [resultado(t), numeros(t)[1]] : numeros(t);
+    const parecidas = (t1, t2) => {
+        const [a1, b1] = par(t1), [a2, b2] = par(t2);
+        return (a1 === a2 && b1 === b2) || (a1 === b2 && b1 === a2) || resultado(t1) === resultado(t2);
+    };
+
+    for (const [mision, tipo, clave] of [[2, 'suma', 'dojo_deck_suma'], [4, 'resta', 'dojo_deck_resta']]) {
+        test(`${tipo}: nunca salen seguidas dos con el mismo resultado o los mismos números, tampoco al cambiar de mazo`, async ({ page }) => {
+            await simularSupabase(page);
+            await empezarEnMision(page, mision);
+            // Mazo casi acabado: a mitad de bloque empieza uno nuevo
+            await page.addInitScript(([k]) => {
+                if (sessionStorage.getItem('mazo-preparado')) return;
+                sessionStorage.setItem('mazo-preparado', '1');
+                localStorage.setItem(k, JSON.stringify({ ciclo: 1, totalCartas: 64, mazo: [{ a: 2, b: 9 }, { a: 5, b: 6 }, { a: 3, b: 4 }, { a: 6, b: 5 }, { a: 2, b: 2 }] }));
+            }, [clave]);
+            await page.goto(URL_APP);
+            await page.click('#btn-start-game');
+            await page.click('#btn-intro-vamos');
+            const vistos = [];
+            expect(await contestarBloqueNumerico(page, [], vistos)).toBe(32);
+            for (let i = 1; i < vistos.length; i++) {
+                expect(parecidas(vistos[i - 1], vistos[i]), `${vistos[i - 1]} y luego ${vistos[i]}`).toBe(false);
+            }
+            const ciclo = await page.evaluate(k => JSON.parse(localStorage.getItem(k)).ciclo, clave);
+            expect(ciclo).toBe(2);
+        });
+    }
+
+    test('si la siguiente se parece a la anterior, se salta a otra del mazo', async ({ page }) => {
+        await simularSupabase(page);
+        await empezarEnMision(page, 2);
+        await page.addInitScript(() => {
+            localStorage.setItem('dojo_deck_suma', JSON.stringify({ ciclo: 1, totalCartas: 64, anterior: { a: 5, b: 6 }, mazo: [{ a: 2, b: 9 }, { a: 6, b: 5 }, { a: 3, b: 4 }] }));
+        });
+        await page.goto(URL_APP);
+        await page.click('#btn-start-game');
+        await page.click('#btn-intro-vamos');
+        await expect(page.locator('#op-factors')).toHaveText('3 + 4');
+    });
+
+    test('multiplicaciones: tampoco salen seguidas 3×8 y 8×3, ni dos que den lo mismo', async ({ page }) => {
+        await simularSupabase(page);
+        await empezarEnMision(page, 8); // todas hechas: misión de siempre, 20 multiplicaciones
+        await page.addInitScript(() => {
+            if (sessionStorage.getItem('mazo-multi')) return;
+            sessionStorage.setItem('mazo-multi', '1');
+            localStorage.setItem('dojo_deck', JSON.stringify({ ciclo: 1, totalCartas: 64, mazo: [{ a: 3, b: 8 }, { a: 8, b: 3 }, { a: 4, b: 6 }, { a: 2, b: 2 }, { a: 5, b: 5 }, { a: 7, b: 7 }] }));
+        });
+        await page.goto(URL_APP);
+        await page.click('#btn-start-game');
+        await page.click('#btn-intro-vamos');
+        const vistos = [];
+        expect(await contestarBloqueNumerico(page, [], vistos)).toBe(20);
+        expect(vistos.slice(0, 2)).toEqual(['3 × 8', '2 × 2']);
+        for (let i = 1; i < vistos.length; i++) {
+            expect(parecidas(vistos[i - 1], vistos[i]), `${vistos[i - 1]} y luego ${vistos[i]}`).toBe(false);
+        }
+    });
+
+    test('en las misiones 6 y 7 las multiplicaciones van primero', async ({ page }) => {
+        await simularSupabase(page);
+        await empezarEnMision(page, 6);
+        await page.goto(URL_APP);
+        await expect(page.locator('#mision-titulo')).toHaveText('Taules i sumes');
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toHaveText('Multiplicacions');
+        await page.click('#btn-intro-vamos');
+        expect(await contestarBloqueNumerico(page)).toBe(10);
+        await expect(page.locator('#intro-titulo')).toHaveText('Sumes');
+    });
+});
+
 test.describe('Està bé o no?', () => {
     test('25 frases; tras una falsa siempre se enseña la correcta', async ({ page }) => {
         const { envios } = await simularSupabase(page);
@@ -238,6 +316,10 @@ test.describe('Oral con papá', () => {
             const bien = i % 5 !== 0;
             await page.click(`#oral-panel [data-oral="${bien ? 'bien' : 'mal'}"]`);
             if (!bien) await page.fill('#oral-dijo', '24');
+            // Cifras dichas al revés: se marca en las ítems 1 y 5; en la 3 se marca y se desmarca
+            await expect(page.locator('#oral-reves')).toHaveAttribute('aria-pressed', 'false');
+            if (i === 1 || i === 5) await page.click('#oral-reves');
+            if (i === 3) { await page.click('#oral-reves'); await page.click('#oral-reves'); }
             await page.click(`#oral-panel [data-estrategia="${bien ? 'memoria' : 'calculo'}"]`);
             if (!bien) await page.click('#btn-correction-continue');
             else await page.waitForTimeout(850);
@@ -250,6 +332,9 @@ test.describe('Oral con papá', () => {
         expect(malas.every(e => e.datos.respuesta === '24' && e.datos.detalle.estrategia === 'calculo')).toBe(true);
         expect(orales.filter(e => e.datos.correcta).every(e => e.datos.detalle.estrategia === 'memoria')).toBe(true);
         expect(new Set(orales.map(e => e.datos.item.split('x').sort().join('x'))).size).toBe(20);
+        const alReves = orales.filter(e => e.datos.detalle.reves === true);
+        expect(alReves).toHaveLength(2);
+        expect(orales.filter(e => 'reves' in e.datos.detalle)).toHaveLength(2);
     });
 });
 

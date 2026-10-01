@@ -8,7 +8,8 @@ Aplicación web (PWA) para practicar cálculo mental con calma: tablas de multip
 - **Una misión al día:** la pantalla de inicio solo muestra la misión que toca. Si se para a medias, la próxima vez sigue por donde lo dejó.
 - **Instrucciones claras:** cada bloque se presenta con un ejemplo visual y se lee en voz alta (voz del sistema, en catalán).
 - **Corrección amable:** si una respuesta está mal, se muestra la operación correcta, sin penalizaciones.
-- **Mazos equilibrados:** cada combinación del 2 al 9 sale una vez por vuelta.
+- **Mazos equilibrados:** cada combinación del 2 al 9 sale una vez por vuelta, y nunca salen seguidas dos operaciones con el mismo resultado o los mismos números (para no arrastrar la respuesta anterior).
+- **Photocards:** al acabar cada misión sale una carta para la colección. Es por haber acabado, nunca por los aciertos. Las fotos las añade un adulto en la Zona Papá y se guardan solo en el dispositivo (IndexedDB): no se suben a ningún sitio.
 
 ## Tipos de bloque
 
@@ -18,7 +19,7 @@ Aplicación web (PWA) para practicar cálculo mental con calma: tablas de multip
 | Multiplicacions | Tablas del 2 al 9 |
 | Sumes / Restes | Operaciones de una cifra |
 | Està bé o no? | Decir si una multiplicación ya resuelta es correcta |
-| Amb el papa | Respuesta oral; un adulto marca el resultado y la estrategia usada |
+| Amb el papa | Respuesta oral; un adulto marca el resultado, la estrategia usada y si ha dicho las cifras al revés |
 
 ## Técnica
 
