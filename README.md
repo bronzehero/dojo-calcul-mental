@@ -9,7 +9,9 @@ Aplicación web (PWA) para practicar cálculo mental con calma: tablas de multip
 - **Instrucciones claras:** cada bloque se presenta con un ejemplo visual y se lee en voz alta (voz del sistema, en catalán).
 - **Corrección amable:** si una respuesta está mal, se muestra la operación correcta, sin penalizaciones.
 - **Mazos equilibrados:** cada combinación del 2 al 9 sale una vez por vuelta, y nunca salen seguidas dos operaciones con el mismo resultado o los mismos números (para no arrastrar la respuesta anterior).
-- **Photocards:** al acabar cada misión sale una carta para la colección. Es por haber acabado, nunca por los aciertos. Las fotos las añade un adulto en la Zona Papá y se guardan solo en el dispositivo (IndexedDB): no se suben a ningún sitio.
+- **"No ho sé" en vez de adivinar:** en multiplicaciones, sumas, restas y "Està bé o no?" se puede pulsar «No ho sé». Se enseña la respuesta sin sonido de error y se guarda aparte de los fallos (una respuesta inventada y errónea se queda grabada en la memoria).
+- **Photocards:** al acabar cada misión sale una carta para la colección. Es por haber acabado, nunca por los aciertos. Hay 36 idols en pixel art dibujadas por la propia app (6 idols × 6 caras, todas contentas). Un adulto puede añadir fotos en la Zona Papá; se guardan solo en el dispositivo (IndexedDB) y no se suben a ningún sitio.
+- **Modo prueba para el adulto:** desde la Zona Papá («Probarla yo sin guardar nada») o abriendo la dirección con `?prova`, cualquier misión se ve exactamente igual, pero no se guarda ni se envía nada.
 
 ## Tipos de bloque
 
@@ -36,4 +38,4 @@ Batería de pruebas con Playwright en `tests/`. Se ejecutan con:
 tests/run.sh
 ```
 
-Nunca tocan la base de datos real (todas las llamadas a Supabase se interceptan). Un hook `pre-push` impide publicar si alguna falla.
+Nunca tocan la base de datos real (todas las llamadas a Supabase se interceptan). Antes de las pruebas se comprueba que el JavaScript de la app se puede cargar. Un hook `pre-push` impide publicar si alguna falla.

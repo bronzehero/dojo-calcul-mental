@@ -834,6 +834,13 @@
             justify-content: center;
         }
         .photocard-dins img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        img.pixel { image-rendering: pixelated; }
+
+        /* Modo prueba */
+        .banner-prueba { margin: -6px auto 12px auto; padding: 6px 12px; border-radius: 12px; background: #fef3c7; color: #92400e; font-weight: 800; font-size: 0.95rem; border: 2px dashed #f59e0b; }
+
+        /* No ho sé */
+        .btn-no-ho-se { width: 100%; margin-top: 12px; padding: 10px; border: 2px dashed #e4d4ff; border-radius: 16px; background: #fff; color: #5b21b6; font-family: var(--font-main); font-size: 1.15rem; font-weight: 700; cursor: pointer; }
         .photocard::after {
             content: '';
             position: absolute;
@@ -919,6 +926,8 @@
 
     <!-- Tarjeta Principal de la App -->
     <div id="main-card" class="app-card">
+        <!-- Modo prueba de papá: se ve igual que la misión real, pero no se guarda nada -->
+        <div id="banner-prueba" class="banner-prueba" hidden>👀 MODO PRUEBA · no se guarda nada</div>
 
         <!-- 1. Pantalla de bienvenida -->
         <div id="screen-home">
@@ -1022,6 +1031,9 @@
                         <button class="vf-btn no" data-vf="F">✘ Està malament</button>
                     </div>
 
+                    <!-- Mejor decir "no ho sé" que adivinar: una respuesta inventada y errónea se queda grabada -->
+                    <button id="btn-no-ho-se" class="btn-no-ho-se" hidden>🤷 No ho sé</button>
+
                     <!-- Panel de papá (modo oral) -->
                     <div id="oral-panel" class="oral-panel" hidden>
                         <div id="oral-paso-1">
@@ -1036,7 +1048,7 @@
                                 <div class="oral-label">¿Qué ha dicho? (si lo sabes)</div>
                                 <input id="oral-dijo" class="oral-input" type="text" inputmode="numeric" autocomplete="off">
                             </div>
-                            <button id="oral-reves" class="oral-btn reves" aria-pressed="false">🔄 Ha dicho las cifras al revés (aunque luego lo arregle)</button>
+                            <button id="oral-reves" class="oral-btn reves" aria-pressed="false">🔄 Ha girado las cifras (p. ej. «setenta y dos» en vez de «veintisiete»), aunque luego lo corrija</button>
                             <div class="oral-label">Pregúntale: ¿cómo lo has sabido?</div>
                             <div class="oral-grid">
                                 <button class="oral-btn" data-estrategia="memoria">🧠 Lo sabía</button>
@@ -1156,6 +1168,7 @@
                     <select id="sel-mision" style="font-family: var(--font-main); font-size: 1rem; padding: 6px; border-radius: 10px;"></select>
                     <button id="btn-set-mision" class="btn-small-exit" style="background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe;">Poner como misión actual</button>
                     <button id="btn-permitir-otra" class="btn-small-exit" style="background: #f0fdf4; color: #166534; border-color: #bbf7d0;">Dejar hacer otra hoy</button>
+                    <button id="btn-probar" class="btn-small-exit" style="background: #fef3c7; color: #92400e; border-color: #fde68a;">👀 Probarla yo sin guardar nada</button>
                 </div>
                 <h4 style="margin: 16px 0 6px 0;">Resultados de las pruebas</h4>
                 <div id="plan-resultados" style="font-size: 0.95rem;"></div>
@@ -1284,10 +1297,10 @@
 
             const TIPOS = {
                 teclear: { nombre: 'Escriure números', icono: '⌨️', instr: 'Escriu el número que veus. No cal pensar, només copiar-lo!', ejemplo: 'Veus 47 ➜ escrius 47', paso: n => `Escriure ${n} números` },
-                multi:   { nombre: 'Multiplicacions', icono: '✖️', instr: 'Multiplicacions, com sempre. Tranquil·la, al teu ritme.', ejemplo: '7 × 2 ➜ escrius 14', paso: n => `${n} multiplicacions` },
-                suma:    { nombre: 'Sumes', icono: '➕', instr: 'Sumes de números petits. Al teu ritme.', ejemplo: '3 + 4 ➜ escrius 7', paso: n => `${n} sumes` },
-                resta:   { nombre: 'Restes', icono: '➖', instr: 'Restes de números petits. Al teu ritme.', ejemplo: '9 − 4 ➜ escrius 5', paso: n => `${n} restes` },
-                vf:      { nombre: 'Està bé o no?', icono: '🤔', instr: 'Veuràs una multiplicació ja feta. Tu dius si està bé o malament.', ejemplo: '2 × 3 = 6 ➜ ✔ Està bé', paso: () => 'Dir si està bé o malament' },
+                multi:   { nombre: 'Multiplicacions', icono: '✖️', instr: 'Multiplicacions, com sempre. Tranquil·la, al teu ritme. Si no ho saps, prem «No ho sé».', ejemplo: '7 × 2 ➜ escrius 14', paso: n => `${n} multiplicacions` },
+                suma:    { nombre: 'Sumes', icono: '➕', instr: 'Sumes de números petits. Al teu ritme. Si no ho saps, prem «No ho sé».', ejemplo: '3 + 4 ➜ escrius 7', paso: n => `${n} sumes` },
+                resta:   { nombre: 'Restes', icono: '➖', instr: 'Restes de números petits. Al teu ritme. Si no ho saps, prem «No ho sé».', ejemplo: '9 − 4 ➜ escrius 5', paso: n => `${n} restes` },
+                vf:      { nombre: 'Està bé o no?', icono: '🤔', instr: 'Veuràs una multiplicació ja feta. Tu dius si està bé o malament. Si no ho saps, prem «No ho sé».', ejemplo: '2 × 3 = 6 ➜ ✔ Està bé', paso: () => 'Dir si està bé o malament' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
 
@@ -1318,6 +1331,10 @@
             let tInicio = 0;
             let teclas = [];     // [ms desde que aparece, tecla]
             let oralRespuesta = null;
+            // Modo prueba: con ?prova en la dirección (p. ej. en el móvil de papá) todo va en prueba
+            const PRUEBA_POR_URL = new URLSearchParams(location.search).has('prova');
+            let mazosPrueba = {}; // en prueba los mazos viven solo en memoria
+            const enPrueba = () => !!(sesion && sesion.prueba);
 
             const screens = {
                 home: document.getElementById('screen-home'),
@@ -1495,6 +1512,14 @@
             }
 
             function getNextCard(tipo) {
+                if (enPrueba()) {
+                    // En prueba no se toca el mazo de verdad del iPad
+                    const m = mazosPrueba[tipo];
+                    if (!m || m.mazo.length === 0) mazosPrueba[tipo] = { ciclo: 1, mazo: ordenarSinParecidas(tipo, paresDel2al9(), m && m.anterior) };
+                    const card = mazosPrueba[tipo].mazo.shift();
+                    mazosPrueba[tipo].anterior = card;
+                    return { ...card, ciclo: 0 };
+                }
                 let deckState = getDeckState(tipo);
                 if (!deckState.mazo || deckState.mazo.length === 0) {
                     deckState = initializeNewDeck(tipo, (deckState.ciclo || 1) + 1, deckState.anterior);
@@ -1528,6 +1553,7 @@
             }
 
             function misionHechaHoy() {
+                if (PRUEBA_POR_URL) return false;
                 const p = leerPlan();
                 const ultima = p.hechas[p.hechas.length - 1];
                 return !!ultima && ultima.fecha === hoy() && p.permitirOtra !== hoy();
@@ -1574,9 +1600,24 @@
             }
 
             function empezarMision() {
+                if (PRUEBA_POR_URL) return empezarPrueba(misionActual());
                 const m = misionActual();
                 sesion = { mision: m, iBloque: bloqueGuardado(m), hechos: 0, total: 0, fijos: null };
                 mostrarIntroBloque();
+            }
+
+            // Modo prueba: la misión entera desde el principio, sin guardar nada
+            function empezarPrueba(m) {
+                mazosPrueba = {};
+                sesion = { mision: m, iBloque: 0, hechos: 0, total: 0, fijos: null, prueba: true };
+                document.getElementById('banner-prueba').hidden = false;
+                mostrarIntroBloque();
+            }
+
+            function volverAlInicio() {
+                document.getElementById('banner-prueba').hidden = !PRUEBA_POR_URL;
+                renderHome();
+                showScreen('home');
             }
 
             function bloqueActual() {
@@ -1613,6 +1654,8 @@
                 sesion.iBloque++;
                 if (sesion.iBloque >= sesion.mision.bloques.length) {
                     finMision();
+                } else if (enPrueba()) {
+                    mostrarIntroBloque();
                 } else {
                     const p = leerPlan();
                     p.enCurso = { id: sesion.mision.id, bloque: sesion.iBloque };
@@ -1622,6 +1665,14 @@
             }
 
             function finMision() {
+                if (enPrueba()) {
+                    document.getElementById('summary-titulo').textContent = `Missió complerta${conNombre()}!`;
+                    document.getElementById('summary-texto').textContent = 'Cada dia el teu cervell es fa més fort. A descansar i a gaudir del dia!';
+                    sesion = null;
+                    showScreen('summary');
+                    mostrarPhotocard(true);
+                    return;
+                }
                 const p = leerPlan();
                 p.hechas.push({ id: sesion.mision.id, fecha: hoy() });
                 delete p.permitirOtra;
@@ -1696,6 +1747,7 @@
                 keypad.style.display = numerico ? 'grid' : 'none';
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
+                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf'].includes(item.tipo);
                 if (item.tipo === 'oral') {
                     document.getElementById('oral-paso-1').hidden = false;
                     document.getElementById('oral-paso-2').hidden = true;
@@ -1751,8 +1803,9 @@
                 setTimeout(siguienteItem, 800);
             }
 
-            function mostrarCorreccion(titulo, mates, texto) {
-                playFeedbackSound(false);
+            function mostrarCorreccion(titulo, mates, texto, sonido = true) {
+                if (sonido) playFeedbackSound(false);
+                document.getElementById('btn-no-ho-se').hidden = true;
                 keypad.style.display = 'none';
                 vfBotones.hidden = true;
                 oralPanel.hidden = true;
@@ -1798,6 +1851,16 @@
                 }
             }
 
+            // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
+            function noHoSe() {
+                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf'].includes(item.tipo)) return;
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                registrar(item, null, false, ms, { no_lo_se: true });
+                const mates = item.tipo === 'vf' ? `${item.a} × ${item.b} = ${item.a * item.b}` : `${item.texto} = ${item.esperado}`;
+                mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', mates, 'Millor això que endevinar. Mira-la bé i seguim.', false);
+            }
+
             function responderOral(bien) {
                 if (!item || item.tipo !== 'oral' || oralRespuesta) return;
                 oralRespuesta = { ok: bien, ms: Math.round(performance.now() - tInicio) };
@@ -1818,6 +1881,169 @@
                 } else {
                     mostrarCorreccion('🌸 Fixa-t\'hi bé:', `${item.texto} = ${item.esperado}`, dijo ? `Has dit: ${dijo}` : '');
                 }
+            }
+
+            // ==========================================
+            // IDOLS EN PIXEL ART: 6 idols × 6 caras (todas contentas) = 36 photocards
+            // Se dibujan con código, píxel a píxel; no hay ninguna imagen externa.
+            // ==========================================
+            const PX_W = 30, PX_H = 42, PX_ESCALA = 8;
+            const PX_LINEA = '#2b1d33';
+            const IDOLS = [
+                { pelo: 'llarg',    c: '#221c2b', luz: '#55486b', piel: '#f2c9a8', sombra: '#e3ad8a', ropa: '#ff6fae', ropaLuz: '#ffb3d4', iris: '#6b3f2a', extra: 'estrella' },
+                { pelo: 'mig',      c: '#3b2418', luz: '#7a4e35', piel: '#d9a37a', sombra: '#c58a62', ropa: '#2f2b3a', ropaLuz: '#6a6580', iris: '#3d2416', extra: 'collar' },
+                { pelo: 'arrissat', c: '#8a5a33', luz: '#c48d5a', piel: '#b97a52', sombra: '#a2663f', ropa: '#b79cff', ropaLuz: '#dccfff', iris: '#4a2a18', extra: 'arracades' },
+                { pelo: 'lateral',  c: '#e9c35f', luz: '#fff0b8', piel: '#f7d7c1', sombra: '#ecbea2', ropa: '#ffffff', ropaLuz: '#ff9ccc', iris: '#3a6ea5', extra: 'pinça' },
+                { pelo: 'bob',      c: '#18151c', luz: '#4b4157', piel: '#f6d5bd', sombra: '#e9b99c', ropa: '#1d1b24', ropaLuz: '#ff4fa3', iris: '#5a3a2a', extra: 'orelles' },
+                { pelo: 'cua',      c: '#2e1f1a', luz: '#62443a', piel: '#e2b48c', sombra: '#cf9a70', ropa: '#6fa8ff', ropaLuz: '#b9d6ff', iris: '#4a2e20', extra: 'llaç' }
+            ];
+            const CARAS = ['somriure', 'ullet', 'rialla', 'sorpresa', 'estrelles', 'cor'];
+            const FONDOS = [
+                ['#ffd1e8', '#ffe6f2', '#fff3f9'], ['#e6dcff', '#f0e9ff', '#f8f4ff'], ['#d4ecff', '#e6f4ff', '#f3faff'],
+                ['#d5f7e6', '#e8fbf1', '#f5fdf9'], ['#fff1b8', '#fff7d6', '#fffbea'], ['#ffd9c7', '#ffe9de', '#fff5ef']
+            ];
+
+            function dibujarIdol(iIdol, iCara) {
+                const idol = IDOLS[iIdol], cara = CARAS[iCara];
+                const g = Array.from({ length: PX_H }, () => Array(PX_W).fill(null)); // personaje
+                const set = (x, y, c) => { if (x >= 0 && x < PX_W && y >= 0 && y < PX_H) g[y][x] = c; };
+                const elipse = (cx, cy, rx, ry, c, filtro = () => true) => {
+                    for (let y = 0; y < PX_H; y++) for (let x = 0; x < PX_W; x++) {
+                        const dx = (x + 0.5 - cx) / rx, dy = (y + 0.5 - cy) / ry;
+                        if (dx * dx + dy * dy <= 1 && filtro(x, y)) set(x, y, c);
+                    }
+                };
+                const rect = (x0, y0, x1, y1, c) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, c); };
+                const espejo = (x, y, c) => { set(x, y, c); set(PX_W - 1 - x, y, c); };
+                const p = idol.pelo;
+
+                // 1. Pelo de detrás
+                if (p === 'llarg' || p === 'mig' || p === 'lateral') {
+                    elipse(15, 17, 10.5, 10.5, idol.c);
+                    for (let y = 17; y <= 37; y++) {
+                        const ola = p === 'mig' ? (y % 4 < 2 ? 1 : 0) : 0;
+                        rect(5 - ola, y, 24 + ola, y, idol.c);
+                    }
+                } else if (p === 'arrissat') {
+                    elipse(15, 19, 13.5, 13, idol.c, (x, y) => (x * 7 + y * 3) % 5 !== 0 || Math.hypot(x + 0.5 - 15, y + 0.5 - 19) < 11.5);
+                    for (let y = 26; y <= 33; y++) rect(3 + (y % 2), y, 26 - (y % 2), y, idol.c);
+                } else if (p === 'bob') {
+                    elipse(15, 17, 11, 10.5, idol.c);
+                    rect(4, 17, 25, 26, idol.c);
+                } else if (p === 'cua') {
+                    elipse(15, 17, 10, 10, idol.c);
+                    for (let y = 5; y <= 32; y++) {
+                        const x0 = 22 + Math.round(2 * Math.sin(y / 3));
+                        rect(x0, y, x0 + 3 - (y > 26 ? 1 : 0), y, idol.c);
+                    }
+                }
+
+                // 2. Cuerpo, cuello y cabeza
+                elipse(15, 43, 13, 11, idol.ropa);
+                rect(13, 25, 16, 31, idol.piel);
+                rect(13, 29, 16, 30, idol.sombra);
+                elipse(15, 17.5, 8.6, 9.2, idol.piel);
+                // escote y detalle de la ropa
+                rect(12, 32, 17, 32, idol.piel);
+                rect(13, 33, 16, 33, idol.piel);
+                for (let x = 6; x <= 23; x += 3) set(x, 38, idol.ropaLuz);
+                rect(8, 35, 9, 36, idol.ropaLuz); rect(20, 35, 21, 36, idol.ropaLuz);
+
+                // 3. Flequillo y pelo de delante
+                const gorro = (yMax) => elipse(15, 14, 9.6, 7.2, idol.c, (x, y) => y <= yMax);
+                if (p === 'llarg' || p === 'bob') {
+                    gorro(13);
+                    for (let x = 7; x <= 22; x++) set(x, 14, (x % 3 === 0) ? idol.piel : idol.c);
+                    rect(6, 14, 7, 24, idol.c); rect(22, 14, 23, 24, idol.c);
+                } else if (p === 'mig') {
+                    gorro(11);
+                    // raya en medio: dos cortinas que bajan por los lados de la cara
+                    for (let y = 10; y <= 13; y++) { const a = 13 - y + 1; rect(14 - a, y, 14, y, idol.c); rect(15, y, 15 + a, y, idol.c); }
+                    rect(6, 11, 7, 26, idol.c); rect(22, 11, 23, 26, idol.c);
+                    set(14, 8, idol.luz); set(15, 8, idol.luz);
+                } else if (p === 'lateral') {
+                    gorro(11);
+                    for (let y = 11; y <= 15; y++) rect(7, y, 7 + (22 - 7) - (y - 11) * 3, y, idol.c);
+                    rect(6, 12, 7, 26, idol.c); rect(22, 12, 23, 26, idol.c);
+                } else if (p === 'arrissat') {
+                    gorro(12);
+                    for (let x = 7; x <= 22; x++) if (x % 2 === 0) set(x, 13, idol.c);
+                    rect(6, 12, 7, 25, idol.c); rect(22, 12, 23, 25, idol.c);
+                } else if (p === 'cua') {
+                    gorro(12);
+                    for (let y = 12; y <= 14; y++) rect(7, y, 7 + (y - 11) * 2, y, idol.c);
+                    rect(6, 12, 7, 20, idol.c); rect(22, 12, 23, 20, idol.c);
+                }
+                // brillo del pelo
+                for (let x = 9; x <= 13; x++) set(x, 9 + (x === 9 || x === 13 ? 1 : 0), idol.luz);
+                set(16, 9, idol.luz); set(17, 9, idol.luz);
+
+                // 4. Cara
+                const L = PX_LINEA, B = '#ffffff';
+                const ojo = (x0) => { // ojo de 2×3 con brillo y raya de "ojo de gato"
+                    set(x0, 18, L); set(x0 + 1, 18, L);
+                    set(x0, 19, B); set(x0 + 1, 19, L);
+                    set(x0, 20, idol.iris); set(x0 + 1, 20, idol.iris);
+                };
+                const cerrado = (x0) => { set(x0 - 1, 20, L); set(x0, 19, L); set(x0 + 1, 19, L); set(x0 + 2, 20, L); };
+                const estrella = (cx) => { const o = '#ffc61a'; set(cx, 18, o); set(cx - 1, 19, o); set(cx, 19, '#fff6c2'); set(cx + 1, 19, o); set(cx, 20, o); };
+                const corazon = (x0) => { const r = '#ff3d8b'; set(x0, 18, r); set(x0 + 2, 18, r); rect(x0, 19, x0 + 2, 19, r); set(x0 + 1, 20, r); };
+                if (cara === 'somriure' || cara === 'sorpresa') { ojo(10); ojo(18); }
+                if (cara === 'ullet') { ojo(10); cerrado(18); }
+                if (cara === 'rialla') { cerrado(10); cerrado(18); }
+                if (cara === 'estrelles') { estrella(10); estrella(19); }
+                if (cara === 'cor') { corazon(9); corazon(18); }
+                if (cara !== 'rialla' && cara !== 'estrelles' && cara !== 'cor') { set(9, 18, L); set(20, 18, L); } // raya de ojo de gato
+                // mofletes
+                const rubor = '#ff9fb6';
+                espejo(8, 21, rubor); espejo(9, 21, rubor);
+                // boca
+                if (cara === 'somriure' || cara === 'ullet' || cara === 'cor') {
+                    set(13, 23, L); set(16, 23, L); set(14, 24, L); set(15, 24, L);
+                } else if (cara === 'rialla' || cara === 'estrelles') {
+                    rect(13, 23, 16, 23, L); set(13, 24, L); set(16, 24, L); set(14, 24, '#ff6f91'); set(15, 24, '#ff6f91'); set(14, 25, L); set(15, 25, L);
+                } else if (cara === 'sorpresa') {
+                    set(14, 23, L); set(15, 23, L); set(14, 24, L); set(15, 24, L);
+                }
+
+                // 5. Complementos
+                if (idol.extra === 'estrella') { set(21, 10, '#ffc61a'); set(20, 11, '#ffc61a'); set(21, 11, '#fff6c2'); set(22, 11, '#ffc61a'); set(21, 12, '#ffc61a'); }
+                if (idol.extra === 'collar') for (let x = 11; x <= 18; x++) set(x, 31 + (x === 11 || x === 18 ? 0 : 1), x % 2 ? '#d9d9e8' : '#ffffff');
+                if (idol.extra === 'arracades') { espejo(6, 23, '#ffc61a'); espejo(6, 24, '#ffc61a'); }
+                if (idol.extra === 'pinça') { rect(18, 10, 20, 10, '#ff4fa3'); set(19, 11, '#ff4fa3'); }
+                if (idol.extra === 'orelles') {
+                    for (const x0 of [7, 19]) { set(x0 + 1, 4, L); rect(x0, 5, x0 + 2, 5, L); rect(x0, 6, x0 + 3, 6, L); set(x0 + 1, 6, '#ff4fa3'); set(x0 + 2, 6, '#ff4fa3'); }
+                    rect(7, 7, 22, 7, L);
+                }
+                if (idol.extra === 'llaç') { rect(21, 6, 25, 6, '#ff4fa3'); rect(22, 5, 24, 7, '#ff4fa3'); set(23, 6, '#ffb3d4'); }
+
+                // 6. Contorno: píxel de fondo que toca al personaje
+                const contorno = [];
+                for (let y = 0; y < PX_H; y++) for (let x = 0; x < PX_W; x++) {
+                    if (g[y][x]) continue;
+                    if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => g[y + dy] && g[y + dy][x + dx])) contorno.push([x, y]);
+                }
+                contorno.forEach(([x, y]) => { g[y][x] = L; });
+
+                // 7. Fondo con degradado y destellos, y volcado al lienzo
+                const fondo = FONDOS[iCara];
+                const lienzo = document.createElement('canvas');
+                lienzo.width = PX_W * PX_ESCALA; lienzo.height = PX_H * PX_ESCALA;
+                const ctx = lienzo.getContext('2d');
+                for (let y = 0; y < PX_H; y++) for (let x = 0; x < PX_W; x++) {
+                    ctx.fillStyle = g[y][x] || fondo[Math.min(2, Math.floor(y / (PX_H / 3)))];
+                    ctx.fillRect(x * PX_ESCALA, y * PX_ESCALA, PX_ESCALA, PX_ESCALA);
+                }
+                const destello = (x, y, c) => {
+                    [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => {
+                        if (!g[y + dy] || g[y + dy][x + dx]) return;
+                        ctx.fillStyle = (dx || dy) ? c : '#ffffff';
+                        ctx.fillRect((x + dx) * PX_ESCALA, (y + dy) * PX_ESCALA, PX_ESCALA, PX_ESCALA);
+                    });
+                };
+                destello(3, 4, '#ffffff'); destello(26, 3, '#ff9ad5'); destello(2, 20, '#c3a6ff'); destello(27, 24, '#ffffff');
+                if (cara === 'cor') { ctx.fillStyle = '#ff3d8b'; [[25, 13], [27, 13], [25, 14], [26, 14], [27, 14], [26, 15]].forEach(([x, y]) => ctx.fillRect(x * PX_ESCALA, y * PX_ESCALA, PX_ESCALA, PX_ESCALA)); }
+                return lienzo.toDataURL('image/png');
             }
 
             // ==========================================
@@ -1877,49 +2103,61 @@
 
             const azar = arr => arr[Math.floor(Math.random() * arr.length)];
 
-            async function mostrarPhotocard() {
+            // Todas las cartas posibles: las 36 idols y las fotos de papá. id: 'idol-<idol>-<cara>' o número de foto
+            async function todasLasCartas() {
+                const cartas = [];
+                IDOLS.forEach((_, i) => CARAS.forEach((__, c) => cartas.push({ id: `idol-${i}-${c}`, idol: [i, c] })));
+                (await leerFotos()).forEach(f => cartas.push({ id: f.id, img: f.img }));
+                return cartas;
+            }
+
+            const cacheIdols = {};
+            function imagenCarta(carta) {
+                if (carta.img) return carta.img;
+                if (!cacheIdols[carta.id]) cacheIdols[carta.id] = dibujarIdol(carta.idol[0], carta.idol[1]);
+                return cacheIdols[carta.id];
+            }
+
+            async function mostrarPhotocard(prueba = false) {
                 const zona = document.getElementById('photocard-zona');
                 const dins = document.getElementById('photocard-dins');
                 const etiqueta = document.getElementById('photocard-etiqueta');
-                const fotos = await leerFotos();
+                const cartas = await todasLasCartas();
                 const album = leerAlbum();
-                let foto = null;
-                let texto = 'Photocard d\'avui ✦';
-                if (fotos.length > 0) {
-                    const tengo = new Set(album.map(x => x.id));
-                    const nuevas = fotos.filter(f => !tengo.has(f.id));
-                    if (nuevas.length > 0) {
-                        foto = azar(nuevas);
-                        album.push({ id: foto.id, fecha: hoy() });
-                        guardarAlbum(album);
-                        texto = 'Photocard nova! ✦';
-                    } else {
-                        foto = azar(fotos);
-                    }
+                const tengo = new Set(album.map(x => x.id));
+                const nuevas = cartas.filter(c => !tengo.has(c.id));
+                let carta, texto;
+                if (prueba) {
+                    carta = azar(cartas); // se enseña una, pero no entra en la colección
+                    texto = 'Photocard (prova) ✦';
+                } else if (nuevas.length > 0) {
+                    carta = azar(nuevas);
+                    album.push({ id: carta.id, fecha: hoy() });
+                    guardarAlbum(album);
+                    texto = 'Photocard nova! ✦';
+                } else {
+                    carta = azar(cartas);
+                    texto = 'Photocard d\'avui ✦';
                 }
                 dins.innerHTML = '';
-                if (foto) {
-                    const img = document.createElement('img');
-                    img.src = foto.img;
-                    img.alt = 'Photocard';
-                    dins.appendChild(img);
-                } else {
-                    dins.innerHTML = '<svg class="gema" style="width: 70%; height: auto;" aria-hidden="true"><use href="#gema"/></svg>';
-                }
+                const img = document.createElement('img');
+                img.src = imagenCarta(carta);
+                img.alt = 'Photocard';
+                if (carta.idol) img.className = 'pixel';
+                dins.appendChild(img);
                 etiqueta.textContent = texto;
                 // Reiniciar la animación de girar la carta
-                const carta = document.getElementById('photocard');
-                carta.style.animation = 'none';
-                void carta.offsetWidth;
-                carta.style.animation = '';
+                const marco = document.getElementById('photocard');
+                marco.style.animation = 'none';
+                void marco.offsetWidth;
+                marco.style.animation = '';
                 document.getElementById('summary-gema').toggleAttribute('hidden', true);
                 zona.hidden = false;
                 renderBotonAlbum();
             }
 
             async function renderBotonAlbum() {
-                const fotos = await leerFotos();
-                const ids = new Set(fotos.map(f => f.id));
+                const ids = new Set((await todasLasCartas()).map(c => c.id));
                 const n = leerAlbum().filter(x => ids.has(x.id)).length;
                 const btn = document.getElementById('btn-album');
                 btn.hidden = n === 0;
@@ -1927,8 +2165,7 @@
             }
 
             async function renderAlbum() {
-                const fotos = await leerFotos();
-                const porId = new Map(fotos.map(f => [f.id, f]));
+                const porId = new Map((await todasLasCartas()).map(c => [c.id, c]));
                 const mias = leerAlbum().filter(x => porId.has(x.id));
                 document.getElementById('album-texto').textContent = mias.length === 1
                     ? 'Tens 1 photocard. Cada missió acabada, una de nova!'
@@ -1939,8 +2176,9 @@
                     const carta = document.createElement('div');
                     carta.className = 'album-carta';
                     const img = document.createElement('img');
-                    img.src = porId.get(x.id).img;
+                    img.src = imagenCarta(porId.get(x.id));
                     img.alt = 'Photocard';
+                    if (porId.get(x.id).idol) img.className = 'pixel';
                     carta.appendChild(img);
                     grid.appendChild(carta);
                 });
@@ -1980,6 +2218,7 @@
             // ==========================================
             function registrar(it, respuesta, ok, ms, extra) {
                 sesion.hechos++;
+                if (sesion.prueba) return; // modo prueba: no se guarda nada
                 const primeraTecla = teclas.length > 0 ? teclas[0][0] : null;
                 const detalle = { mision: sesion.mision.id, teclas, ...extra };
 
@@ -1991,7 +2230,7 @@
                         factor_a: it.a,
                         factor_b: it.b,
                         esperado: parseInt(it.esperado, 10),
-                        respuesta_dada: parseInt(respuesta, 10),
+                        respuesta_dada: respuesta === null ? null : parseInt(respuesta, 10),
                         correcta: ok,
                         tiempo_segundos: segundos,
                         distraccion: segundos > DISTRACTION_THRESHOLD_SECONDS,
@@ -2231,6 +2470,8 @@
                             fs.forEach(f => { const e = f.detalle && f.detalle.estrategia; if (e) est[e] = (est[e] || 0) + 1; });
                             extra = ' · ' + Object.entries(est).map(([e, n]) => `${e}: ${n}`).join(', ');
                         }
+                        const noSe = fs.filter(f => f.detalle && f.detalle.no_lo_se).length;
+                        if (noSe) extra += ` · «no lo sé»: ${noSe}`;
                         const nombre = TIPOS[mod] ? TIPOS[mod].nombre : mod;
                         return `<div class="plan-fila"><strong>${nombre}</strong><span>${ok}/${fs.length} (${Math.round(ok / fs.length * 100)}%) · mediana aciertos ${med != null ? (med / 1000).toFixed(1) + 's' : '-'}${extra}</span></div>`;
                     }).join('');
@@ -2490,7 +2731,7 @@
                     tr.innerHTML = `
                         <td style="font-size:0.85rem; color:#64748b;">${formattedDate}</td>
                         <td style="font-weight:700;">${r.factor_a} × ${r.factor_b}</td>
-                        <td style="font-weight:700; color:${r.correcta ? '#15803d' : '#b91c1c'};">${r.respuesta_dada !== null ? r.respuesta_dada : '-'}</td>
+                        <td style="font-weight:700; color:${r.correcta ? '#15803d' : '#b91c1c'};">${r.respuesta_dada !== null && r.respuesta_dada !== undefined ? r.respuesta_dada : (r.detalle && r.detalle.no_lo_se ? 'no lo sé' : '-')}</td>
                         <td>${r.correcta ? '✅' : '❌'}</td>
                         <td style="font-size:0.85rem;">${r.tiempo_segundos}s ${r.distraccion ? '⏳' : ''}</td>
                     `;
@@ -2527,7 +2768,7 @@
 
                         tr.innerHTML = `
                             <td style="font-size:0.85rem; color:#64748b;">${formattedDate}</td>
-                            <td style="font-weight:700;">${r.respuesta_dada}</td>
+                            <td style="font-weight:700;">${r.respuesta_dada !== null && r.respuesta_dada !== undefined ? r.respuesta_dada : (r.detalle && r.detalle.no_lo_se ? 'no lo sé' : '-')}</td>
                             <td>${r.correcta ? '✅ Acierto' : '❌ Fallo'}</td>
                             <td style="font-size:0.85rem;">${r.tiempo_segundos}s ${r.distraccion ? '(distracción)' : ''}</td>
                         `;
@@ -2601,20 +2842,14 @@
             document.getElementById('btn-correction-continue').addEventListener('click', siguienteItem);
 
             // Volver al inicio desde resumen
-            document.getElementById('btn-summary-home').addEventListener('click', () => {
-                renderHome();
-                showScreen('home');
-            });
+            document.getElementById('btn-summary-home').addEventListener('click', volverAlInicio);
 
             // Col·lecció de photocards
             document.getElementById('btn-album').addEventListener('click', async () => {
                 await renderAlbum();
                 showScreen('album');
             });
-            document.getElementById('btn-album-tornar').addEventListener('click', () => {
-                renderHome();
-                showScreen('home');
-            });
+            document.getElementById('btn-album-tornar').addEventListener('click', volverAlInicio);
 
             // Fotos de las photocards (Zona Papá)
             document.getElementById('inp-fotos').addEventListener('change', async (e) => {
@@ -2649,6 +2884,8 @@
                 const btn = e.target.closest('button');
                 if (btn && btn.dataset.vf) responderVF(btn.dataset.vf);
             });
+
+            document.getElementById('btn-no-ho-se').addEventListener('click', noHoSe);
 
             // Panel de papá (oral)
             oralPanel.addEventListener('click', (e) => {
@@ -2740,6 +2977,11 @@
                 renderPlan();
             });
 
+            // Papá prueba la misión elegida tal como la verá ella, sin guardar nada
+            document.getElementById('btn-probar').addEventListener('click', () => {
+                empezarPrueba(PLAN[parseInt(document.getElementById('sel-mision').value, 10)]);
+            });
+
             // Permitir otra misión el mismo día
             document.getElementById('btn-permitir-otra').addEventListener('click', () => {
                 const p = leerPlan();
@@ -2779,6 +3021,7 @@
             // ==========================================
             // INICIALIZACIÓN
             // ==========================================
+            document.getElementById('banner-prueba').hidden = !PRUEBA_POR_URL;
             renderHome();
             vaciarCola();       // Subir lo que quedara pendiente
             recuperarPlan();
