@@ -605,6 +605,27 @@
 
         .op-largo .operation-text { font-size: 2.6rem; }
 
+        /* Simulacre de l'examen de català: una frase amb una lletra que falta */
+        .op-frase .operation-text { font-size: 1.7rem; font-weight: 600; line-height: 1.7; letter-spacing: 0.02em; text-align: left; }
+        .op-frase { border: 4px solid var(--bloc, #e9dcff); }
+        .forat { display: inline-block; min-width: 1.6em; padding: 0 0.2em; border-radius: 10px; background: var(--bloc, #e9dcff); text-align: center; font-weight: 800; }
+        .forat.actual { outline: 3px solid var(--bloc-fort, #6d3fd1); }
+        .forat.posat { background: #f1f5f9; color: #334155; }
+        .bloc-rosa { --bloc: #ffc2df; --bloc-fort: #d6247a; }
+        .bloc-lila { --bloc: #d9c8ff; --bloc-fort: #6d3fd1; }
+        .bloc-blau { --bloc: #bfe3ff; --bloc-fort: #1767b5; }
+        .bloc-verd { --bloc: #bff0d4; --bloc-fort: #138048; }
+        .grafia-botones { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+        .grafia-btn {
+            height: 78px; border: 3px solid var(--bloc, #e9dcff); border-radius: 18px; background: #fff;
+            font-family: var(--font-main); font-size: 1.9rem; font-weight: 800; color: #1d1b24; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(29, 27, 36, 0.08);
+        }
+        .grafia-btn:active { background: var(--bloc, #e9dcff); }
+        .btn-escoltar-frase { width: 100%; margin-top: 10px; }
+        .repas-llista { text-align: left; font-size: 1.3rem; line-height: 1.7; margin: 10px 0 18px 0; padding-left: 1.2em; }
+        .repas-llista b { color: var(--bloc-fort, #6d3fd1); background: var(--bloc, #e9dcff); border-radius: 6px; padding: 0 0.15em; }
+
         /* ¿Verdad o no? */
         .vf-botones {
             display: grid;
@@ -1022,6 +1043,12 @@
                         <button class="vf-btn no" data-vf="F">✘ Està malament</button>
                     </div>
 
+                    <!-- Simulacre de l'examen de català: botones con las letras del bloque -->
+                    <div id="grafia-panel" hidden>
+                        <div id="grafia-botones" class="grafia-botones"></div>
+                        <button id="btn-escoltar-frase" class="btn-subtle btn-escoltar-frase">🔊 Escoltar la frase</button>
+                    </div>
+
                     <!-- Mejor decir "no ho sé" que adivinar: una respuesta inventada y errónea se queda grabada -->
                     <button id="btn-no-ho-se" class="btn-no-ho-se" hidden>🤷 No ho sé</button>
 
@@ -1051,6 +1078,14 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- 2b. Repaso al acabar cada bloque del simulacro: las palabras bien escritas (sin marcar las suyas) -->
+        <div id="screen-repas" style="display: none;">
+            <h1>Així s'escriuen ✦</h1>
+            <p style="color: #64748b; font-size: 1.1rem;">Mira-les bé: les lletres de color són les que el so amaga.</p>
+            <ol id="repas-llista" class="repas-llista"></ol>
+            <button id="btn-repas-seguim" class="btn-action" style="background: var(--c-mint);">Seguim! ➜</button>
         </div>
 
         <!-- 3. Pantalla de Resumen Amigable -->
@@ -1293,6 +1328,7 @@
                 suma:    { nombre: 'Sumes', icono: '➕', instr: 'Sumes de números petits. Al teu ritme. Si no ho saps, prem «No ho sé».', ejemplo: '3 + 4 ➜ escrius 7', paso: n => `${n} sumes` },
                 resta:   { nombre: 'Restes', icono: '➖', instr: 'Restes de números petits. Al teu ritme. Si no ho saps, prem «No ho sé».', ejemplo: '9 − 4 ➜ escrius 5', paso: n => `${n} restes` },
                 vf:      { nombre: 'Està bé o no?', icono: '🤔', instr: 'Veuràs una multiplicació ja feta. Tu dius si està bé o malament. Si no ho saps, prem «No ho sé».', ejemplo: '2 × 3 = 6 ➜ ✔ Està bé', paso: () => 'Dir si està bé o malament' },
+                grafia:  { nombre: 'Examen de català', icono: '📝', instr: '', ejemplo: '', paso: () => 'Lletres' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
 
@@ -1303,6 +1339,59 @@
                 [3, 7, 21], [7, 3, 24], [6, 9, 54], [6, 9, 45], [9, 9, 81], [9, 9, 64], [5, 7, 35], [5, 7, 45],
                 [2, 7, 14], [3, 5, 15], [5, 8, 40], [4, 6, 24], [3, 8, 24], [4, 8, 32],
                 [2, 9, 16], [5, 5, 30], [3, 5, 18], [5, 8, 45]
+            ];
+
+            // Simulacre de l'examen de català «Consonantisme» (examen real del 3/10/2026): les mateixes frases.
+            // {lletra} = el forat; una lletra (o dígraf) per forat. Colors i ordre = els del full-resum de consonants.
+            const EXAMEN_CATALA = [
+                { color: 'rosa', nombre: 'Bloc rosa', opciones: ['P', 'T', 'C', 'B', 'D', 'G', 'V'], ejemplo: 'su_ratllar ➜ B', frases: [
+                    "Marxa{v}a a casa perquè li feia mal l'a{b}domen de menjar ma{g}dalenes.",
+                    "El meu pare, que és ò{p}tic, s'ha ca{p}ficat a treure's la carrera d'a{d}vocat.",
+                    'Tinc un dubte, no sé si els mots ca{b}dal, ca{b}dell i ca{p}gròs són a{d}verbis o substantius.',
+                    "No t'hi ca{p}fiquis! Superaràs tots els o{b}stacles."] },
+                { color: 'lila', nombre: 'Bloc lila', opciones: ['S', 'SS', 'C', 'Ç', 'Z', 'SC'], ejemplo: 'ca_a ➜ S', frases: [
+                    'Aquesta al{z}ina té més de {s}is-cents anys.',
+                    "La discu{ss}ió va interrompre l'a{ss}emblea.",
+                    'Han visitat el parc {z}oològic per anar a veure o{ss}os.',
+                    "L'a{sc}ensor va pujar fins a la si{s}ena planta.",
+                    'Van anar de la pla{ç}a del poble a comprar espelmes de {c}era.'] },
+                { color: 'blau', nombre: 'Bloc blau', opciones: ['G', 'J', 'TG', 'TJ', 'X', 'IX', 'TX', 'IG'], ejemplo: 'pe_ ➜ IX', frases: [
+                    'Aquesta tarda aniré a la pla{tj}a a fer busse{ig}.',
+                    'El me{tg}e ha diagnosticat inflamació al fe{tg}e.',
+                    'La fi{tx}a està dins el cala{ix}.',
+                    '{X}avier, una broqueta de {x}istorra, an{x}ova i {x}oriço, quan puguis!'] },
+                { color: 'verd', nombre: 'Bloc verd', opciones: ['M', 'N', 'L·L', 'R', 'H'], ejemplo: 'te_ps ➜ M', frases: [
+                    'La granota i el gripau són a{m}fibis.',
+                    "T'haig de co{n}fessar que no m'agrada anar al gimnàs.",
+                    'Avui he agafat el tra{m}via per anar a la feina.',
+                    "Hem de pro{h}ibir l'ús del mòbil a l'institut.",
+                    'Tinc a{l·l}èrgia a les plantes.',
+                    'Quan sigui gran vull treballar de bombe{r} per apagar focs.',
+                    'Haureu de co{l·l}aborar entre vosaltres per fer el treball.',
+                    'Entenc perfectament la teva lletra, tens una ca{l·l}igrafia molt maca.'] }
+            ];
+            const trozosFrase = f => f.split(/\{([^}]+)\}/); // pares: texto; impares: la lletra del forat
+            const fraseCompleta = f => trozosFrase(f).join('');
+            // La paraula sencera on hi ha el forat k (per guardar-la a les dades)
+            function paraulaDelForat(f, k) {
+                const t = trozosFrase(f);
+                let antes = t.slice(0, 2 * k + 1).join(''), despues = t.slice(2 * k + 2).join('');
+                const izq = antes.match(/[\p{L}·-]*$/u)[0], der = despues.match(/^[\p{L}·]*/u)[0];
+                return izq + t[2 * k + 1] + der;
+            }
+            function itemsExamen(iBloc) {
+                const e = EXAMEN_CATALA[iBloc];
+                const items = [];
+                e.frases.forEach((f, iFrase) => {
+                    const n = (trozosFrase(f).length - 1) / 2;
+                    for (let k = 0; k < n; k++) items.push({ iBloc, iFrase, k, frase: f, esperado: trozosFrase(f)[2 * k + 1].toUpperCase(), palabra: paraulaDelForat(f, k) });
+                });
+                return items;
+            }
+
+            // Misiones fuera del plan: papá las pone para un día concreto desde la Zona Papá
+            const MISIONES_EXTRA = [
+                { id: 101, titulo: "Simulacre: examen de català", bloques: EXAMEN_CATALA.map((_, i) => ({ tipo: 'grafia', bloc: i })) }
             ];
 
             // Oral con papá: atascadas, lentas y controles rápidos (según datos a 29/09/2026)
@@ -1332,6 +1421,7 @@
                 home: document.getElementById('screen-home'),
                 intro: document.getElementById('screen-intro'),
                 game: document.getElementById('screen-game'),
+                repas: document.getElementById('screen-repas'),
                 summary: document.getElementById('screen-summary'),
                 album: document.getElementById('screen-album'),
                 papa: document.getElementById('screen-papa')
@@ -1541,18 +1631,33 @@
             }
 
             function misionActual() {
-                return PLAN[leerPlan().hechas.length] || MISION_POR_DEFECTO;
+                const p = leerPlan();
+                const extra = p.extra && MISIONES_EXTRA.find(m => m.id === p.extra);
+                return extra || PLAN[p.hechas.length] || MISION_POR_DEFECTO;
             }
 
             function misionHechaHoy() {
                 if (PRUEBA_POR_URL) return false;
                 const p = leerPlan();
-                const ultima = p.hechas[p.hechas.length - 1];
-                return !!ultima && ultima.fecha === hoy() && p.permitirOtra !== hoy();
+                const ultimas = [p.hechas[p.hechas.length - 1], (p.extras || [])[(p.extras || []).length - 1]];
+                return ultimas.some(u => u && u.fecha === hoy()) && p.permitirOtra !== hoy();
+            }
+
+            // Datos que se enseñan de cada bloque (en el simulacro, cada bloque es un color del full)
+            function infoBloque(b) {
+                if (b.tipo !== 'grafia') return TIPOS[b.tipo];
+                const e = EXAMEN_CATALA[b.bloc];
+                return {
+                    ...TIPOS.grafia,
+                    nombre: `${e.nombre}: ${e.opciones.join(' · ')}`,
+                    instr: `Com a l'examen de català: tria la lletra que falta. Ara toca el ${e.nombre.toLowerCase()} del full de les consonants: mira'l sempre que vulguis. Si no ho saps, prem «No ho sé».`,
+                    ejemplo: e.ejemplo,
+                    paso: () => `${e.nombre}: ${e.opciones.join(', ')}`
+                };
             }
 
             function textoMision(m) {
-                return m.bloques.map(b => TIPOS[b.tipo].paso(b.n));
+                return m.bloques.map(b => infoBloque(b).paso(b.n));
             }
 
             function renderHome() {
@@ -1566,7 +1671,7 @@
                 document.getElementById('mision-titulo').textContent = m.titulo;
                 const desde = bloqueGuardado(m);
                 document.getElementById('mision-pasos').innerHTML = m.bloques
-                    .map((b, i) => `<li class="${i < desde ? 'hecho' : ''}">${i < desde ? '✅' : TIPOS[b.tipo].icono} ${TIPOS[b.tipo].paso(b.n)}</li>`).join('');
+                    .map((b, i) => `<li class="${i < desde ? 'hecho' : ''}">${i < desde ? '✅' : infoBloque(b).icono} ${infoBloque(b).paso(b.n)}</li>`).join('');
             }
 
             // Si se borra el almacenamiento del iPad, reconstruir el plan desde Supabase
@@ -1577,7 +1682,8 @@
                     if (!res.ok) return;
                     const filas = await res.json();
                     if (filas.length > 0 && leerPlan().hechas.length === 0) {
-                        guardarPlan({ hechas: filas.map(f => ({ id: parseInt(f.item, 10), fecha: new Date(f.creado_el).toLocaleDateString('sv-SE') })) });
+                        const delPlan = filas.filter(f => parseInt(f.item, 10) < 100); // las extra no cuentan en el plan
+                        guardarPlan({ hechas: delPlan.map(f => ({ id: parseInt(f.item, 10), fecha: new Date(f.creado_el).toLocaleDateString('sv-SE') })) });
                         renderHome();
                     }
                 } catch (e) {}
@@ -1617,7 +1723,7 @@
             }
 
             function mostrarIntroBloque() {
-                const t = TIPOS[bloqueActual().tipo];
+                const t = infoBloque(bloqueActual());
                 document.getElementById('intro-icono').textContent = t.icono;
                 document.getElementById('intro-titulo').textContent = t.nombre;
                 document.getElementById('intro-texto').textContent = t.instr;
@@ -1631,13 +1737,24 @@
                 sesion.hechos = 0;
                 if (b.tipo === 'vf') {
                     sesion.fijos = shuffle(VF_ITEMS);
+                } else if (b.tipo === 'grafia') {
+                    sesion.fijos = itemsExamen(b.bloc); // en el orden del examen
+                    sesion.puestas = [];
                 } else if (b.tipo === 'oral') {
                     sesion.fijos = shuffle(ORAL_ITEMS).map(([a, b2]) => Math.random() < 0.5 ? [a, b2] : [b2, a]);
                 } else {
                     sesion.fijos = null;
                 }
                 sesion.total = sesion.fijos ? sesion.fijos.length : b.n;
-                document.getElementById('game-badge-ciclo').textContent = TIPOS[b.tipo].nombre;
+                document.getElementById('game-badge-ciclo').textContent = b.tipo === 'grafia' ? EXAMEN_CATALA[b.bloc].nombre : infoBloque(b).nombre;
+                opCardEl.classList.remove('bloc-rosa', 'bloc-lila', 'bloc-blau', 'bloc-verd');
+                document.getElementById('grafia-panel').classList.remove('bloc-rosa', 'bloc-lila', 'bloc-blau', 'bloc-verd');
+                if (b.tipo === 'grafia') {
+                    const e = EXAMEN_CATALA[b.bloc];
+                    opCardEl.classList.add(`bloc-${e.color}`);
+                    document.getElementById('grafia-panel').classList.add(`bloc-${e.color}`);
+                    document.getElementById('grafia-botones').innerHTML = e.opciones.map(o => `<button class="grafia-btn" data-lletra="${o}">${o}</button>`).join('');
+                }
                 showScreen('game');
                 siguienteItem();
             }
@@ -1666,9 +1783,14 @@
                     return;
                 }
                 const p = leerPlan();
-                p.hechas.push({ id: sesion.mision.id, fecha: hoy() });
+                if (MISIONES_EXTRA.some(m => m.id === sesion.mision.id)) {
+                    p.extras = [...(p.extras || []), { id: sesion.mision.id, fecha: hoy() }];
+                    delete p.extra;
+                } else {
+                    p.hechas.push({ id: sesion.mision.id, fecha: hoy() });
+                }
                 delete p.permitirOtra;
-                delete p.enCurso;
+                if (p.enCurso && p.enCurso.id === sesion.mision.id) delete p.enCurso;
                 guardarPlan(p);
                 guardarEvento({ modulo: 'mision', item: String(sesion.mision.id), detalle: { titulo: sesion.mision.titulo } });
                 document.getElementById('summary-titulo').textContent = `Missió complerta${conNombre()}!`;
@@ -1707,6 +1829,10 @@
                     const c = getNextCard('resta');
                     return { tipo, a: c.a + c.b, b: c.b, ciclo: c.ciclo, texto: `${c.a + c.b} − ${c.b}`, clave: `${c.a + c.b}-${c.b}`, esperado: String(c.a) };
                 }
+                if (tipo === 'grafia') {
+                    const g = sesion.fijos[sesion.hechos];
+                    return { tipo, ...g, texto: g.palabra, clave: g.palabra, escoltat: 0 };
+                }
                 if (tipo === 'vf') {
                     const [a, b, c] = sesion.fijos[sesion.hechos];
                     return { tipo, a, b, c, texto: `${a} × ${b} = ${c}`, clave: `${a}x${b}=${c}`, esperado: c === a * b ? 'V' : 'F' };
@@ -1717,7 +1843,8 @@
 
             function siguienteItem() {
                 if (sesion.hechos >= sesion.total) {
-                    finBloque();
+                    if (bloqueActual().tipo === 'grafia') mostrarRepas();
+                    else finBloque();
                     return;
                 }
                 item = crearItem();
@@ -1729,9 +1856,12 @@
                 const numerico = ['teclear', 'multi', 'suma', 'resta'].includes(item.tipo);
                 opFactorsEl.textContent = item.texto;
                 opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
-                opIgualEl.hidden = item.tipo === 'vf' || item.tipo === 'teclear';
+                opIgualEl.hidden = ['vf', 'teclear', 'grafia'].includes(item.tipo);
                 opAnswerEl.hidden = !numerico;
                 opCardEl.classList.toggle('op-largo', item.tipo === 'vf');
+                opCardEl.classList.toggle('op-frase', item.tipo === 'grafia');
+                if (item.tipo === 'grafia') opFactorsEl.innerHTML = htmlFrase(item);
+                document.getElementById('grafia-panel').hidden = item.tipo !== 'grafia';
                 opFeedbackEl.innerHTML = '';
                 opCardEl.classList.remove('success-anim');
                 gentleBox.style.display = 'none';
@@ -1739,7 +1869,7 @@
                 keypad.style.display = numerico ? 'grid' : 'none';
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
-                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf'].includes(item.tipo);
+                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia'].includes(item.tipo);
                 if (item.tipo === 'oral') {
                     document.getElementById('oral-paso-1').hidden = false;
                     document.getElementById('oral-paso-2').hidden = true;
@@ -1843,11 +1973,54 @@
                 }
             }
 
-            // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
-            function noHoSe() {
-                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf'].includes(item.tipo)) return;
+            // Simulacre: la frase con lo que ya ha puesto ella (sin decir si está bien), el forat actual
+            // destacado y los que faltan en blanco. Igual que en el papel del examen.
+            const escaparHtml = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+            function htmlFrase(it) {
+                const t = trozosFrase(it.frase);
+                const puestas = sesion.puestas.filter(x => x.iFrase === it.iFrase);
+                return t.map((trozo, i) => {
+                    if (i % 2 === 0) return escaparHtml(trozo);
+                    const k = (i - 1) / 2;
+                    if (k === it.k) return '<span class="forat actual">?</span>';
+                    const ya = puestas.find(x => x.k === k);
+                    return ya ? `<span class="forat posat">${escaparHtml(ya.lletra.toLowerCase())}</span>` : '<span class="forat">&nbsp;</span>';
+                }).join('');
+            }
+
+            // Simulacre per avaluar: no se dice si está bien o mal (como en un examen). Al acabar el bloque
+            // ve las palabras bien escritas, para que no se quede con ninguna forma equivocada.
+            function responderGrafia(lletra) {
+                if (isEvaluating || !item || item.tipo !== 'grafia') return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
+                const ok = lletra === item.esperado;
+                registrar(item, lletra, ok, ms, { bloc: EXAMEN_CATALA[item.iBloc].color, escoltat: item.escoltat });
+                sesion.puestas.push({ iFrase: item.iFrase, k: item.k, lletra });
+                opFactorsEl.innerHTML = htmlFrase({ ...item, k: -1 });
+                setTimeout(siguienteItem, 450);
+            }
+
+            function mostrarRepas() {
+                const e = EXAMEN_CATALA[bloqueActual().bloc];
+                const llista = document.getElementById('repas-llista');
+                llista.className = `repas-llista bloc-${e.color}`;
+                llista.innerHTML = e.frases.map(f => '<li>' + trozosFrase(f).map((t, i) => i % 2 ? `<b>${escaparHtml(t)}</b>` : escaparHtml(t)).join('') + '</li>').join('');
+                showScreen('repas');
+            }
+
+            // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
+            function noHoSe() {
+                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia'].includes(item.tipo)) return;
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                if (item.tipo === 'grafia') {
+                    // En el simulacro, igual que el resto: sin corrección hasta el repaso del bloque
+                    registrar(item, null, false, ms, { no_lo_se: true, bloc: EXAMEN_CATALA[item.iBloc].color, escoltat: item.escoltat });
+                    sesion.puestas.push({ iFrase: item.iFrase, k: item.k, lletra: '?' });
+                    setTimeout(siguienteItem, 200);
+                    return;
+                }
                 registrar(item, null, false, ms, { no_lo_se: true });
                 const mates = item.tipo === 'vf' ? `${item.a} × ${item.b} = ${item.a * item.b}` : `${item.texto} = ${item.esperado}`;
                 mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', mates, 'Millor això que endevinar. Mira-la bé i seguim.', false);
@@ -2425,17 +2598,30 @@
                 PLAN.forEach((m, i) => {
                     const hecha = p.hechas[i];
                     const div = document.createElement('div');
-                    div.className = `plan-fila ${hecha ? 'hecha' : (i === p.hechas.length ? 'actual' : '')}`;
+                    const toca = i === p.hechas.length;
+                    div.className = `plan-fila ${hecha ? 'hecha' : (toca && !p.extra ? 'actual' : '')}`;
                     div.innerHTML = `
                         <div><strong>${i + 1}. ${m.titulo}</strong>
                         <div style="font-size:0.85rem; color:#64748b;">${textoMision(m).join(' · ')}</div></div>
-                        <div style="font-size:0.85rem; white-space:nowrap;">${hecha ? '✅ ' + hecha.fecha : (i === p.hechas.length ? '👉 Toca ahora' : '')}</div>`;
+                        <div style="font-size:0.85rem; white-space:nowrap;">${hecha ? '✅ ' + hecha.fecha : (toca ? (p.extra ? 'Después del extra' : '👉 Toca ahora') : '')}</div>`;
                     lista.appendChild(div);
                     sel.innerHTML += `<option value="${i}">${i + 1}. ${m.titulo}</option>`;
                 });
                 if (p.hechas.length >= PLAN.length) {
                     lista.innerHTML += `<p style="font-size:0.9rem; color:#64748b;">Plan de evaluación completado (${p.hechas.length} misiones). Mientras preparamos la siguiente fase: 20 multiplicaciones al día.</p>`;
                 }
+                MISIONES_EXTRA.forEach(m => {
+                    const hechas = (p.extras || []).filter(x => x.id === m.id);
+                    const puesta = p.extra === m.id;
+                    const div = document.createElement('div');
+                    div.className = `plan-fila ${puesta ? 'actual' : ''}`;
+                    div.innerHTML = `
+                        <div><strong>★ ${m.titulo}</strong>
+                        <div style="font-size:0.85rem; color:#64748b;">Extra, fuera del plan · ${m.bloques.length} bloques · sin corregir durante el bloque</div></div>
+                        <div style="font-size:0.85rem; white-space:nowrap;">${puesta ? '👉 Puesta para hoy' : (hechas.length ? '✅ ' + hechas.map(x => x.fecha).join(', ') : '')}</div>`;
+                    lista.appendChild(div);
+                    sel.innerHTML += `<option value="x${m.id}">★ ${m.titulo}</option>`;
+                });
                 sel.value = String(Math.min(p.hechas.length, PLAN.length - 1));
 
                 const pendientes = leerCola().length;
@@ -2826,7 +3012,7 @@
             // Presentación de cada bloque
             document.getElementById('btn-intro-vamos').addEventListener('click', empezarBloque);
             document.getElementById('btn-leer-intro').addEventListener('click', () => {
-                hablar(TIPOS[bloqueActual().tipo].instr);
+                hablar(infoBloque(bloqueActual()).instr);
             });
             document.getElementById('btn-intro-parar').addEventListener('click', pararPorHoy);
 
@@ -2881,6 +3067,18 @@
             });
 
             document.getElementById('btn-no-ho-se').addEventListener('click', noHoSe);
+
+            // Simulacre de l'examen de català
+            document.getElementById('grafia-botones').addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (btn && btn.dataset.lletra) responderGrafia(btn.dataset.lletra);
+            });
+            document.getElementById('btn-escoltar-frase').addEventListener('click', () => {
+                if (!item || item.tipo !== 'grafia') return;
+                item.escoltat++;
+                hablar(fraseCompleta(item.frase));
+            });
+            document.getElementById('btn-repas-seguim').addEventListener('click', finBloque);
 
             // Panel de papá (oral)
             oralPanel.addEventListener('click', (e) => {
@@ -2957,8 +3155,18 @@
 
             // Cambiar la misión actual (saltar o repetir)
             document.getElementById('btn-set-mision').addEventListener('click', () => {
-                const destino = parseInt(document.getElementById('sel-mision').value, 10);
+                const valor = document.getElementById('sel-mision').value;
                 const p = leerPlan();
+                if (valor.startsWith('x')) {
+                    // Misión extra: se hace la próxima vez (también hoy) y luego el plan sigue donde estaba
+                    p.extra = parseInt(valor.slice(1), 10);
+                    p.permitirOtra = hoy();
+                    guardarPlan(p);
+                    renderPlan();
+                    return;
+                }
+                const destino = parseInt(valor, 10);
+                delete p.extra;
                 if (destino < p.hechas.length) {
                     p.hechas = p.hechas.slice(0, destino);
                 } else {
@@ -2974,7 +3182,8 @@
 
             // Papá prueba la misión elegida tal como la verá ella, sin guardar nada
             document.getElementById('btn-probar').addEventListener('click', () => {
-                empezarPrueba(PLAN[parseInt(document.getElementById('sel-mision').value, 10)]);
+                const valor = document.getElementById('sel-mision').value;
+                empezarPrueba(valor.startsWith('x') ? MISIONES_EXTRA.find(m => m.id === parseInt(valor.slice(1), 10)) : PLAN[parseInt(valor, 10)]);
             });
 
             // Permitir otra misión el mismo día
