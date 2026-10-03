@@ -10,7 +10,7 @@ Aplicación web (PWA) para practicar cálculo mental con calma: tablas de multip
 - **Corrección amable:** si una respuesta está mal, se muestra la operación correcta, sin penalizaciones.
 - **Mazos equilibrados:** cada combinación del 2 al 9 sale una vez por vuelta, y nunca salen seguidas dos operaciones con el mismo resultado o los mismos números (para no arrastrar la respuesta anterior).
 - **"No ho sé" en vez de adivinar:** en multiplicaciones, sumas, restas y "Està bé o no?" se puede pulsar «No ho sé». Se enseña la respuesta sin sonido de error y se guarda aparte de los fallos (una respuesta inventada y errónea se queda grabada en la memoria).
-- **Photocards:** al acabar cada misión sale una carta para la colección. Es por haber acabado, nunca por los aciertos. Hay 36 idols en pixel art dibujadas por la propia app (6 idols × 6 caras, todas contentas). Un adulto puede añadir fotos en la Zona Papá; se guardan solo en el dispositivo (IndexedDB) y no se suben a ningún sitio.
+- **Photocards:** al acabar cada misión sale una carta para la colección. Es por haber acabado, nunca por los aciertos. Las cartas son las fotos que un adulto añade en la Zona Papá; se guardan solo en el dispositivo (IndexedDB) y no se suben a ningún sitio. En cuanto hay alguna foto, solo salen fotos. Mientras no hay ninguna, salen 36 idols en pixel art dibujadas por la propia app (6 idols × 6 caras, todas contentas). Las cartas tienen la proporción de una photocard de verdad (55 × 85 mm), y arriba de la app pone KATSEYE.
 - **Modo prueba para el adulto:** desde la Zona Papá («Probarla yo sin guardar nada») o abriendo la dirección con `?prova`, cualquier misión se ve exactamente igual, pero no se guarda ni se envía nada.
 
 ## Tipos de bloque

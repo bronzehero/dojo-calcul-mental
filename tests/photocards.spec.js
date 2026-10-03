@@ -1,6 +1,6 @@
-// Photocards: recompensa por acabar la misión (nunca por acertar). Hay 36 idols en pixel art
-// dibujadas por la app y, además, las fotos que pone papá en la Zona Papá, que se quedan
-// solo en el iPad: nunca se envían a ningún sitio.
+// Photocards: recompensa por acabar la misión (nunca por acertar). Salen las fotos que pone papá
+// en la Zona Papá, que se quedan solo en el iPad: nunca se envían a ningún sitio. Si todavía no
+// hay ninguna, salen 36 idols en pixel art dibujadas por la app (solo de reserva: a ella no le gustan).
 const {
     test, expect, URL_APP, simularSupabase, empezarEnMision, contestarBloqueNumerico, irAlUltimoBloque
 } = require('./ayudas');
@@ -50,7 +50,7 @@ test.describe('Photocards', () => {
         await expect(page.locator('#photocard-dins img.pixel')).toBeVisible();
         expect(await page.getAttribute('#photocard-dins img', 'src')).toMatch(/^data:image\/png/);
         await expect(page.locator('#photocard-etiqueta')).toHaveText('Photocard nova! ✦');
-        await expect(page.locator('#summary-gema')).toBeHidden();
+        await expect(page.locator('#summary-marca')).toBeHidden();
         const album = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_album')));
         expect(album).toHaveLength(1);
         expect(album[0].id).toMatch(/^idol-[0-5]-[0-5]$/);
@@ -74,7 +74,7 @@ test.describe('Photocards', () => {
         expect(anchos.every(a => a === 240)).toBe(true);
     });
 
-    test('con fotos de papá: entran en el sorteo; cuando ya lo tiene todo, repite sin decir "nova"; nada sale del iPad', async ({ page }) => {
+    test('con fotos de papá: solo salen sus fotos (las idols desaparecen); cuando ya lo tiene todo, repite sin decir "nova"; nada sale del iPad', async ({ page }) => {
         const peticiones = vigilarPeticiones(page);
         await simularSupabase(page);
         await conAlbum(page, TODAS_LAS_IDOLS);
@@ -89,20 +89,27 @@ test.describe('Photocards', () => {
         await expect(page.locator('#fotos-msg')).toContainText('1 no se han podido leer');
         await page.click('#btn-close-papa');
 
-        // Ya tiene las 36 idols: la única nueva es la foto de papá
+        // Con fotos de papá las idols dibujadas ya no cuentan: la colección solo tiene sus fotos
+        await expect(page.locator('#btn-album')).toBeHidden();
         await acabarMision(page);
         await expect(page.locator('#photocard-etiqueta')).toHaveText('Photocard nova! ✦');
         expect(await page.getAttribute('#photocard-dins img', 'src')).toMatch(/^data:image\/jpeg/);
+        await expect(page.locator('#photocard-dins img.pixel')).toHaveCount(0);
         await page.click('#btn-summary-home');
-        await expect(page.locator('#btn-album')).toHaveText('🃏 La meva col·lecció (37)');
+        await expect(page.locator('#btn-album')).toHaveText('🃏 La meva col·lecció (1)');
+        await page.click('#btn-album');
+        await expect(page.locator('#album-grid img')).toHaveCount(1);
+        await expect(page.locator('#album-grid img.pixel')).toHaveCount(0);
+        await page.click('#btn-album-tornar');
 
         // Ya lo tiene todo: sale una de las suyas, sin decir "nova"
         await irAlUltimoBloque(page, 2);
         await acabarMision(page);
         await expect(page.locator('#photocard-dins img')).toBeVisible();
+        expect(await page.getAttribute('#photocard-dins img', 'src')).toMatch(/^data:image\/jpeg/);
         await expect(page.locator('#photocard-etiqueta')).toHaveText('Photocard d\'avui ✦');
         await page.click('#btn-summary-home');
-        await expect(page.locator('#btn-album')).toHaveText('🃏 La meva col·lecció (37)');
+        await expect(page.locator('#btn-album')).toHaveText('🃏 La meva col·lecció (1)');
 
         // Ninguna petición lleva una imagen, y solo se habla con Supabase y las fuentes
         expect(peticiones.filter(p => p.cuerpo.includes('data:image'))).toEqual([]);
@@ -110,7 +117,7 @@ test.describe('Photocards', () => {
         for (const h of hosts) expect(h).toMatch(/supabase\.co$|fonts\.(googleapis|gstatic)\.com$/);
     });
 
-    test('papá puede borrar fotos y la colección se ajusta', async ({ page }) => {
+    test('papá puede borrar fotos; si no queda ninguna, vuelven las idols que ya tenía', async ({ page }) => {
         await simularSupabase(page);
         await conAlbum(page, TODAS_LAS_IDOLS);
         await empezarEnMision(page, 1, { enCurso: { id: 1, bloque: 1 } });
@@ -119,7 +126,7 @@ test.describe('Photocards', () => {
         await page.click('#btn-close-papa');
         await acabarMision(page);
         await page.click('#btn-summary-home');
-        await expect(page.locator('#btn-album')).toHaveText('🃏 La meva col·lecció (37)');
+        await expect(page.locator('#btn-album')).toHaveText('🃏 La meva col·lecció (1)');
 
         await page.click('#btn-open-papa');
         await expect(page.locator('#fotos-msg')).toContainText('le quedan 0 por descubrir');
@@ -130,6 +137,23 @@ test.describe('Photocards', () => {
         await expect(page.locator('#btn-album')).toHaveText('🃏 La meva col·lecció (36)');
     });
 
+    test('arriba pone KATSEYE (ya no hay ojo), también al acabar y en la colección', async ({ page }) => {
+        await simularSupabase(page);
+        await conAlbum(page, TODAS_LAS_IDOLS.slice(0, 1));
+        await empezarEnMision(page, 1, { enCurso: { id: 1, bloque: 1 } });
+        await page.goto(URL_APP);
+        await expect(page.locator('#screen-home .marca-k')).toHaveText('KATSEYE');
+        await expect(page.locator('#screen-home .marca-k')).toBeVisible();
+        await expect(page.locator('svg use[href="#gema"]')).toHaveCount(0);
+        await page.click('#btn-album');
+        await expect(page.locator('#screen-album .marca-k')).toBeVisible();
+        await page.click('#btn-album-tornar');
+        await acabarMision(page);
+        // Con photocard, la marca de arriba se esconde para dejarle sitio
+        await expect(page.locator('#photocard-zona')).toBeVisible();
+        await expect(page.locator('#summary-marca')).toBeHidden();
+    });
+
     test('si para a medias no hay photocard (sale al acabar la misión)', async ({ page }) => {
         await simularSupabase(page);
         await empezarEnMision(page, 1, { enCurso: { id: 1, bloque: 1 } });
@@ -138,7 +162,7 @@ test.describe('Photocards', () => {
         await page.click('#btn-intro-parar');
         await expect(page.locator('#summary-titulo')).toHaveText('Molt bona feina!');
         await expect(page.locator('#photocard-zona')).toBeHidden();
-        await expect(page.locator('#summary-gema')).toBeVisible();
+        await expect(page.locator('#summary-marca')).toBeVisible();
     });
 
     for (const [nombre, tam] of [['horizontal', { width: 1180, height: 820 }], ['vertical', { width: 820, height: 1180 }]]) {

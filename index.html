@@ -767,7 +767,7 @@
         }
 
         /* ==========================================
-           TEMA K-POP: rosa, negro y cromado, brillos y una gema de "ull de gat".
+           TEMA K-POP: rosa, negro y cromado, brillos y el nombre de KATSEYE arriba (lo pidió ella).
            Va al final para que sus colores manden sobre los de arriba.
            ========================================== */
         :root {
@@ -792,8 +792,20 @@
         .app-card { border: 2px solid #fff; box-shadow: 0 14px 44px rgba(255, 79, 163, 0.18); }
         h1, h2, .mision-titulo { color: var(--k-black); }
 
-        .gema { width: 92px; height: 92px; display: block; margin: 0 auto 2px auto; filter: drop-shadow(0 6px 12px rgba(255, 79, 163, 0.35)); }
-        .gema.petita { width: 64px; height: 64px; }
+        .marca-k {
+            display: block;
+            margin: 0 auto 6px auto;
+            font-weight: 800;
+            font-size: 2.3rem;
+            line-height: 1.1;
+            letter-spacing: 0.2em;
+            padding-left: 0.2em; /* compensa el espacio de la última letra */
+            color: var(--k-black);
+            text-shadow: 3px 3px 0 var(--k-pink);
+        }
+        .marca-k::before, .marca-k::after { content: '✦'; color: var(--k-pink); font-size: 0.55em; vertical-align: middle; margin: 0 0.35em; letter-spacing: 0; text-shadow: none; }
+        .marca-k.petita { font-size: 1.6rem; }
+        .marca-k[hidden] { display: none; }
 
         #btn-start-game {
             background: var(--k-black);
@@ -814,7 +826,7 @@
         .photocard {
             position: relative;
             width: 210px;
-            aspect-ratio: 5 / 7;
+            aspect-ratio: 55 / 85;
             margin: 0 auto;
             padding: 7px;
             border-radius: 20px;
@@ -875,7 +887,7 @@
             margin: 14px 0;
         }
         .album-carta {
-            aspect-ratio: 5 / 7;
+            aspect-ratio: 55 / 85;
             padding: 4px;
             border-radius: 14px;
             background: var(--k-holo);
@@ -903,27 +915,6 @@
 </head>
 <body>
 
-    <!-- Gema "ull de gat" (se reutiliza con <use href="#gema">) -->
-    <svg width="0" height="0" style="position: absolute;" aria-hidden="true">
-        <defs>
-            <linearGradient id="g-ull" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#ff9ad5"/><stop offset="0.5" stop-color="#c3a6ff"/><stop offset="1" stop-color="#9ad8ff"/>
-            </linearGradient>
-            <linearGradient id="g-iris" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stop-color="#ffe680"/><stop offset="0.5" stop-color="#9be7a8"/><stop offset="1" stop-color="#ffb347"/>
-            </linearGradient>
-            <symbol id="gema" viewBox="0 0 100 100">
-                <path d="M6 52 Q50 8 94 46 Q50 96 6 52 Z" fill="url(#g-ull)" stroke="#1d1b24" stroke-width="4" stroke-linejoin="round"/>
-                <path d="M93 46 L99 37" stroke="#1d1b24" stroke-width="4" stroke-linecap="round"/>
-                <circle cx="50" cy="51" r="19" fill="url(#g-iris)" stroke="#1d1b24" stroke-width="3"/>
-                <ellipse cx="50" cy="51" rx="4.5" ry="16" fill="#1d1b24"/>
-                <circle cx="56.5" cy="43.5" r="3.5" fill="#ffffff"/>
-                <path d="M82 10 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z" fill="#ff4fa3"/>
-                <path d="M14 22 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#c3a6ff"/>
-            </symbol>
-        </defs>
-    </svg>
-
     <!-- Tarjeta Principal de la App -->
     <div id="main-card" class="app-card">
         <!-- Modo prueba de papá: se ve igual que la misión real, pero no se guarda nada -->
@@ -931,7 +922,7 @@
 
         <!-- 1. Pantalla de bienvenida -->
         <div id="screen-home">
-            <svg class="gema" aria-hidden="true"><use href="#gema"/></svg>
+            <div class="marca-k">KATSEYE</div>
             <h1 id="saludo">Hola!</h1>
 
             <!-- Solo ve lo que toca hoy -->
@@ -1069,7 +1060,7 @@
                 <div id="photocard" class="photocard"><div id="photocard-dins" class="photocard-dins"></div></div>
                 <div id="photocard-etiqueta" class="photocard-etiqueta"></div>
             </div>
-            <svg id="summary-gema" class="gema petita" aria-hidden="true"><use href="#gema"/></svg>
+            <div id="summary-marca" class="marca-k petita">KATSEYE</div>
             <h1 id="summary-titulo">Missió complerta!</h1>
             <p id="summary-texto" style="font-size: 1.25rem; color: #475569;">
                 Cada dia el teu cervell es fa més fort. A descansar i a gaudir del dia!
@@ -1081,7 +1072,7 @@
 
         <!-- 3b. Col·lecció de photocards -->
         <div id="screen-album" style="display: none;">
-            <svg class="gema petita" aria-hidden="true"><use href="#gema"/></svg>
+            <div class="marca-k petita">KATSEYE</div>
             <h1>La meva col·lecció</h1>
             <p id="album-texto" style="color: #64748b;"></p>
             <div id="album-grid" class="album-grid"></div>
@@ -1121,7 +1112,8 @@
                 <button id="btn-guardar-nombre" class="btn-small-exit" style="background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe;">Guardar</button>
             </div>
             <div class="plan-fila" style="flex-wrap: wrap; text-align: left;">
-                <span>📸 <strong>Photocards</strong>: gana una al acabar cada misión (nunca depende de los aciertos). Las fotos se quedan solo en este iPad, no se suben a ningún sitio.</span>
+                <span>📸 <strong>Photocards</strong>: gana una al acabar cada misión (nunca depende de los aciertos). Las fotos se quedan solo en este iPad, no se suben a ningún sitio.
+                    En cuanto pongas alguna, <strong>solo saldrán tus fotos</strong> (las idols dibujadas desaparecen). Puedes elegir varias a la vez.</span>
                 <input id="inp-fotos" type="file" accept="image/*" multiple style="font-size: 0.95rem;">
                 <span id="fotos-msg" style="font-size: 0.9rem; color: #475569;"></span>
                 <div id="fotos-lista" class="fotos-lista"></div>
@@ -1692,7 +1684,7 @@
                 document.getElementById('summary-titulo').textContent = `Molt bona feina${conNombre()}!`;
                 document.getElementById('summary-texto').textContent = 'Ho deixem aquí per avui. Demà seguim! 🌸';
                 document.getElementById('photocard-zona').hidden = true;
-                document.getElementById('summary-gema').toggleAttribute('hidden', false);
+                document.getElementById('summary-marca').toggleAttribute('hidden', false);
                 showScreen('summary');
             }
 
@@ -2103,11 +2095,14 @@
 
             const azar = arr => arr[Math.floor(Math.random() * arr.length)];
 
-            // Todas las cartas posibles: las 36 idols y las fotos de papá. id: 'idol-<idol>-<cara>' o número de foto
+            // Cartas posibles: las fotos de papá. Si todavía no hay ninguna, las 36 idols en pixel art
+            // (a ella no le gustan: "no s'assemblen"; quedan solo como reserva).
+            // id: número de foto o 'idol-<idol>-<cara>'
             async function todasLasCartas() {
+                const fotos = await leerFotos();
+                if (fotos.length > 0) return fotos.map(f => ({ id: f.id, img: f.img }));
                 const cartas = [];
                 IDOLS.forEach((_, i) => CARAS.forEach((__, c) => cartas.push({ id: `idol-${i}-${c}`, idol: [i, c] })));
-                (await leerFotos()).forEach(f => cartas.push({ id: f.id, img: f.img }));
                 return cartas;
             }
 
@@ -2151,7 +2146,7 @@
                 marco.style.animation = 'none';
                 void marco.offsetWidth;
                 marco.style.animation = '';
-                document.getElementById('summary-gema').toggleAttribute('hidden', true);
+                document.getElementById('summary-marca').toggleAttribute('hidden', true);
                 zona.hidden = false;
                 renderBotonAlbum();
             }
