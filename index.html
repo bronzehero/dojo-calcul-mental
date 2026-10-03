@@ -608,9 +608,14 @@
         /* Simulacre de l'examen de català: una frase amb una lletra que falta */
         .op-frase .operation-text { font-size: 1.7rem; font-weight: 600; line-height: 1.7; letter-spacing: 0.02em; text-align: left; }
         .op-frase { border: 4px solid var(--bloc, #e9dcff); }
-        .forat { display: inline-block; min-width: 1.6em; padding: 0 0.2em; border-radius: 10px; background: var(--bloc, #e9dcff); text-align: center; font-weight: 800; }
-        .forat.actual { outline: 3px solid var(--bloc-fort, #6d3fd1); }
-        .forat.posat { background: #f1f5f9; color: #334155; }
+        /* La paraula on hi ha el forat va junta (mai es parteix) i, si és la que toca, ressaltada */
+        .paraula { white-space: nowrap; }
+        .paraula.actual { background: var(--bloc, #e9dcff); border-radius: 8px; padding: 0.05em 0.15em; }
+        /* El forat: una ratlla enganxada a les lletres, com al paper */
+        .paraula, .forat { letter-spacing: 0; }
+        .forat { display: inline-block; min-width: 0.7em; border-bottom: 3px solid #94a3b8; line-height: 1.05; text-align: center; }
+        .forat.actual { min-width: 0.55em; border-bottom-color: var(--bloc-fort, #6d3fd1); color: var(--bloc-fort, #6d3fd1); font-weight: 800; }
+        .forat.posat { min-width: 0; border-bottom-style: dotted; color: #475569; }
         .bloc-rosa { --bloc: #ffc2df; --bloc-fort: #d6247a; }
         .bloc-lila { --bloc: #d9c8ff; --bloc-fort: #6d3fd1; }
         .bloc-blau { --bloc: #bfe3ff; --bloc-fort: #1767b5; }
@@ -1344,23 +1349,23 @@
             // Simulacre de l'examen de català «Consonantisme» (examen real del 3/10/2026): les mateixes frases.
             // {lletra} = el forat; una lletra (o dígraf) per forat. Colors i ordre = els del full-resum de consonants.
             const EXAMEN_CATALA = [
-                { color: 'rosa', nombre: 'Bloc rosa', opciones: ['P', 'T', 'C', 'B', 'D', 'G', 'V'], ejemplo: 'su_ratllar ➜ B', frases: [
+                { color: 'rosa', opciones: ['P', 'T', 'C', 'B', 'D', 'G', 'V'], ejemplo: 'su_ratllar ➜ B', frases: [
                     "Marxa{v}a a casa perquè li feia mal l'a{b}domen de menjar ma{g}dalenes.",
                     "El meu pare, que és ò{p}tic, s'ha ca{p}ficat a treure's la carrera d'a{d}vocat.",
                     'Tinc un dubte, no sé si els mots ca{b}dal, ca{b}dell i ca{p}gròs són a{d}verbis o substantius.',
                     "No t'hi ca{p}fiquis! Superaràs tots els o{b}stacles."] },
-                { color: 'lila', nombre: 'Bloc lila', opciones: ['S', 'SS', 'C', 'Ç', 'Z', 'SC'], ejemplo: 'ca_a ➜ S', frases: [
+                { color: 'lila', opciones: ['S', 'SS', 'C', 'Ç', 'Z', 'SC'], ejemplo: 'ca_a ➜ S', frases: [
                     'Aquesta al{z}ina té més de {s}is-cents anys.',
                     "La discu{ss}ió va interrompre l'a{ss}emblea.",
                     'Han visitat el parc {z}oològic per anar a veure o{ss}os.',
                     "L'a{sc}ensor va pujar fins a la si{s}ena planta.",
                     'Van anar de la pla{ç}a del poble a comprar espelmes de {c}era.'] },
-                { color: 'blau', nombre: 'Bloc blau', opciones: ['G', 'J', 'TG', 'TJ', 'X', 'IX', 'TX', 'IG'], ejemplo: 'pe_ ➜ IX', frases: [
+                { color: 'blau', opciones: ['G', 'J', 'TG', 'TJ', 'X', 'IX', 'TX', 'IG'], ejemplo: 'pe_ ➜ IX', frases: [
                     'Aquesta tarda aniré a la pla{tj}a a fer busse{ig}.',
                     'El me{tg}e ha diagnosticat inflamació al fe{tg}e.',
                     'La fi{tx}a està dins el cala{ix}.',
                     '{X}avier, una broqueta de {x}istorra, an{x}ova i {x}oriço, quan puguis!'] },
-                { color: 'verd', nombre: 'Bloc verd', opciones: ['M', 'N', 'L·L', 'R', 'H'], ejemplo: 'te_ps ➜ M', frases: [
+                { color: 'verd', opciones: ['M', 'N', 'L·L', 'R', 'H'], ejemplo: 'te_ps ➜ M', frases: [
                     'La granota i el gripau són a{m}fibis.',
                     "T'haig de co{n}fessar que no m'agrada anar al gimnàs.",
                     'Avui he agafat el tra{m}via per anar a la feina.',
@@ -1646,13 +1651,15 @@
             // Datos que se enseñan de cada bloque (en el simulacro, cada bloque es un color del full)
             function infoBloque(b) {
                 if (b.tipo !== 'grafia') return TIPOS[b.tipo];
+                // Igual que l'enunciat de l'examen; el color només ajuda a trobar-ho al full
                 const e = EXAMEN_CATALA[b.bloc];
+                const titulo = `${b.bloc + 1}. Grafies ${e.opciones.join(', ')}`;
                 return {
                     ...TIPOS.grafia,
-                    nombre: `${e.nombre}: ${e.opciones.join(' · ')}`,
-                    instr: `Com a l'examen de català: tria la lletra que falta. Ara toca el ${e.nombre.toLowerCase()} del full de les consonants: mira'l sempre que vulguis. Si no ho saps, prem «No ho sé».`,
+                    nombre: titulo,
+                    instr: "Posa la grafia corresponent, com a l'examen. Tens el full de les consonants al costat: mira'l sempre que vulguis. Si no ho saps, prem «No ho sé».",
                     ejemplo: e.ejemplo,
-                    paso: () => `${e.nombre}: ${e.opciones.join(', ')}`
+                    paso: () => titulo
                 };
             }
 
@@ -1746,7 +1753,7 @@
                     sesion.fijos = null;
                 }
                 sesion.total = sesion.fijos ? sesion.fijos.length : b.n;
-                document.getElementById('game-badge-ciclo').textContent = b.tipo === 'grafia' ? EXAMEN_CATALA[b.bloc].nombre : infoBloque(b).nombre;
+                document.getElementById('game-badge-ciclo').textContent = b.tipo === 'grafia' ? `Exercici ${b.bloc + 1}` : infoBloque(b).nombre;
                 opCardEl.classList.remove('bloc-rosa', 'bloc-lila', 'bloc-blau', 'bloc-verd');
                 document.getElementById('grafia-panel').classList.remove('bloc-rosa', 'bloc-lila', 'bloc-blau', 'bloc-verd');
                 if (b.tipo === 'grafia') {
@@ -1979,13 +1986,32 @@
             function htmlFrase(it) {
                 const t = trozosFrase(it.frase);
                 const puestas = sesion.puestas.filter(x => x.iFrase === it.iFrase);
-                return t.map((trozo, i) => {
-                    if (i % 2 === 0) return escaparHtml(trozo);
-                    const k = (i - 1) / 2;
+                const forat = k => {
                     if (k === it.k) return '<span class="forat actual">?</span>';
                     const ya = puestas.find(x => x.k === k);
                     return ya ? `<span class="forat posat">${escaparHtml(ya.lletra.toLowerCase())}</span>` : '<span class="forat">&nbsp;</span>';
-                }).join('');
+                };
+                // Peces: lletres i forats formen paraules; la resta (espais, apòstrofs, signes) va a part
+                const peces = [];
+                t.forEach((trozo, i) => {
+                    if (i % 2) peces.push({ forat: (i - 1) / 2 });
+                    else for (const c of trozo) peces.push({ c });
+                });
+                const esLletra = x => x.forat !== undefined || /[\p{L}·]/u.test(x.c);
+                let html = '', paraula = [];
+                const tancar = () => {
+                    if (!paraula.length) return;
+                    const forats = paraula.filter(x => x.forat !== undefined).map(x => x.forat);
+                    const dins = paraula.map(x => x.forat !== undefined ? forat(x.forat) : escaparHtml(x.c)).join('');
+                    html += forats.length ? `<span class="paraula${forats.includes(it.k) ? ' actual' : ''}">${dins}</span>` : dins;
+                    paraula = [];
+                };
+                for (const x of peces) {
+                    if (esLletra(x)) paraula.push(x);
+                    else { tancar(); html += escaparHtml(x.c); }
+                }
+                tancar();
+                return html;
             }
 
             // Simulacre per avaluar: no se dice si está bien o mal (como en un examen). Al acabar el bloque

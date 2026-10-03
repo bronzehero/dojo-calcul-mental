@@ -56,6 +56,9 @@ test.describe('Simulacre: examen de català', () => {
         for (let iBloc = 0; iBloc < 4; iBloc++) {
             await expect(page.locator('#intro-texto')).toContainText('full de les consonants');
             await expect(page.locator('#intro-texto')).toContainText('No ho sé');
+            await expect(page.locator('#intro-texto')).toContainText('Posa la grafia corresponent');
+            await expect(page.locator('#intro-titulo')).toHaveText(new RegExp(`^${iBloc + 1}\\. Grafies `));
+            expect(await page.innerText('#screen-intro')).not.toMatch(/rosa|lila|blau|verd/i);
             await page.click('#btn-intro-vamos');
             const opciones = await page.$$eval('#grafia-botones button', bs => bs.map(b => b.textContent));
             for (const r of RESPUESTAS[iBloc]) expect(opciones).toContain(r);
@@ -113,7 +116,11 @@ test.describe('Simulacre: examen de català', () => {
         await page.click('#btn-intro-vamos');
         await expect(page.locator('#op-factors')).toContainText('Marxa');
         await expect(page.locator('#op-igual')).toBeHidden();
-        await expect(page.locator('#game-badge-ciclo')).toHaveText('Bloc rosa');
+        // La paraula que toca va sencera i junta, amb el forat a dins
+        await expect(page.locator('.paraula.actual')).toHaveText('Marxa?a');
+        expect(await page.$eval('.paraula.actual', e => getComputedStyle(e).whiteSpace)).toBe('nowrap');
+        await expect(page.locator('.paraula')).toHaveCount(3);
+        await expect(page.locator('#game-badge-ciclo')).toHaveText('Exercici 1');
         expect(await page.innerText('#screen-game')).not.toMatch(PROHIBIDO_EN_PANTALLA);
         await page.click('#btn-escoltar-frase');
         expect(await page.evaluate(() => window.__dicho)).toContain("Marxava a casa perquè li feia mal l'abdomen de menjar magdalenes.");
@@ -125,6 +132,8 @@ test.describe('Simulacre: examen de català', () => {
         await page.click('#btn-no-ho-se'); // l'a_domen
         await page.waitForTimeout(300);
         await expect(page.locator('.forat.posat')).toHaveText(['b', '?']);
+        await expect(page.locator('.paraula.actual')).toHaveText('ma?dalenes');
+        await expect(page.locator('.paraula').first()).toHaveText('Marxaba');
         await expect.poll(() => envios.filter(e => e.datos.modulo === 'grafia').length).toBe(2);
         const [f1, f2] = envios.filter(e => e.datos.modulo === 'grafia').map(e => e.datos);
         expect(f1).toMatchObject({ item: 'Marxava', esperado: 'V', respuesta: 'B', correcta: false });
@@ -145,7 +154,7 @@ test.describe('Simulacre: examen de català', () => {
         await page.click('#btn-summary-home');
         await expect(page.locator('#mision-pasos li.hecho')).toHaveCount(1);
         await page.click('#btn-start-game');
-        await expect(page.locator('#intro-titulo')).toContainText('Bloc lila');
+        await expect(page.locator('#intro-titulo')).toHaveText('2. Grafies S, SS, C, Ç, Z, SC');
     });
 
     test('papá lo puede probar sin guardar nada', async ({ page }) => {
@@ -157,11 +166,11 @@ test.describe('Simulacre: examen de català', () => {
         await page.selectOption('#sel-mision', 'x101');
         await page.click('#btn-probar');
         await expect(page.locator('#banner-prueba')).toBeVisible();
-        await expect(page.locator('#intro-titulo')).toContainText('Bloc rosa');
+        await expect(page.locator('#intro-titulo')).toHaveText('1. Grafies P, T, C, B, D, G, V');
         await page.click('#btn-intro-vamos');
         await contestarBloque(page, 0);
         await page.click('#btn-repas-seguim');
-        await expect(page.locator('#intro-titulo')).toContainText('Bloc lila');
+        await expect(page.locator('#intro-titulo')).toHaveText('2. Grafies S, SS, C, Ç, Z, SC');
         await page.click('#btn-intro-parar');
         await page.waitForTimeout(300);
         expect(envios).toEqual([]);
