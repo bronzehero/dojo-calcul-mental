@@ -272,6 +272,19 @@ test.describe('Orden de las operaciones', () => {
         expect(await contestarBloqueNumerico(page)).toBe(10);
         await expect(page.locator('#intro-titulo')).toHaveText('Sumes');
     });
+
+    // El 4/10 se quejó: «diu números petits però per a mi no ho són» (18 − 9 tiene dos cifras)
+    test('las restas no prometen que sean fáciles y animan a decir «No ho sé»', async ({ page }) => {
+        await simularSupabase(page);
+        await empezarEnMision(page, 4);
+        await page.goto(URL_APP);
+        await expect(page.locator('#mision-titulo')).toHaveText('Restes');
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toHaveText('Restes');
+        const texto = await page.locator('#intro-texto').innerText();
+        expect(texto).not.toMatch(/petit|fàcil(?!s i)/i);
+        expect(texto).toContain('No ho sé');
+    });
 });
 
 test.describe('Està bé o no?', () => {
