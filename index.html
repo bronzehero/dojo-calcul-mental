@@ -933,6 +933,8 @@
         /* Oral: marca de cifras al revés */
         .oral-btn.reves { width: 100%; margin-bottom: 10px; background: #fff; border: 2px dashed #c4b5fd; font-size: 1rem; }
         .oral-btn.reves[aria-pressed="true"] { background: #ede9fe; border-style: solid; color: #5b21b6; }
+        .oral-btn.seguir { width: 100%; background: #5b21b6; color: #fff; font-size: 1.3rem; }
+        .oral-btn.volver { width: 100%; margin-top: 12px; background: transparent; box-shadow: none; color: #7c6f95; font-size: 0.95rem; font-weight: 600; }
 
         @media (prefers-reduced-motion: reduce) {
             .photocard, .photocard::after { animation: none; }
@@ -1068,17 +1070,23 @@
                         </div>
                         <div id="oral-paso-2" hidden>
                             <div id="oral-dijo-box">
-                                <div class="oral-label">¿Qué ha dicho? (si lo sabes)</div>
+                                <div class="oral-label">¿Qué número ha dicho? (si lo sabes)</div>
                                 <input id="oral-dijo" class="oral-input" type="text" inputmode="numeric" autocomplete="off">
                             </div>
                             <button id="oral-reves" class="oral-btn reves" aria-pressed="false">🔄 Ha girado las cifras (p. ej. «setenta y dos» en vez de «veintisiete»), aunque luego lo corrija</button>
-                            <div class="oral-label">Pregúntale: ¿cómo lo has sabido?</div>
-                            <div class="oral-grid">
-                                <button class="oral-btn" data-estrategia="memoria">🧠 Lo sabía</button>
-                                <button class="oral-btn" data-estrategia="calculo">🔢 Lo ha calculado</button>
-                                <button class="oral-btn" data-estrategia="cancion">🎵 Canción</button>
-                                <button class="oral-btn" data-estrategia="otro">💡 Truco / otro</button>
+                            <!-- Si ha fallado: solo apuntar el número y seguir -->
+                            <button id="oral-seguir" class="oral-btn seguir">Seguir ➜</button>
+                            <!-- Si lo ha dicho bien: cómo lo ha sabido -->
+                            <div id="oral-como">
+                                <div class="oral-label">Pregúntale: ¿cómo lo has sabido?</div>
+                                <div class="oral-grid">
+                                    <button class="oral-btn" data-estrategia="memoria">🧠 Lo sabía</button>
+                                    <button class="oral-btn" data-estrategia="calculo">🔢 Lo ha calculado</button>
+                                    <button class="oral-btn" data-estrategia="cancion">🎵 Canción</button>
+                                    <button class="oral-btn" data-estrategia="otro">💡 Truco / otro</button>
+                                </div>
                             </div>
+                            <button id="oral-volver" class="oral-btn volver">↩ Me he equivocado de botón</button>
                         </div>
                     </div>
                 </div>
@@ -2058,20 +2066,37 @@
                 document.getElementById('oral-paso-1').hidden = true;
                 document.getElementById('oral-paso-2').hidden = false;
                 document.getElementById('oral-dijo-box').hidden = bien;
+                document.getElementById('oral-seguir').hidden = bien;
+                document.getElementById('oral-como').hidden = !bien;
+                if (!bien) document.getElementById('oral-dijo').focus();
+            }
+
+            // Papá ha pulsado Bien/Mal por error: volver a elegir
+            function volverOral() {
+                if (!oralRespuesta || isEvaluating) return;
+                oralRespuesta = null;
+                document.getElementById('oral-paso-1').hidden = false;
+                document.getElementById('oral-paso-2').hidden = true;
+                document.getElementById('oral-dijo').value = '';
+                document.getElementById('oral-reves').setAttribute('aria-pressed', 'false');
+            }
+
+            // Ha fallado: se apunta lo que ha dicho (si se sabe) y se sigue, sin preguntar cómo lo ha sabido
+            function responderOralMal() {
+                if (!oralRespuesta || oralRespuesta.ok || isEvaluating) return;
+                isEvaluating = true;
+                const dijo = document.getElementById('oral-dijo').value.trim();
+                const reves = document.getElementById('oral-reves').getAttribute('aria-pressed') === 'true';
+                registrar(item, dijo || null, false, oralRespuesta.ms, reves ? { reves } : {});
+                mostrarCorreccion('🌸 Fixa-t\'hi bé:', `${item.texto} = ${item.esperado}`, dijo ? `Has dit: ${dijo}` : '');
             }
 
             function responderEstrategia(estrategia) {
-                if (!oralRespuesta || isEvaluating) return;
+                if (!oralRespuesta || !oralRespuesta.ok || isEvaluating) return;
                 isEvaluating = true;
-                const dijo = document.getElementById('oral-dijo').value.trim();
-                const respuesta = oralRespuesta.ok ? item.esperado : (dijo || null);
                 const reves = document.getElementById('oral-reves').getAttribute('aria-pressed') === 'true';
-                registrar(item, respuesta, oralRespuesta.ok, oralRespuesta.ms, reves ? { estrategia, reves } : { estrategia });
-                if (oralRespuesta.ok) {
-                    celebrar();
-                } else {
-                    mostrarCorreccion('🌸 Fixa-t\'hi bé:', `${item.texto} = ${item.esperado}`, dijo ? `Has dit: ${dijo}` : '');
-                }
+                registrar(item, item.esperado, true, oralRespuesta.ms, reves ? { estrategia, reves } : { estrategia });
+                celebrar();
             }
 
             // ==========================================
@@ -3114,8 +3139,14 @@
                     btn.setAttribute('aria-pressed', btn.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
                     return;
                 }
+                if (btn.id === 'oral-volver') return volverOral();
+                if (btn.id === 'oral-seguir') return responderOralMal();
                 if (btn.dataset.oral) responderOral(btn.dataset.oral === 'bien');
                 if (btn.dataset.estrategia) responderEstrategia(btn.dataset.estrategia);
+            });
+
+            document.getElementById('oral-dijo').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') responderOralMal();
             });
 
             // Teclado físico

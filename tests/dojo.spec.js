@@ -327,22 +327,38 @@ test.describe('Oral con papá', () => {
         await expect(page.locator('#oral-panel')).toBeVisible();
         for (let i = 0; i < 20; i++) {
             const bien = i % 5 !== 0;
+            // En la 10, papá se equivoca de botón: pulsa Bien, vuelve atrás y pulsa Mal
+            if (i === 10) {
+                await page.click('#oral-panel [data-oral="bien"]');
+                await page.click('#oral-volver');
+                await expect(page.locator('#oral-paso-1')).toBeVisible();
+            }
             await page.click(`#oral-panel [data-oral="${bien ? 'bien' : 'mal'}"]`);
-            if (!bien) await page.fill('#oral-dijo', '24');
+            // Si ha fallado no se pregunta cómo lo ha sabido: solo el número y «Seguir»
+            await expect(page.locator('#oral-como')).toBeVisible({ visible: bien });
+            await expect(page.locator('#oral-seguir')).toBeVisible({ visible: !bien });
+            await expect(page.locator('#oral-dijo')).toBeVisible({ visible: !bien });
             // Cifras dichas al revés: se marca en las ítems 1 y 5; en la 3 se marca y se desmarca
             await expect(page.locator('#oral-reves')).toHaveAttribute('aria-pressed', 'false');
             if (i === 1 || i === 5) await page.click('#oral-reves');
             if (i === 3) { await page.click('#oral-reves'); await page.click('#oral-reves'); }
-            await page.click(`#oral-panel [data-estrategia="${bien ? 'memoria' : 'calculo'}"]`);
-            if (!bien) await page.click('#btn-correction-continue');
-            else await page.waitForTimeout(850);
+            if (bien) {
+                await page.click('#oral-panel [data-estrategia="memoria"]');
+                await page.waitForTimeout(850);
+            } else {
+                if (i === 10) await page.press('#oral-dijo', 'Enter'); // sin número: no sabe qué ha dicho
+                else { await page.fill('#oral-dijo', '24'); await page.click('#oral-seguir'); }
+                await expect(page.locator('#correction-math-text')).toBeVisible();
+                await page.click('#btn-correction-continue');
+            }
         }
         await expect(page.locator('#summary-titulo')).toHaveText('Missió complerta!');
         await expect.poll(() => envios.filter(e => e.datos.modulo === 'oral').length).toBe(20);
         const orales = envios.filter(e => e.datos.modulo === 'oral');
         const malas = orales.filter(e => !e.datos.correcta);
         expect(malas).toHaveLength(4);
-        expect(malas.every(e => e.datos.respuesta === '24' && e.datos.detalle.estrategia === 'calculo')).toBe(true);
+        expect(malas.map(e => e.datos.respuesta).sort()).toEqual(['24', '24', '24', null].sort());
+        expect(malas.every(e => !('estrategia' in e.datos.detalle))).toBe(true);
         expect(orales.filter(e => e.datos.correcta).every(e => e.datos.detalle.estrategia === 'memoria')).toBe(true);
         expect(new Set(orales.map(e => e.datos.item.split('x').sort().join('x'))).size).toBe(20);
         const alReves = orales.filter(e => e.datos.detalle.reves === true);
