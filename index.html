@@ -1329,9 +1329,9 @@
                 { id: 3, titulo: 'Està bé o no?',    bloques: [{ tipo: 'vf' }] },
                 { id: 4, titulo: 'Restes',           bloques: [{ tipo: 'resta', n: 32 }, { tipo: 'multi', n: 10 }] },
                 { id: 5, titulo: 'Amb el papa',      bloques: [{ tipo: 'oral' }] },
-                // 6 y 7: las multiplicaciones van primero, para comparar con la 2 y la 4 (¿le cuesta más cambiar de operación?)
-                { id: 6, titulo: 'Taules i sumes',   bloques: [{ tipo: 'multi', n: 10 }, { tipo: 'suma', n: 32 }] },
-                { id: 7, titulo: 'Taules i restes',  bloques: [{ tipo: 'multi', n: 10 }, { tipo: 'resta', n: 32 }] }
+                // 6: las multiplicaciones van primero, para comparar con la 2 (¿le cuesta más cambiar de operación?).
+                // La 7 (taules i restes) se quitó: las restas que pasan la decena ya se sabe que no salen (misión 4).
+                { id: 6, titulo: 'Taules i sumes',   bloques: [{ tipo: 'multi', n: 10 }, { tipo: 'suma', n: 32 }] }
             ];
             const MISION_POR_DEFECTO = { id: 0, titulo: 'Taules', bloques: [{ tipo: 'multi', n: 20 }] };
 

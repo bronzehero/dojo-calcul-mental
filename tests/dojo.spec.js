@@ -261,7 +261,14 @@ test.describe('Orden de las operaciones', () => {
         }
     });
 
-    test('en las misiones 6 y 7 las multiplicaciones van primero', async ({ page }) => {
+    test('después de la misión 6 ya no hay más del plan: sale la de siempre (Taules)', async ({ page }) => {
+        await simularSupabase(page);
+        await empezarEnMision(page, 7);
+        await page.goto(URL_APP);
+        await expect(page.locator('#mision-titulo')).toHaveText('Taules');
+    });
+
+    test('en la misión 6 las multiplicaciones van primero', async ({ page }) => {
         await simularSupabase(page);
         await empezarEnMision(page, 6);
         await page.goto(URL_APP);
