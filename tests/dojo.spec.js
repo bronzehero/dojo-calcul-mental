@@ -1,7 +1,7 @@
 // Pruebas del Dojo: todo lo que la alumna puede hacer en la app, y lo que se guarda.
 const {
     test, expect, URL_APP, simularSupabase, empezarEnMision, respuestaCorrecta,
-    teclear, contestarBloqueNumerico, leerCola
+    teclear, contestarBloqueNumerico, leerCola, irAlUltimoBloque
 } = require('./ayudas');
 
 // Palabras que delatarían un cronómetro o un contador de fallos (bloquean a la alumna)
@@ -244,28 +244,28 @@ test.describe('Orden de las operaciones', () => {
 
     test('multiplicaciones: tampoco salen seguidas 3×8 y 8×3, ni dos que den lo mismo', async ({ page }) => {
         await simularSupabase(page);
-        await empezarEnMision(page, 8); // todas hechas: misión de siempre, 20 multiplicaciones
         await page.addInitScript(() => {
             if (sessionStorage.getItem('mazo-multi')) return;
             sessionStorage.setItem('mazo-multi', '1');
             localStorage.setItem('dojo_deck', JSON.stringify({ ciclo: 1, totalCartas: 64, mazo: [{ a: 3, b: 8 }, { a: 8, b: 3 }, { a: 4, b: 6 }, { a: 2, b: 2 }, { a: 5, b: 5 }, { a: 7, b: 7 }] }));
         });
         await page.goto(URL_APP);
+        await irAlUltimoBloque(page, 1); // las 10 multiplicaciones de la misión 1
         await page.click('#btn-start-game');
         await page.click('#btn-intro-vamos');
         const vistos = [];
-        expect(await contestarBloqueNumerico(page, [], vistos)).toBe(20);
+        expect(await contestarBloqueNumerico(page, [], vistos)).toBe(10);
         expect(vistos.slice(0, 2)).toEqual(['3 × 8', '2 × 2']);
         for (let i = 1; i < vistos.length; i++) {
             expect(parecidas(vistos[i - 1], vistos[i]), `${vistos[i - 1]} y luego ${vistos[i]}`).toBe(false);
         }
     });
 
-    test('después de la misión 6 ya no hay más del plan: sale la de siempre (Taules)', async ({ page }) => {
+    test('después de la misión 6 empieza la fase 1: sale el entrenamiento', async ({ page }) => {
         await simularSupabase(page);
         await empezarEnMision(page, 7);
         await page.goto(URL_APP);
-        await expect(page.locator('#mision-titulo')).toHaveText('Taules');
+        await expect(page.locator('#mision-titulo')).toHaveText('Entrenament');
     });
 
     test('en la misión 6 las multiplicaciones van primero', async ({ page }) => {

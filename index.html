@@ -939,6 +939,13 @@
         @media (prefers-reduced-motion: reduce) {
             .photocard, .photocard::after { animation: none; }
         }
+
+        /* Fase 1: «Passar pel 10» con la recta numérica */
+        .pas10-panel { background: #fff; border: 3px solid #e0e7ff; border-radius: 20px; padding: 10px 12px 12px; margin: 0 0 14px 0; }
+        .pas10-panel svg { width: 100%; height: auto; display: block; }
+        .pas10-pregunta { font-size: 1.7rem; font-weight: 800; color: #5b21b6; margin-top: 4px; }
+        .btn-pista { width: 100%; margin-top: 12px; padding: 10px; border: 2px solid #fde68a; border-radius: 16px; background: #fffbeb; color: #92400e; font-family: var(--font-main); font-size: 1.15rem; font-weight: 700; cursor: pointer; }
+        .correction-pista { margin: 6px 0 0 0; color: #5b21b6; font-size: 1.1rem; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -1015,6 +1022,11 @@
                         </div>
                         <div id="op-feedback" style="min-height: 28px;"></div>
                     </div>
+                    <!-- Passar pel 10: la recta con los dos saltos (de 8 a 10, de 10 a 13) -->
+                    <div id="pas10-panel" class="pas10-panel" hidden>
+                        <svg id="pas10-recta" viewBox="0 0 420 130" role="img" aria-label="Recta numèrica"></svg>
+                        <div id="pas10-pregunta" class="pas10-pregunta"></div>
+                    </div>
                 </div>
 
                 <div class="game-right-col">
@@ -1023,6 +1035,7 @@
                         <h3 id="correction-title">🌸 Gairebé! Fixa-t'hi bé:</h3>
                         <div id="correction-math-text" class="correction-math">7 × 8 = 56</div>
                         <p id="correction-user-response" style="margin: 4px 0; color: #64748b; font-size: 1.05rem;"></p>
+                        <p id="correction-pista" class="correction-pista" hidden></p>
                         <button id="btn-correction-continue" class="btn-action" style="background: var(--c-mint); margin: 10px 0 0 0; padding: 12px;">
                             Entesos, seguim! ➜
                         </button>
@@ -1058,6 +1071,7 @@
 
                     <!-- Mejor decir "no ho sé" que adivinar: una respuesta inventada y errónea se queda grabada -->
                     <button id="btn-no-ho-se" class="btn-no-ho-se" hidden>🤷 No ho sé</button>
+                    <button id="btn-pista" class="btn-pista" hidden>💡 Pista</button>
 
                     <!-- Panel de papá (modo oral) -->
                     <div id="oral-panel" class="oral-panel" hidden>
@@ -1333,7 +1347,51 @@
                 // La 7 (taules i restes) se quitó: las restas que pasan la decena ya se sabe que no salen (misión 4).
                 { id: 6, titulo: 'Taules i sumes',   bloques: [{ tipo: 'multi', n: 10 }, { tipo: 'suma', n: 32 }] }
             ];
-            const MISION_POR_DEFECTO = { id: 0, titulo: 'Taules', bloques: [{ tipo: 'multi', n: 20 }] };
+
+            // ==========================================
+            // FASE 1 · ENTRENAMIENTO
+            // Después del plan, cada día: A «Passar pel 10» + B «La de la setmana».
+            // Los domingos (cuando ya ha entrenado algún día): misión de repaso para medir.
+            // ==========================================
+            const ENTRENAMENT = { id: 10, titulo: 'Entrenament', bloques: [{ tipo: 'pas10' }, { tipo: 'setmana' }] };
+            const CONTROL = { id: 11, titulo: 'Missió de repàs', bloques: [{ tipo: 'control' }] };
+
+            // B · Una multiplicación cada vez, con su truco. «imanes»: resultados equivocados que se le cruzan
+            // con esta (no salen en el mismo bloque). Pasa a la siguiente con 3 días seguidos sin dudar.
+            const SETMANA = [
+                { a: 6, b: 8, pista: '5 vuits són 40, i un vuit més: 48.', diccio: 'sis per vuit, quaranta-vuit', imanes: [24, 42, 54, 64] },
+                { a: 7, b: 8, pista: '5, 6, 7, 8: 56 = 7 × 8.', diccio: 'set per vuit, cinquanta-sis', imanes: [48, 54, 64] },
+                { a: 9, b: 9, pista: 'Taula del 9: la desena és un menys (8) i les xifres sumen 9 (8 + 1): 81.', diccio: 'nou per nou, vuitanta-u', imanes: [18, 64, 72] },
+                { a: 3, b: 7, pista: '7 + 7 + 7: 14, 21.', diccio: 'tres per set, vint-i-u', imanes: [12, 24] },
+                { a: 6, b: 9, pista: 'Taula del 9: la desena és un menys (5) i les xifres sumen 9 (5 + 4): 54.', diccio: 'sis per nou, cinquanta-quatre', imanes: [27, 45, 48, 56] },
+                { a: 3, b: 6, pista: '6 + 6 + 6: 12, 18.', diccio: 'tres per sis, divuit', imanes: [24, 81] }
+            ];
+            // Las que todavía no salen solas: no se usan de relleno
+            const ATASCADAS = ['6x8', '7x8', '9x9', '3x6', '3x7', '6x9', '5x7'];
+            const SETMANA_N = 12, SETMANA_OBJETIVO_EN = [1, 4, 7, 10];
+            const SETMANA_MAX_MS = 4000, SETMANA_DIAS = 3;
+
+            // A · Restas que cruzan la decena: «resto sumando» (13 − 8: de 8 a 10, 2; de 10 a 13, 3; total, 5).
+            // La ayuda se va retirando: recta guiada → botón «Pista» → sin ayuda. Sube con 2 días buenos.
+            const PAS10_NIVELES = [
+                null,
+                { ayuda: 'recta', restan: [9] },
+                { ayuda: 'recta', restan: [9, 8] },
+                { ayuda: 'pista', restan: [9, 8] },
+                { ayuda: 'pista', restan: [9, 8, 7, 6] },
+                { ayuda: 'cap', restan: [9, 8, 7, 6, 5] }
+            ];
+            // 4 nuevas entre 6 que ya sabe (las piezas del truco: hacer 10, 10 + n, 10 − n)
+            const PAS10_ORDEN = ['c', 'n', 'c', 'c', 'n', 'c', 'n', 'c', 'c', 'n'];
+
+            // Misión de repaso: siempre las mismas, sin ayudas, para comparar semana a semana
+            const CONTROL_ITEMS = [
+                ['-', 11, 9], ['-', 13, 8], ['-', 12, 7], ['-', 15, 9], ['-', 14, 6], ['-', 16, 8], ['-', 13, 5], ['-', 17, 9],
+                ['+', 8, 5], ['+', 9, 7], ['+', 6, 8], ['+', 7, 5], ['+', 9, 4], ['+', 8, 7],
+                ['x', 6, 8], ['x', 7, 8], ['x', 9, 9], ['x', 3, 6], ['x', 3, 7], ['x', 6, 9], ['x', 5, 7],
+                // parejas de cifras giradas: 24/42, 27/72, 45/54, 36/63
+                ['x', 3, 8], ['x', 6, 7], ['x', 3, 9], ['x', 8, 9], ['x', 5, 9], ['x', 4, 9], ['x', 7, 9]
+            ];
 
             const TIPOS = {
                 teclear: { nombre: 'Escriure números', icono: '⌨️', instr: 'Escriu el número que veus. No cal pensar, només copiar-lo!', ejemplo: 'Veus 47 ➜ escrius 47', paso: n => `Escriure ${n} números` },
@@ -1342,6 +1400,8 @@
                 resta:   { nombre: 'Restes', icono: '➖', instr: "Restes. N'hi ha de fàcils i de més difícils. Al teu ritme. Si no ho saps, prem «No ho sé»: així sabem què practicar.", ejemplo: '14 − 6 ➜ escrius 8', paso: n => `${n} restes` },
                 vf:      { nombre: 'Està bé o no?', icono: '🤔', instr: 'Veuràs una multiplicació ja feta. Tu dius si està bé o malament. Si no ho saps, prem «No ho sé».', ejemplo: '2 × 3 = 6 ➜ ✔ Està bé', paso: () => 'Dir si està bé o malament' },
                 grafia:  { nombre: 'Examen de català', icono: '📝', instr: '', ejemplo: '', paso: () => 'Lletres' },
+                pas10:   { nombre: 'Passar pel 10', icono: '🔟', instr: "Restes que passen pel 10. Truc: primer salta fins al 10, després fins al número gran, i suma els dos salts. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ de 8 a 10, 2 · de 10 a 13, 3 · en total, 5', paso: () => 'Passar pel 10' },
+                control: { nombre: 'Missió de repàs', icono: '🧭', instr: "Una barreja de restes, sumes i multiplicacions, sense ajudes. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ escrius 5', paso: () => 'Restes, sumes i multiplicacions' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
 
@@ -1404,7 +1464,8 @@
 
             // Misiones fuera del plan: papá las pone para un día concreto desde la Zona Papá
             const MISIONES_EXTRA = [
-                { id: 101, titulo: "Simulacre: examen de català", bloques: EXAMEN_CATALA.map((_, i) => ({ tipo: 'grafia', bloc: i })) }
+                { id: 101, titulo: "Simulacre: examen de català", bloques: EXAMEN_CATALA.map((_, i) => ({ tipo: 'grafia', bloc: i })) },
+                CONTROL
             ];
 
             // Oral con papá: atascadas, lentas y controles rápidos (según datos a 29/09/2026)
@@ -1646,7 +1707,34 @@
             function misionActual() {
                 const p = leerPlan();
                 const extra = p.extra && MISIONES_EXTRA.find(m => m.id === p.extra);
-                return extra || PLAN[p.hechas.length] || MISION_POR_DEFECTO;
+                if (extra) return extra;
+                if (PLAN[p.hechas.length]) return PLAN[p.hechas.length];
+                // Domingo: repaso para medir, si ya ha entrenado algún día y no lo ha hecho hoy
+                const yaEntrena = p.hechas.some(h => h.id === ENTRENAMENT.id);
+                const repasHoy = (p.extras || []).some(x => x.id === CONTROL.id && x.fecha === hoy());
+                if (new Date().getDay() === 0 && yaEntrena && !repasHoy) return CONTROL;
+                return ENTRENAMENT;
+            }
+
+            // Estado de la fase 1 (solo en el iPad; una copia va a eventos al acabar cada misión)
+            function leerFase1() {
+                const base = { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 1, buenos: [] } };
+                try {
+                    const f = JSON.parse(localStorage.getItem('dojo_fase1'));
+                    if (f && f.setmana && f.pas10) return { setmana: { ...base.setmana, ...f.setmana }, pas10: { ...base.pas10, ...f.pas10 } };
+                } catch (e) {}
+                return base;
+            }
+            function guardarFase1(f) {
+                try { localStorage.setItem('dojo_fase1', JSON.stringify(f)); } catch (e) {}
+            }
+            const fetSetmana = () => SETMANA[Math.min(leerFase1().setmana.idx, SETMANA.length - 1)];
+            const nivelPas10 = () => PAS10_NIVELES[Math.min(Math.max(leerFase1().pas10.nivel, 1), PAS10_NIVELES.length - 1)];
+
+            // Cifras giradas: 42 en vez de 24 (solo resultados de dos cifras distintas)
+            function esGirada(esperado, respuesta) {
+                const e = String(esperado), r = String(respuesta);
+                return e.length === 2 && e[0] !== e[1] && r === e[1] + e[0];
             }
 
             function misionHechaHoy() {
@@ -1658,6 +1746,16 @@
 
             // Datos que se enseñan de cada bloque (en el simulacro, cada bloque es un color del full)
             function infoBloque(b) {
+                if (b.tipo === 'setmana') {
+                    const f = fetSetmana();
+                    return {
+                        nombre: 'La de la setmana', icono: '⭐',
+                        instr: `La d'aquesta setmana: ${f.a} × ${f.b} = ${f.a * f.b}. Truc: ${f.pista} Sortirà unes quantes vegades, barrejada amb altres que ja saps.`,
+                        voz: `La d'aquesta setmana: ${f.diccio}. Truc: ${f.pista}`,
+                        ejemplo: `${f.a} × ${f.b} = ${f.a * f.b}`,
+                        paso: () => `La de la setmana: ${f.a} × ${f.b}`
+                    };
+                }
                 if (b.tipo !== 'grafia') return TIPOS[b.tipo];
                 // Igual que l'enunciat de l'examen; el color només ajuda a trobar-ho al full
                 const e = EXAMEN_CATALA[b.bloc];
@@ -1744,7 +1842,7 @@
                 document.getElementById('intro-texto').textContent = t.instr;
                 document.getElementById('intro-ejemplo').textContent = t.ejemplo;
                 showScreen('intro');
-                hablar(t.instr);
+                hablar(t.voz || t.instr);
             }
 
             function empezarBloque() {
@@ -1757,6 +1855,14 @@
                     sesion.puestas = [];
                 } else if (b.tipo === 'oral') {
                     sesion.fijos = shuffle(ORAL_ITEMS).map(([a, b2]) => Math.random() < 0.5 ? [a, b2] : [b2, a]);
+                } else if (b.tipo === 'pas10') {
+                    sesion.fijos = itemsPas10();
+                    sesion.pas10 = [];
+                } else if (b.tipo === 'setmana') {
+                    sesion.fijos = itemsSetmana();
+                    sesion.objetivo = [];
+                } else if (b.tipo === 'control') {
+                    sesion.fijos = itemsControl();
                 } else {
                     sesion.fijos = null;
                 }
@@ -1808,11 +1914,39 @@
                 if (p.enCurso && p.enCurso.id === sesion.mision.id) delete p.enCurso;
                 guardarPlan(p);
                 guardarEvento({ modulo: 'mision', item: String(sesion.mision.id), detalle: { titulo: sesion.mision.titulo } });
+                if (sesion.mision.id === ENTRENAMENT.id) actualizarFase1();
                 document.getElementById('summary-titulo').textContent = `Missió complerta${conNombre()}!`;
                 document.getElementById('summary-texto').textContent = 'Cada dia el teu cervell es fa més fort. A descansar i a gaudir del dia!';
                 sesion = null;
                 showScreen('summary');
                 mostrarPhotocard();
+            }
+
+            // Al acabar el entrenamiento: ¿la de la semana ha salido sin dudar? ¿Sube el nivel de «Passar pel 10»?
+            function actualizarFase1() {
+                const f = leerFase1();
+                const antes = JSON.stringify(f);
+                const obj = sesion.objetivo || [];
+                if (obj.length) {
+                    const sinDudar = obj.every(r => r.ok && r.ms <= SETMANA_MAX_MS && !r.rectifica);
+                    if (!sinDudar) f.setmana.dias = [];
+                    else if (!f.setmana.dias.includes(hoy())) f.setmana.dias.push(hoy());
+                    if (f.setmana.dias.length >= SETMANA_DIAS) {
+                        const fet = SETMANA[Math.min(f.setmana.idx, SETMANA.length - 1)];
+                        f.setmana.dominadas.push({ fet: `${fet.a}x${fet.b}`, fecha: hoy() });
+                        f.setmana.dias = [];
+                        if (f.setmana.idx < SETMANA.length - 1) f.setmana.idx++;
+                    }
+                }
+                const nous = sesion.pas10 || [];
+                if (nous.length) {
+                    const bien = nous.filter(Boolean).length / nous.length;
+                    if (bien >= 0.75) { if (!f.pas10.buenos.includes(hoy())) f.pas10.buenos.push(hoy()); }
+                    else if (bien < 0.5) f.pas10.buenos = [];
+                    if (f.pas10.buenos.length >= 2 && f.pas10.nivel < PAS10_NIVELES.length - 1) { f.pas10.nivel++; f.pas10.buenos = []; }
+                }
+                guardarFase1(f);
+                guardarEvento({ modulo: 'fase1', item: 'estado', detalle: { antes: JSON.parse(antes), despues: f } });
             }
 
             function pararPorHoy() {
@@ -1823,6 +1957,62 @@
                 document.getElementById('photocard-zona').hidden = true;
                 document.getElementById('summary-marca').toggleAttribute('hidden', false);
                 showScreen('summary');
+            }
+
+            // A · 10 ítems: 4 restas que cruzan la decena (según el nivel) y 6 piezas del truco que ya sabe
+            function itemsPas10() {
+                const niv = nivelPas10();
+                const nuevas = [];
+                niv.restan.forEach(b => { for (let a = 11; a <= b + 9; a++) nuevas.push([a, b]); });
+                const elegidas = shuffle(nuevas).slice(0, 4);
+                const r = n => 1 + Math.floor(Math.random() * n);
+                const conocidas = shuffle([
+                    (() => { const x = r(8) + 1; return { op: '+', a: x, b: 10 - x }; })(),
+                    (() => { const x = r(8) + 1; return { op: '+', a: x, b: 10 - x }; })(),
+                    (() => ({ op: '+', a: 10, b: r(9) }))(),
+                    (() => ({ op: '+', a: 10, b: r(9) }))(),
+                    (() => ({ op: '-', a: 10, b: r(8) + 1 }))(),
+                    (() => ({ op: '-', a: 10, b: r(8) + 1 }))()
+                ]);
+                let iN = 0, iC = 0;
+                return PAS10_ORDEN.map(t => {
+                    if (t === 'n') { const [a, b] = elegidas[iN++ % elegidas.length]; return { clase: 'nou', op: '-', a, b, ayuda: niv.ayuda }; }
+                    return { clase: 'conegut', ...conocidas[iC++] };
+                });
+            }
+
+            // B · 12 multiplicaciones: la de la semana 4 veces (en los dos órdenes), entre otras que ya sabe
+            function itemsSetmana() {
+                const f = fetSetmana();
+                const relleno = paresDel2al9().filter(c => {
+                    const clave = [c.a, c.b].sort().join('x');
+                    const res = c.a * c.b;
+                    return !ATASCADAS.includes(clave) && !f.imanes.includes(res) && res !== f.a * f.b && !esGirada(f.a * f.b, res);
+                });
+                for (let intento = 0; intento < 50; intento++) {
+                    const otras = shuffle(relleno);
+                    const lista = [];
+                    let k = 0;
+                    for (let i = 0; i < SETMANA_N; i++) {
+                        if (SETMANA_OBJETIVO_EN.includes(i)) {
+                            const al = SETMANA_OBJETIVO_EN.indexOf(i) % 2 === 1;
+                            lista.push({ a: al ? f.b : f.a, b: al ? f.a : f.b, objetivo: true });
+                        } else lista.push({ ...otras[k++], objetivo: false });
+                    }
+                    if (lista.every((c, i) => i === 0 || !sePareceA('multi', c, lista[i - 1]))) return lista;
+                }
+                return SETMANA_OBJETIVO_EN.map(() => ({ a: f.a, b: f.b, objetivo: true }));
+            }
+
+            // Repaso: las mismas cada semana, mezcladas sin dos seguidas que se parezcan
+            function itemsControl() {
+                const res = c => c[0] === 'x' ? c[1] * c[2] : c[0] === '+' ? c[1] + c[2] : c[1] - c[2];
+                const parecidas = (x, y) => res(x) === res(y) || esGirada(res(x), res(y));
+                for (let intento = 0; intento < 100; intento++) {
+                    const l = shuffle(CONTROL_ITEMS);
+                    if (l.every((c, i) => i === 0 || !parecidas(c, l[i - 1]))) return l;
+                }
+                return CONTROL_ITEMS;
             }
 
             function crearItem() {
@@ -1848,6 +2038,33 @@
                     const g = sesion.fijos[sesion.hechos];
                     return { tipo, ...g, texto: g.palabra, clave: g.palabra, escoltat: 0 };
                 }
+                if (tipo === 'pas10') {
+                    const x = sesion.fijos[sesion.hechos];
+                    const sig = x.op === '+' ? '+' : '−';
+                    const it = { tipo, clase: x.clase, a: x.a, b: x.b, texto: `${x.a} ${sig} ${x.b}`, clave: `${x.a}${x.op}${x.b}`,
+                        esperado: String(x.op === '+' ? x.a + x.b : x.a - x.b), ayuda: x.clase === 'nou' ? x.ayuda : null, pista: false };
+                    if (it.ayuda === 'recta') {
+                        it.pasos = [
+                            { preg: `De ${x.b} a 10?`, esp: String(10 - x.b) },
+                            { preg: `De 10 a ${x.a}?`, esp: String(x.a - 10) },
+                            { preg: 'Quant has saltat en total?', esp: it.esperado }
+                        ];
+                        it.paso = 0;
+                        it.resPasos = [];
+                        it.valores = [null, null];
+                    }
+                    return it;
+                }
+                if (tipo === 'setmana') {
+                    const c = sesion.fijos[sesion.hechos];
+                    return { tipo: 'multi', a: c.a, b: c.b, objetivo: c.objetivo, texto: `${c.a} × ${c.b}`, clave: `${c.a}x${c.b}`, esperado: String(c.a * c.b) };
+                }
+                if (tipo === 'control') {
+                    const [op, a, b] = sesion.fijos[sesion.hechos];
+                    if (op === 'x') return { tipo: 'multi', a, b, texto: `${a} × ${b}`, clave: `${a}x${b}`, esperado: String(a * b) };
+                    if (op === '+') return { tipo: 'suma', a, b, texto: `${a} + ${b}`, clave: `${a}+${b}`, esperado: String(a + b) };
+                    return { tipo: 'resta', a, b, texto: `${a} − ${b}`, clave: `${a}-${b}`, esperado: String(a - b) };
+                }
                 if (tipo === 'vf') {
                     const [a, b, c] = sesion.fijos[sesion.hechos];
                     return { tipo, a, b, c, texto: `${a} × ${b} = ${c}`, clave: `${a}x${b}=${c}`, esperado: c === a * b ? 'V' : 'F' };
@@ -1868,7 +2085,7 @@
                 teclas = [];
                 oralRespuesta = null;
 
-                const numerico = ['teclear', 'multi', 'suma', 'resta'].includes(item.tipo);
+                const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo);
                 opFactorsEl.textContent = item.texto;
                 opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
                 opIgualEl.hidden = ['vf', 'teclear', 'grafia'].includes(item.tipo);
@@ -1884,7 +2101,10 @@
                 keypad.style.display = numerico ? 'grid' : 'none';
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
-                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia'].includes(item.tipo);
+                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10'].includes(item.tipo);
+                document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
+                document.getElementById('correction-pista').hidden = true;
+                mostrarRecta(item.ayuda === 'recta');
                 if (item.tipo === 'oral') {
                     document.getElementById('oral-paso-1').hidden = false;
                     document.getElementById('oral-paso-2').hidden = true;
@@ -1895,6 +2115,35 @@
                 document.getElementById('progreso-barra').style.width = `${(sesion.hechos / sesion.total) * 100}%`;
 
                 tInicio = performance.now();
+            }
+
+            // La recta de b a a, con el 10 marcado y los dos saltos (valor o «?»)
+            function dibujarRecta(it) {
+                const desde = it.b, hasta = it.a, n = hasta - desde;
+                const x = v => 30 + (v - desde) * (360 / n);
+                const v = it.valores || [String(10 - desde), String(hasta - 10)];
+                const color = k => it.resPasos && it.resPasos[k] && !it.resPasos[k].ok ? '#e0115f' : '#5b21b6';
+                let svg = `<line x1="20" y1="95" x2="400" y2="95" stroke="#334155" stroke-width="3"/>`;
+                for (let k = desde; k <= hasta; k++) {
+                    const fuerte = k === desde || k === 10 || k === hasta;
+                    svg += `<line x1="${x(k)}" y1="${fuerte ? 83 : 88}" x2="${x(k)}" y2="${fuerte ? 107 : 102}" stroke="#334155" stroke-width="${fuerte ? 3 : 2}"/>`;
+                    if (fuerte) svg += `<text x="${x(k)}" y="126" text-anchor="middle" font-size="20" font-weight="800" fill="${k === 10 ? '#e0115f' : '#1e293b'}">${k}</text>`;
+                }
+                const arco = (a, b, txt, k) => {
+                    const mx = (x(a) + x(b)) / 2;
+                    return `<path d="M ${x(a)} 88 Q ${mx} 20 ${x(b)} 88" fill="none" stroke="${color(k)}" stroke-width="3" stroke-dasharray="${txt === '?' ? '6 5' : '0'}"/>` +
+                        `<text x="${mx}" y="44" text-anchor="middle" font-size="26" font-weight="800" fill="${color(k)}">${txt}</text>`;
+                };
+                svg += arco(desde, 10, v[0] ?? '?', 0) + arco(10, hasta, v[1] ?? '?', 1);
+                document.getElementById('pas10-recta').innerHTML = svg;
+            }
+
+            function mostrarRecta(visible) {
+                const panel = document.getElementById('pas10-panel');
+                panel.hidden = !visible;
+                if (!visible) return;
+                dibujarRecta(item);
+                document.getElementById('pas10-pregunta').textContent = item.pasos ? item.pasos[item.paso].preg : '';
             }
 
             function updateInputDisplay() {
@@ -1943,6 +2192,7 @@
             function mostrarCorreccion(titulo, mates, texto, sonido = true) {
                 if (sonido) playFeedbackSound(false);
                 document.getElementById('btn-no-ho-se').hidden = true;
+                document.getElementById('btn-pista').hidden = true;
                 keypad.style.display = 'none';
                 vfBotones.hidden = true;
                 oralPanel.hidden = true;
@@ -1952,19 +2202,60 @@
                 gentleBox.style.display = 'block';
             }
 
+            // Explicación del truco de la resta (13 − 8: de 8 a 10, 2; de 10 a 13, 3; en total, 5)
+            const trucPas10 = it => `De ${it.b} a 10, ${10 - it.b}. De 10 a ${it.a}, ${it.a - 10}. En total, ${it.a - it.b}.`;
+
             function evaluarNumerico() {
                 if (isEvaluating || currentInput === '') return;
+                // Recta guiada: los dos primeros saltos no cuentan como respuesta; si se equivoca, ve el bueno y sigue
+                if (item.pasos && item.paso < item.pasos.length - 1) {
+                    const paso = item.pasos[item.paso];
+                    item.resPasos.push({ r: currentInput, ok: currentInput === paso.esp });
+                    item.valores[item.paso] = paso.esp;
+                    item.paso++;
+                    currentInput = '';
+                    updateInputDisplay();
+                    mostrarRecta(true);
+                    return;
+                }
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 const ok = currentInput === item.esperado;
-                registrar(item, currentInput, ok, ms, {});
+                const girada = !ok && item.tipo !== 'teclear' && esGirada(item.esperado, currentInput);
+                const extra = {};
+                if (girada) extra.girada = true;
+                if (item.tipo === 'pas10') {
+                    extra.clase = item.clase;
+                    if (item.clase === 'nou') { extra.nivel = leerFase1().pas10.nivel; extra.ayuda = item.ayuda; extra.pista = item.pista; }
+                    if (item.resPasos) extra.pasos = item.resPasos;
+                    if (item.clase === 'nou') sesion.pas10.push(ok);
+                }
+                if (item.objetivo !== undefined) {
+                    extra.setmana = `${fetSetmana().a}x${fetSetmana().b}`;
+                    extra.objetivo = item.objetivo;
+                    if (item.objetivo) sesion.objetivo.push({ ok, ms, rectifica: teclas.some(t => t[1] === 'back') });
+                }
+                registrar(item, currentInput, ok, ms, extra);
 
                 if (ok) {
+                    if (item.objetivo) hablar(fetSetmana().diccio);
                     celebrar();
                 } else {
                     const mates = item.tipo === 'teclear' ? item.texto : `${item.texto} = ${item.esperado}`;
-                    mostrarCorreccion('🌸 Gairebé! Fixa-t\'hi bé:', mates, `Tu has posat: ${currentInput}`);
+                    const titulo = girada ? '🔄 Les xifres són bones, però girades!' : '🌸 Gairebé! Fixa-t\'hi bé:';
+                    mostrarCorreccion(titulo, mates, `Tu has posat: ${currentInput}`);
+                    mostrarPistaCorreccion();
                 }
+            }
+
+            // En la corrección: el truco de la resta o el de la multiplicación de la semana (y se dice en voz alta)
+            function mostrarPistaCorreccion() {
+                const el = document.getElementById('correction-pista');
+                let txt = '';
+                if (item.tipo === 'pas10' && item.clase === 'nou') txt = trucPas10(item);
+                if (item.objetivo) { txt = `Truc: ${fetSetmana().pista}`; hablar(fetSetmana().diccio); }
+                el.textContent = txt;
+                el.hidden = !txt;
             }
 
             function responderVF(dice) {
@@ -2045,7 +2336,7 @@
 
             // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
             function noHoSe() {
-                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia'].includes(item.tipo)) return;
+                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10'].includes(item.tipo)) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 if (item.tipo === 'grafia') {
@@ -2055,9 +2346,21 @@
                     setTimeout(siguienteItem, 200);
                     return;
                 }
-                registrar(item, null, false, ms, { no_lo_se: true });
+                const extra = { no_lo_se: true };
+                if (item.tipo === 'pas10') {
+                    extra.clase = item.clase;
+                    if (item.clase === 'nou') { extra.nivel = leerFase1().pas10.nivel; extra.ayuda = item.ayuda; extra.pista = item.pista; sesion.pas10.push(false); }
+                    if (item.resPasos) extra.pasos = item.resPasos;
+                }
+                if (item.objetivo !== undefined) {
+                    extra.setmana = `${fetSetmana().a}x${fetSetmana().b}`;
+                    extra.objetivo = item.objetivo;
+                    if (item.objetivo) sesion.objetivo.push({ ok: false, ms, rectifica: false });
+                }
+                registrar(item, null, false, ms, extra);
                 const mates = item.tipo === 'vf' ? `${item.a} × ${item.b} = ${item.a * item.b}` : `${item.texto} = ${item.esperado}`;
                 mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', mates, 'Millor això que endevinar. Mira-la bé i seguim.', false);
+                mostrarPistaCorreccion();
             }
 
             function responderOral(bien) {
@@ -2440,6 +2743,7 @@
                 if (sesion.prueba) return; // modo prueba: no se guarda nada
                 const primeraTecla = teclas.length > 0 ? teclas[0][0] : null;
                 const detalle = { mision: sesion.mision.id, teclas, ...extra };
+                if (sesion.mision.id === CONTROL.id) detalle.control = true;
 
                 if (it.tipo === 'multi') {
                     // Las multiplicaciones tecleadas siguen en su tabla de siempre
@@ -2659,8 +2963,40 @@
                     sel.innerHTML += `<option value="${i}">${i + 1}. ${m.titulo}</option>`;
                 });
                 if (p.hechas.length >= PLAN.length) {
-                    lista.innerHTML += `<p style="font-size:0.9rem; color:#64748b;">Plan de evaluación completado (${p.hechas.length} misiones). Mientras preparamos la siguiente fase: 20 multiplicaciones al día.</p>`;
+                    const f = leerFase1();
+                    const fet = fetSetmana();
+                    const niv = nivelPas10();
+                    const AYUDA = { recta: 'recta guiada paso a paso', pista: 'botón «Pista»', cap: 'sin ayuda' };
+                    const div = document.createElement('div');
+                    div.id = 'papa-fase1';
+                    div.className = 'plan-fila actual';
+                    div.style.display = 'block';
+                    div.innerHTML = `
+                        <div><strong>Fase 1 · Entrenamiento</strong> (cada día; los domingos, misión de repaso para medir)</div>
+                        <div style="font-size:0.9rem; margin-top:4px;">⭐ La de la semana: <strong id="papa-setmana">${fet.a} × ${fet.b}</strong>
+                            · días seguidos sin dudar: ${f.setmana.dias.length} de ${SETMANA_DIAS}
+                            ${f.setmana.dominadas.length ? '· ya dominadas: ' + f.setmana.dominadas.map(d => d.fet.replace('x', '×') + ' (' + d.fecha + ')').join(', ') : ''}</div>
+                        <div style="font-size:0.9rem;">🔟 Passar pel 10: <strong id="papa-pas10">nivel ${f.pas10.nivel} de ${PAS10_NIVELES.length - 1}</strong>
+                            (restar ${niv.restan.join(', ')}; ${AYUDA[niv.ayuda]}) · días buenos: ${f.pas10.buenos.length} de 2</div>
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+                            <button id="btn-f1-siguiente" class="btn-small-exit">Pasar a la siguiente multiplicación</button>
+                            <button id="btn-f1-bajar" class="btn-small-exit">Bajar un nivel (más ayuda)</button>
+                            <button id="btn-f1-subir" class="btn-small-exit">Subir un nivel (menos ayuda)</button>
+                        </div>`;
+                    lista.appendChild(div);
+                    div.querySelector('#btn-f1-siguiente').addEventListener('click', () => {
+                        const g = leerFase1();
+                        if (g.setmana.idx < SETMANA.length - 1) { g.setmana.idx++; g.setmana.dias = []; }
+                        guardarFase1(g); renderPlan();
+                    });
+                    div.querySelector('#btn-f1-bajar').addEventListener('click', () => {
+                        const g = leerFase1(); g.pas10.nivel = Math.max(1, g.pas10.nivel - 1); g.pas10.buenos = []; guardarFase1(g); renderPlan();
+                    });
+                    div.querySelector('#btn-f1-subir').addEventListener('click', () => {
+                        const g = leerFase1(); g.pas10.nivel = Math.min(PAS10_NIVELES.length - 1, g.pas10.nivel + 1); g.pas10.buenos = []; guardarFase1(g); renderPlan();
+                    });
                 }
+                sel.innerHTML += `<option value="ent">Fase 1 · Entrenament</option>`;
                 MISIONES_EXTRA.forEach(m => {
                     const hechas = (p.extras || []).filter(x => x.id === m.id);
                     const puesta = p.extra === m.id;
@@ -2673,7 +3009,7 @@
                     lista.appendChild(div);
                     sel.innerHTML += `<option value="x${m.id}">★ ${m.titulo}</option>`;
                 });
-                sel.value = String(Math.min(p.hechas.length, PLAN.length - 1));
+                sel.value = p.hechas.length >= PLAN.length ? 'ent' : String(p.hechas.length);
 
                 const pendientes = leerCola().length;
                 document.getElementById('plan-pendientes').textContent = pendientes > 0
@@ -3063,7 +3399,8 @@
             // Presentación de cada bloque
             document.getElementById('btn-intro-vamos').addEventListener('click', empezarBloque);
             document.getElementById('btn-leer-intro').addEventListener('click', () => {
-                hablar(infoBloque(bloqueActual()).instr);
+                const t = infoBloque(bloqueActual());
+                hablar(t.voz || t.instr);
             });
             document.getElementById('btn-intro-parar').addEventListener('click', pararPorHoy);
 
@@ -3118,6 +3455,14 @@
             });
 
             document.getElementById('btn-no-ho-se').addEventListener('click', noHoSe);
+
+            // Passar pel 10 (nivel con pista): enseña la recta con los dos saltos
+            document.getElementById('btn-pista').addEventListener('click', () => {
+                if (!item || item.ayuda !== 'pista' || isEvaluating) return;
+                item.pista = true;
+                document.getElementById('btn-pista').hidden = true;
+                mostrarRecta(true);
+            });
 
             // Simulacre de l'examen de català
             document.getElementById('grafia-botones').addEventListener('click', (e) => {
@@ -3222,8 +3567,17 @@
                     renderPlan();
                     return;
                 }
-                const destino = parseInt(valor, 10);
                 delete p.extra;
+                if (valor === 'ent') {
+                    // Fase 1: el plan de evaluación se da por acabado
+                    while (p.hechas.length < PLAN.length) p.hechas.push({ id: PLAN[p.hechas.length].id, fecha: 'saltada' });
+                    delete p.enCurso;
+                    p.permitirOtra = hoy();
+                    guardarPlan(p);
+                    renderPlan();
+                    return;
+                }
+                const destino = parseInt(valor, 10);
                 if (destino < p.hechas.length) {
                     p.hechas = p.hechas.slice(0, destino);
                 } else {
@@ -3240,6 +3594,7 @@
             // Papá prueba la misión elegida tal como la verá ella, sin guardar nada
             document.getElementById('btn-probar').addEventListener('click', () => {
                 const valor = document.getElementById('sel-mision').value;
+                if (valor === 'ent') return empezarPrueba(ENTRENAMENT);
                 empezarPrueba(valor.startsWith('x') ? MISIONES_EXTRA.find(m => m.id === parseInt(valor.slice(1), 10)) : PLAN[parseInt(valor, 10)]);
             });
 
