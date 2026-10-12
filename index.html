@@ -1795,9 +1795,15 @@
                 return e.length === 2 && e[0] !== e[1] && r === e[1] + e[0];
             }
 
+            // Días en que el entrenamiento se puede hacer dos veces porque la primera falló la app
+            // (12/10: los saltos de «Passar pel 10» se preguntaban con la resta a la vista)
+            const REPETIR_ENTRENAMENT = ['2026-10-12'];
+
             function misionHechaHoy() {
                 if (PRUEBA_POR_URL) return false;
                 const p = leerPlan();
+                if (REPETIR_ENTRENAMENT.includes(hoy()) && misionActual().id === ENTRENAMENT.id &&
+                    p.hechas.filter(h => h.id === ENTRENAMENT.id && h.fecha === hoy()).length === 1) return false;
                 const ultimas = [p.hechas[p.hechas.length - 1], (p.extras || [])[(p.extras || []).length - 1]];
                 return ultimas.some(u => u && u.fecha === hoy()) && p.permitirOtra !== hoy();
             }

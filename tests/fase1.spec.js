@@ -346,3 +346,26 @@ test.describe('Fase 1 · diseño en el iPad', () => {
         });
     }
 });
+
+test.describe('repetir el entrenamiento el 12/10 (la primera vez falló la app)', () => {
+    const plan = veces => ({ hechas: [1, 2, 3, 4, 5, 6].map(id => ({ id, fecha: '2026-01-01' }))
+        .concat(Array.from({ length: veces }, () => ({ id: 10, fecha: '2026-10-12' }))) });
+    for (const [dia, veces, puede] of [['2026-10-12', 1, true], ['2026-10-12', 2, false], ['2026-10-13', 0, true]]) {
+        test(`${dia} con ${veces} hecho(s): ${puede ? 'puede empezar' : 'misión complerta'}`, async ({ page }) => {
+            await simularSupabase(page);
+            await page.clock.setFixedTime(new Date(`${dia}T17:00:00`));
+            await page.addInitScript(p => localStorage.setItem('dojo_plan', JSON.stringify(p)), plan(veces));
+            await page.goto(URL_APP);
+            await expect(page.locator('#btn-start-game')).toBeVisible({ visible: puede });
+            await expect(page.locator('#mision-hecha')).toBeVisible({ visible: !puede });
+        });
+    }
+    test('otro día, con uno hecho ese día: misión complerta', async ({ page }) => {
+        await simularSupabase(page);
+        await page.clock.setFixedTime(new Date('2026-10-13T17:00:00'));
+        await page.addInitScript(() => localStorage.setItem('dojo_plan', JSON.stringify({
+            hechas: [1, 2, 3, 4, 5, 6].map(id => ({ id, fecha: '2026-01-01' })).concat([{ id: 10, fecha: '2026-10-13' }]) })));
+        await page.goto(URL_APP);
+        await expect(page.locator('#mision-hecha')).toBeVisible();
+    });
+});
