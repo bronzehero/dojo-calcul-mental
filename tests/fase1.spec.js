@@ -299,7 +299,7 @@ test.describe('Fase 1 · domingo', () => {
         expect(respuestas).toHaveLength(28);
         expect(respuestas.every(e => e.datos.detalle.control === true)).toBe(true);
         const p = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_plan')));
-        expect(p.extras.map(x => x.id)).toEqual([11]);
+        expect(p.extras.map(x => x.id).filter(id => id !== 102)).toEqual([11]);
         await page.click('#btn-summary-home');
         await expect(page.locator('#mision-hecha')).toBeVisible();
     });

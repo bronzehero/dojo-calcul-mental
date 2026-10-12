@@ -946,6 +946,26 @@
         .pas10-pregunta { font-size: 1.7rem; font-weight: 800; color: #5b21b6; margin-top: 4px; }
         .btn-pista { width: 100%; margin-top: 12px; padding: 10px; border: 2px solid #fde68a; border-radius: 16px; background: #fffbeb; color: #92400e; font-family: var(--font-main); font-size: 1.15rem; font-weight: 700; cursor: pointer; }
         .correction-pista { margin: 6px 0 0 0; color: #5b21b6; font-size: 1.1rem; font-weight: 700; }
+
+        /* Dictat: teclat de lletres propi (sense el de l'iPad: ni correcció automàtica ni suggeriments) */
+        #screen-game.dictat .game-content-layout { display: block; }
+        .dictat-panel { margin-top: 6px; }
+        .dictat-escrit { min-height: 64px; margin: 0 0 12px 0; padding: 8px 14px; border: 4px solid #e9dcff; border-radius: 20px; background: #fff;
+            font-size: 2.4rem; font-weight: 700; letter-spacing: 0.04em; text-align: center; color: #1e293b; word-break: break-all; }
+        .dictat-escrit.buit { color: #cbd5e1; }
+        .teclat-lletres { display: flex; flex-direction: column; gap: 7px; }
+        .teclat-fila { display: flex; gap: 6px; justify-content: center; }
+        .tecla { flex: 1 1 0; min-width: 0; max-width: 70px; height: 54px; padding: 0; border: 2px solid #e2e8f0; border-radius: 12px; background: #fff;
+            font-family: var(--font-main); font-size: 1.6rem; font-weight: 700; color: #1e293b; cursor: pointer; }
+        .tecla:active { background: #fce7f3; }
+        .tecla.accent { background: #faf5ff; border-color: #e9d5ff; }
+        .tecla.espai { flex: 4 1 0; max-width: none; font-size: 1.1rem; color: #64748b; }
+        .tecla.esborrar { flex: 1.4 1 0; max-width: 100px; }
+        .tecla.fet { flex: 2 1 0; max-width: none; background: #10b981; border-color: transparent; color: #fff; font-size: 1.3rem; }
+        .tecla.fet:disabled { opacity: 0.4; }
+        .btn-escoltar-dictat { width: 100%; margin: 0 0 12px 0; font-size: 1.3rem; padding: 12px; background: #faf5ff; border: 2px solid #e9d5ff; border-radius: 16px; color: #6b21a8; text-decoration: none; }
+        #screen-game.dictat .operation-display { padding: 10px 14px; }
+        #screen-game.dictat .operation-text { font-size: 2.4rem; }
     </style>
 </head>
 <body>
@@ -1069,6 +1089,13 @@
                         <button id="btn-escoltar-frase" class="btn-subtle btn-escoltar-frase">🔊 Escoltar la frase</button>
                     </div>
 
+                    <!-- Dictat: escolta la paraula i l'escriu amb el teclat de lletres -->
+                    <div id="dictat-panel" class="dictat-panel" hidden>
+                        <button id="btn-escoltar-dictat" class="btn-subtle btn-escoltar-dictat">🔊 Torna-ho a escoltar</button>
+                        <div id="dictat-escrit" class="dictat-escrit buit">…</div>
+                        <div id="teclat-lletres" class="teclat-lletres"></div>
+                    </div>
+
                     <!-- Mejor decir "no ho sé" que adivinar: una respuesta inventada y errónea se queda grabada -->
                     <button id="btn-no-ho-se" class="btn-no-ho-se" hidden>🤷 No ho sé</button>
                     <button id="btn-pista" class="btn-pista" hidden>💡 Pista</button>
@@ -1110,7 +1137,7 @@
         <!-- 2b. Repaso al acabar cada bloque del simulacro: las palabras bien escritas (sin marcar las suyas) -->
         <div id="screen-repas" style="display: none;">
             <h1>Així s'escriuen ✦</h1>
-            <p style="color: #64748b; font-size: 1.1rem;">Mira-les bé: les lletres de color són les que el so amaga.</p>
+            <p id="repas-sub" style="color: #64748b; font-size: 1.1rem;">Mira-les bé: les lletres de color són les que el so amaga.</p>
             <ol id="repas-llista" class="repas-llista"></ol>
             <button id="btn-repas-seguim" class="btn-action" style="background: var(--c-mint);">Seguim! ➜</button>
         </div>
@@ -1402,6 +1429,7 @@
                 grafia:  { nombre: 'Examen de català', icono: '📝', instr: '', ejemplo: '', paso: () => 'Lletres' },
                 pas10:   { nombre: 'Passar pel 10', icono: '🔟', instr: "Restes que passen pel 10. Truc: primer salta fins al 10, després fins al número gran, i suma els dos salts. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ de 8 a 10, 2 · de 10 a 13, 3 · en total, 5', paso: () => 'Passar pel 10' },
                 control: { nombre: 'Missió de repàs', icono: '🧭', instr: "Una barreja de restes, sumes i multiplicacions, sense ajudes. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ escrius 5', paso: () => 'Restes, sumes i multiplicacions' },
+                dictat:  { nombre: 'Dictat', icono: '✍️', instr: "Sentiràs una paraula, després una frase amb aquesta paraula, i la paraula una altra vegada. Escriu només la paraula, com creguis que s'escriu. La pots tornar a escoltar tants cops com vulguis. Si no la saps, no passa res: al final del dictat veuràs com s'escriuen.", ejemplo: 'Sents «casa. La meva casa és gran. casa.» ➜ escrius casa', paso: () => 'Dictat' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
 
@@ -1462,10 +1490,30 @@
                 return items;
             }
 
+            // Dictat de partida (ortografia en català): paraules freqüents a l'escola,
+            // per veure quins errors surten abans de començar a practicar-les. Cada una: paraula, frase, paraula.
+            // Sense correcció durant el bloc; al final del bloc es veuen ben escrites.
+            const DICTAT_PARAULES = [
+                ['també', 'Jo també vull venir.'], ['planeta', 'La Terra és un planeta.'], ['perquè', 'No vinc perquè plou.'],
+                ['classe', 'Entrem a classe.'], ['cervell', 'El cervell treballa molt.'], ['podem', 'Podem sortir al pati?'],
+                ['important', 'Això és molt important.'], ["l'hora", "Ja és l'hora del pati."], ['necessitem', 'Necessitem més temps.'],
+                ['llavors', 'Llavors vam marxar.'], ['nerviosos', "Abans de l'examen estem nerviosos."], ['el que', 'Fes el que vulguis.'],
+                ['principi', 'Al principi no ho entenia.'], ['anar', 'Vull anar al cine.'], ['ciències', 'Demà tinc examen de ciències.'],
+                ['exemple', 'Posa un exemple.'], ["l'estona", "Ha plogut tota l'estona."], ['punts', 'He tret molts punts.'],
+                ['història', 'M\'agrada la història.'], ['serveixen', 'Els mapes serveixen per orientar-se.'], ['cançons', "M'agraden aquestes cançons."],
+                ['hem après', 'Avui hem après moltes coses.'], ['analitzar', 'Cal analitzar el problema.'], ['aprenent', 'Estic aprenent a nedar.']
+            ];
+            const DICTAT_PER_BLOC = 12;
+            const DICTAT = { id: 102, titulo: 'Dictat', bloques: [{ tipo: 'dictat', bloc: 0 }, { tipo: 'dictat', bloc: 1 }] };
+            const DICTAT_DES_DE = '2026-10-16'; // surt sol a partir d'aquest dia, fins que el faci
+            const veuDictat = ([paraula, frase]) => `${paraula}. ${frase} ${paraula}.`;
+            const paraulesBloc = bloc => DICTAT_PARAULES.slice(bloc * DICTAT_PER_BLOC, (bloc + 1) * DICTAT_PER_BLOC);
+
             // Misiones fuera del plan: papá las pone para un día concreto desde la Zona Papá
             const MISIONES_EXTRA = [
                 { id: 101, titulo: "Simulacre: examen de català", bloques: EXAMEN_CATALA.map((_, i) => ({ tipo: 'grafia', bloc: i })) },
-                CONTROL
+                CONTROL,
+                DICTAT
             ];
 
             // Oral con papá: atascadas, lentas y controles rápidos (según datos a 29/09/2026)
@@ -1623,6 +1671,9 @@
             }
 
             // Todo lo que puede decir en voz alta (para generar los MP3 y comprobar en las pruebas que no falta ninguno)
+            // Per a les proves: la paraula del dictat que hi ha a la pantalla (no es mostra enlloc)
+            window.__dictatActual = () => item && item.tipo === 'dictat' ? item.paraula : null;
+
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 SETMANA.forEach(f => {
@@ -1631,6 +1682,8 @@
                     t.add(fraseMision(ENTRENAMENT, f));
                 });
                 t.add(fraseMision(CONTROL));
+                t.add(fraseMision(DICTAT));
+                DICTAT_PARAULES.forEach(x => t.add(veuDictat(x)));
                 return [...t];
             };
 
@@ -1771,6 +1824,7 @@
                 const yaEntrena = p.hechas.some(h => h.id === ENTRENAMENT.id);
                 const repasHoy = (p.extras || []).some(x => x.id === CONTROL.id && x.fecha === hoy());
                 if (new Date().getDay() === 0 && yaEntrena && !repasHoy) return CONTROL;
+                if (hoy() >= DICTAT_DES_DE && !(p.extras || []).some(x => x.id === DICTAT.id)) return DICTAT;
                 return ENTRENAMENT;
             }
 
@@ -1811,6 +1865,7 @@
             // Datos que se enseñan de cada bloque (en el simulacro, cada bloque es un color del full)
             function infoBloque(b) {
                 if (b.tipo === 'setmana') return infoSetmana(fetSetmana());
+                if (b.tipo === 'dictat') return { ...TIPOS.dictat, nombre: `Dictat · part ${b.bloc + 1} de ${DICTAT.bloques.length}`, paso: () => `Dictat, part ${b.bloc + 1}` };
                 if (b.tipo !== 'grafia') return TIPOS[b.tipo];
                 // Igual que l'enunciat de l'examen; el color només ajuda a trobar-ho al full
                 const e = EXAMEN_CATALA[b.bloc];
@@ -1929,6 +1984,8 @@
                     sesion.objetivo = [];
                 } else if (b.tipo === 'control') {
                     sesion.fijos = itemsControl();
+                } else if (b.tipo === 'dictat') {
+                    sesion.fijos = paraulesBloc(b.bloc);
                 } else {
                     sesion.fijos = null;
                 }
@@ -1942,6 +1999,7 @@
                     document.getElementById('grafia-panel').classList.add(`bloc-${e.color}`);
                     document.getElementById('grafia-botones').innerHTML = e.opciones.map(o => `<button class="grafia-btn" data-lletra="${o}">${o}</button>`).join('');
                 }
+                screens.game.classList.toggle('dictat', b.tipo === 'dictat');
                 showScreen('game');
                 siguienteItem();
             }
@@ -2100,6 +2158,10 @@
                     const c = getNextCard('resta');
                     return { tipo, a: c.a + c.b, b: c.b, ciclo: c.ciclo, texto: `${c.a + c.b} − ${c.b}`, clave: `${c.a + c.b}-${c.b}`, esperado: String(c.a) };
                 }
+                if (tipo === 'dictat') {
+                    const [paraula, frase] = sesion.fijos[sesion.hechos];
+                    return { tipo, paraula, frase, texto: paraula, clave: paraula, esperado: paraula, escoltat: 0 };
+                }
                 if (tipo === 'grafia') {
                     const g = sesion.fijos[sesion.hechos];
                     return { tipo, ...g, texto: g.palabra, clave: g.palabra, escoltat: 0 };
@@ -2141,7 +2203,7 @@
 
             function siguienteItem() {
                 if (sesion.hechos >= sesion.total) {
-                    if (bloqueActual().tipo === 'grafia') mostrarRepas();
+                    if (['grafia', 'dictat'].includes(bloqueActual().tipo)) mostrarRepas();
                     else finBloque();
                     return;
                 }
@@ -2154,12 +2216,18 @@
                 const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo);
                 opFactorsEl.textContent = item.texto;
                 opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
-                opIgualEl.hidden = ['vf', 'teclear', 'grafia'].includes(item.tipo);
+                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat'].includes(item.tipo);
                 opAnswerEl.hidden = !numerico;
                 opCardEl.classList.toggle('op-largo', item.tipo === 'vf');
                 opCardEl.classList.toggle('op-frase', item.tipo === 'grafia');
                 if (item.tipo === 'grafia') opFactorsEl.innerHTML = htmlFrase(item);
                 document.getElementById('grafia-panel').hidden = item.tipo !== 'grafia';
+                document.getElementById('dictat-panel').hidden = item.tipo !== 'dictat';
+                if (item.tipo === 'dictat') {
+                    opFactorsEl.textContent = `🎧 ${sesion.hechos + 1}`;
+                    pintarDictat();
+                    hablar(veuDictat([item.paraula, item.frase]));
+                }
                 opFeedbackEl.innerHTML = '';
                 opCardEl.classList.remove('success-anim');
                 gentleBox.style.display = 'none';
@@ -2400,11 +2468,64 @@
             }
 
             function mostrarRepas() {
+                if (bloqueActual().tipo === 'dictat') {
+                    const llista = document.getElementById('repas-llista');
+                    llista.className = 'repas-llista';
+                    llista.innerHTML = paraulesBloc(bloqueActual().bloc).map(([paraula]) => `<li><b>${escaparHtml(paraula)}</b></li>`).join('');
+                    document.getElementById('repas-sub').textContent = 'Mira-les bé, una per una.';
+                    showScreen('repas');
+                    return;
+                }
+                document.getElementById('repas-sub').textContent = 'Mira-les bé: les lletres de color són les que el so amaga.';
                 const e = EXAMEN_CATALA[bloqueActual().bloc];
                 const llista = document.getElementById('repas-llista');
                 llista.className = `repas-llista bloc-${e.color}`;
                 llista.innerHTML = e.frases.map(f => '<li>' + trozosFrase(f).map((t, i) => i % 2 ? `<b>${escaparHtml(t)}</b>` : escaparHtml(t)).join('') + '</li>').join('');
                 showScreen('repas');
+            }
+
+            // Dictat: teclat de lletres en pantalla (minúscules, amb les vocals accentuades i la ç)
+            const TECLAT_FILES = [
+                ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+                ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ç'],
+                ['z', 'x', 'c', 'v', 'b', 'n', 'm', "'", '·', 'back'],
+                ['à', 'è', 'é', 'í', 'ï', 'ò', 'ó', 'ú', 'ü'],
+                ['espai', 'enter']
+            ];
+            const LLETRES_DICTAT = TECLAT_FILES.flat().filter(k => k.length === 1);
+            document.getElementById('teclat-lletres').innerHTML = TECLAT_FILES.map(fila => '<div class="teclat-fila">' + fila.map(k => {
+                if (k === 'back') return '<button class="tecla esborrar" data-tecla="back" aria-label="Esborrar">⌫</button>';
+                if (k === 'espai') return '<button class="tecla espai" data-tecla=" ">espai</button>';
+                if (k === 'enter') return '<button id="btn-dictat-fet" class="tecla fet" data-tecla="enter" disabled>Fet ✓</button>';
+                return `<button class="tecla${/[àèéíïòóúü]/.test(k) ? ' accent' : ''}" data-tecla="${escaparHtml(k)}">${escaparHtml(k)}</button>`;
+            }).join('') + '</div>').join('');
+
+            function pintarDictat() {
+                const el = document.getElementById('dictat-escrit');
+                el.textContent = currentInput || '…';
+                el.classList.toggle('buit', currentInput === '');
+                document.getElementById('btn-dictat-fet').disabled = currentInput.trim() === '';
+            }
+
+            function teclaDictat(k) {
+                if (isEvaluating || !item || item.tipo !== 'dictat') return;
+                teclas.push([Math.round(performance.now() - tInicio), k]);
+                if (k === 'back') currentInput = currentInput.slice(0, -1);
+                else if (k === 'enter') return evaluarDictat();
+                else if (k === ' ') { if (currentInput && !currentInput.endsWith(' ')) currentInput += ' '; }
+                else if (currentInput.length < 24) currentInput += k;
+                pintarDictat();
+            }
+
+            // Com en un dictat de veritat: no es diu si està bé; al final del bloc les veu ben escrites
+            function evaluarDictat() {
+                const resposta = currentInput.trim();
+                if (isEvaluating || !resposta) return;
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                registrar(item, resposta, resposta === item.esperado, ms, { bloc: bloqueActual().bloc, escoltat: item.escoltat });
+                callarVeu();
+                setTimeout(siguienteItem, 350);
             }
 
             // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
@@ -3549,6 +3670,17 @@
             });
             document.getElementById('btn-repas-seguim').addEventListener('click', finBloque);
 
+            // Dictat
+            document.getElementById('teclat-lletres').addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (btn && btn.dataset.tecla) teclaDictat(btn.dataset.tecla);
+            });
+            document.getElementById('btn-escoltar-dictat').addEventListener('click', () => {
+                if (!item || item.tipo !== 'dictat' || isEvaluating) return;
+                item.escoltat++;
+                hablar(veuDictat([item.paraula, item.frase]));
+            });
+
             // Panel de papá (oral)
             oralPanel.addEventListener('click', (e) => {
                 const btn = e.target.closest('button');
@@ -3569,6 +3701,15 @@
 
             // Teclado físico
             window.addEventListener('keydown', (e) => {
+                if (screens.game.style.display !== 'none' && !document.getElementById('dictat-panel').hidden) {
+                    const k = e.key.toLowerCase();
+                    if (e.key === 'Backspace') teclaDictat('back');
+                    else if (e.key === 'Enter') teclaDictat('enter');
+                    else if (e.key === ' ' || LLETRES_DICTAT.includes(k)) teclaDictat(k === '’' ? "'" : k);
+                    else return;
+                    e.preventDefault();
+                    return;
+                }
                 if (screens.game.style.display === 'none' || keypad.hidden) return;
                 if (e.key >= '0' && e.key <= '9') {
                     handleKeyInput(e.key);

@@ -47,7 +47,9 @@ async function empezarEnMision(page, numero, extra = {}) {
         sessionStorage.setItem('plan-preparado', '1');
         const hechas = [];
         for (let i = 1; i < n; i++) hechas.push({ id: i, fecha: '2026-01-01' });
-        localStorage.setItem('dojo_plan', JSON.stringify({ hechas, ...ex }));
+        // Con el plan acabado, el dictado de partida ya hecho (si no, a partir del 16/10 saldría él en vez del entrenamiento)
+        const extras = n >= 7 ? [{ id: 102, fecha: '2026-01-01' }] : undefined;
+        localStorage.setItem('dojo_plan', JSON.stringify({ hechas, extras, ...ex }));
     }, [numero, extra]);
 }
 
