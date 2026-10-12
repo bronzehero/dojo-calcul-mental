@@ -63,15 +63,25 @@ test.describe('Fase 1 · Entrenament', () => {
         await page.click('#btn-intro-vamos');
 
         // Primera resta nueva: la recta con los saltos en blanco y la primera pregunta
-        let texto = await page.textContent('#op-factors');
-        while (!/−/.test(texto) || !(await page.isVisible('#pas10-panel'))) {
-            await teclear(page, respuestaCorrecta(texto));
+        while (!(await page.isVisible('#pas10-panel'))) {
+            await teclear(page, respuestaCorrecta(await page.textContent('#op-factors')));
             await page.waitForTimeout(850);
-            texto = await page.textContent('#op-factors');
         }
         await expect(page.locator('#pas10-pregunta')).toHaveText(/^De 9 a 10\?$/);
         await expect(page.locator('#pas10-recta text')).toContainText(['10', '?']);
         expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
+
+        // Cada salto se escribe al lado de su pregunta, no detrás de «17 − 9 =» (papá, 12/10: lo confundía)
+        await expect(page.locator('#op-factors')).toHaveText('De 9 a 10');
+        await expect(page.locator('#op-igual')).toHaveText('➜');
+        await teclear(page, 1);
+        const a = parseInt((await page.textContent('#pas10-pregunta')).match(/^De 10 a (\d+)\?$/)[1], 10);
+        await expect(page.locator('#op-factors')).toHaveText(`De 10 a ${a}`);
+        await expect(page.locator('#op-igual')).toHaveText('➜');
+        await teclear(page, a - 10);
+        await expect(page.locator('#pas10-pregunta')).toHaveText('Quant has saltat en total?');
+        await expect(page.locator('#op-factors')).toHaveText(`${a} − 9`);
+        await expect(page.locator('#op-igual')).toHaveText('=');
 
         const vistosA = await contestarEntrenamiento(page);
         expect(vistosA.length).toBeGreaterThanOrEqual(8);

@@ -13,7 +13,8 @@ test.describe('Nada personal en lo que se publica', () => {
     test('README, index.html y pruebas no contienen nombre ni diagnósticos', async () => {
         const archivos = ['README.md', 'index.html', ...fs.readdirSync(__dirname)
             .filter(f => /\.(js|json|sh)$/.test(f) && f !== 'package-lock.json' && f !== 'privacidad.spec.js')
-            .map(f => path.join('tests', f))];
+            .map(f => path.join('tests', f)),
+            ...fs.readdirSync(path.join(RAIZ, 'veu')).filter(f => /\.(js|json|sh)$/.test(f)).map(f => path.join('veu', f))];
         for (const f of archivos) {
             let texto = fs.readFileSync(path.join(RAIZ, f), 'utf8');
             if (f === 'index.html') {

@@ -1575,8 +1575,66 @@
                 window.addEventListener(evt, unlockAudio, { passive: true });
             });
 
-            // Lectura en voz alta en catalán (voz del sistema del iPad)
-            function hablar(texto) {
+            // Lectura en voz alta en catalán: la Joana (edge-tts, la eligió ella el 5/10), en MP3 dentro de veu/.
+            // Cada texto tiene su fichero veu/<clave>.mp3 (veu/genera.sh). Si falta, la voz del sistema del iPad.
+            function claveVeu(texto) {
+                let h = 0x811c9dc5;
+                for (const ch of texto) h = Math.imul(h ^ ch.codePointAt(0), 0x01000193) >>> 0;
+                return h.toString(16).padStart(8, '0');
+            }
+            let veuDisponibles = new Set();
+            fetch('veu/index.json').then(r => (r.ok ? r.json() : [])).then(l => { veuDisponibles = new Set(l); }).catch(() => {});
+            const veuBuffers = new Map();
+            let veuSonant = null, veuTorn = 0;
+
+            function callarVeu() {
+                veuTorn++;
+                try { if (veuSonant) veuSonant.stop(); } catch (e) {}
+                veuSonant = null;
+                try { speechSynthesis.cancel(); } catch (e) {}
+            }
+
+            async function hablar(texto) {
+                callarVeu();
+                const torn = veuTorn;
+                const clau = claveVeu(texto);
+                if (veuDisponibles.has(clau)) {
+                    try {
+                        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        if (audioCtx.state === 'suspended') audioCtx.resume();
+                        let buf = veuBuffers.get(clau);
+                        if (!buf) {
+                            const r = await fetch(`veu/${clau}.mp3`);
+                            buf = await audioCtx.decodeAudioData(await r.arrayBuffer());
+                            veuBuffers.set(clau, buf);
+                        }
+                        if (torn !== veuTorn) return;
+                        const src = audioCtx.createBufferSource();
+                        src.buffer = buf;
+                        src.connect(audioCtx.destination);
+                        src.start();
+                        veuSonant = src;
+                        return;
+                    } catch (e) {
+                        if (torn !== veuTorn) return;
+                    }
+                }
+                vozSistema(texto);
+            }
+
+            // Todo lo que puede decir en voz alta (para generar los MP3 y comprobar en las pruebas que no falta ninguno)
+            window.__textosVeu = () => {
+                const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
+                SETMANA.forEach(f => {
+                    t.add(f.diccio);
+                    t.add(infoSetmana(f).voz);
+                    t.add(fraseMision(ENTRENAMENT, f));
+                });
+                t.add(fraseMision(CONTROL));
+                return [...t];
+            };
+
+            function vozSistema(texto) {
                 try {
                     speechSynthesis.cancel();
                     const u = new SpeechSynthesisUtterance(texto);
@@ -1746,16 +1804,7 @@
 
             // Datos que se enseñan de cada bloque (en el simulacro, cada bloque es un color del full)
             function infoBloque(b) {
-                if (b.tipo === 'setmana') {
-                    const f = fetSetmana();
-                    return {
-                        nombre: 'La de la setmana', icono: '⭐',
-                        instr: `La d'aquesta setmana: ${f.a} × ${f.b} = ${f.a * f.b}. Truc: ${f.pista} Sortirà unes quantes vegades, barrejada amb altres que ja saps.`,
-                        voz: `La d'aquesta setmana: ${f.diccio}. Truc: ${f.pista}`,
-                        ejemplo: `${f.a} × ${f.b} = ${f.a * f.b}`,
-                        paso: () => `La de la setmana: ${f.a} × ${f.b}`
-                    };
-                }
+                if (b.tipo === 'setmana') return infoSetmana(fetSetmana());
                 if (b.tipo !== 'grafia') return TIPOS[b.tipo];
                 // Igual que l'enunciat de l'examen; el color només ajuda a trobar-ho al full
                 const e = EXAMEN_CATALA[b.bloc];
@@ -1769,9 +1818,20 @@
                 };
             }
 
-            function textoMision(m) {
-                return m.bloques.map(b => infoBloque(b).paso(b.n));
+            function infoSetmana(f) {
+                return {
+                    nombre: 'La de la setmana', icono: '⭐',
+                    instr: `La d'aquesta setmana: ${f.a} × ${f.b} = ${f.a * f.b}. Truc: ${f.pista} Sortirà unes quantes vegades, barrejada amb altres que ja saps.`,
+                    voz: `La d'aquesta setmana: ${f.diccio}. Truc: ${f.pista}`,
+                    ejemplo: `${f.a} × ${f.b} = ${f.a * f.b}`,
+                    paso: () => `La de la setmana: ${f.a} × ${f.b}`
+                };
             }
+
+            function textoMision(m, f = fetSetmana()) {
+                return m.bloques.map(b => (b.tipo === 'setmana' ? infoSetmana(f) : infoBloque(b)).paso(b.n));
+            }
+            const fraseMision = (m, f) => `La missió d'avui: ${textoMision(m, f).join('. ')}.`;
 
             function renderHome() {
                 document.getElementById('saludo').textContent = `Hola${conNombre()}!`;
@@ -2139,6 +2199,13 @@
             }
 
             function mostrarRecta(visible) {
+                // Mientras pregunta un salto, la tarjeta enseña ese salto. Con «17 − 9 = ?» escribía el salto
+                // detrás del igual (17 − 9 = 1) y lo confundía con el resultado (papá, 12/10).
+                if (item && item.pasos) {
+                    const salto = item.paso < item.pasos.length - 1;
+                    opFactorsEl.textContent = item.paso === 0 ? `De ${item.b} a 10` : item.paso === 1 ? `De 10 a ${item.a}` : item.texto;
+                    opIgualEl.textContent = salto ? '➜' : '=';
+                }
                 const panel = document.getElementById('pas10-panel');
                 panel.hidden = !visible;
                 if (!visible) return;
@@ -3393,7 +3460,7 @@
             document.getElementById('btn-start-game').addEventListener('click', empezarMision);
             document.getElementById('btn-leer-mision').addEventListener('click', () => {
                 const m = misionActual();
-                hablar(`La missió d'avui: ${textoMision(m).join('. ')}.`);
+                hablar(fraseMision(m));
             });
 
             // Presentación de cada bloque
