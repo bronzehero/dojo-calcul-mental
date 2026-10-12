@@ -947,6 +947,15 @@
         .btn-pista { width: 100%; margin-top: 12px; padding: 10px; border: 2px solid #fde68a; border-radius: 16px; background: #fffbeb; color: #92400e; font-family: var(--font-main); font-size: 1.15rem; font-weight: 700; cursor: pointer; }
         .correction-pista { margin: 6px 0 0 0; color: #5b21b6; font-size: 1.1rem; font-weight: 700; }
 
+        /* Signos de color; late cuando cambia respecto a la anterior */
+        .signe { font-weight: 900; display: inline-block; }
+        .signe-mes { color: #059669; }
+        .signe-menys { color: #e0115f; }
+        .signe-per { color: #7c3aed; }
+        .signe-canvi { animation: signe-late 0.5s ease-in-out 3; }
+        @keyframes signe-late { 50% { transform: scale(1.6); } }
+        @media (prefers-reduced-motion: reduce) { .signe-canvi { animation: none; text-decoration: underline; } }
+
         /* Dictat: teclat de lletres propi (sense el de l'iPad: ni correcció automàtica ni suggeriments) */
         #screen-game.dictat .game-content-layout { display: block; }
         .dictat-panel { margin-top: 6px; }
@@ -1430,8 +1439,8 @@
                 resta:   { nombre: 'Restes', icono: '➖', instr: "Restes. N'hi ha de fàcils i de més difícils. Al teu ritme. Si no ho saps, prem «No ho sé»: així sabem què practicar.", ejemplo: '14 − 6 ➜ escrius 8', paso: n => `${n} restes` },
                 vf:      { nombre: 'Està bé o no?', icono: '🤔', instr: 'Veuràs una multiplicació ja feta. Tu dius si està bé o malament. Si no ho saps, prem «No ho sé».', ejemplo: '2 × 3 = 6 ➜ ✔ Està bé', paso: () => 'Dir si està bé o malament' },
                 grafia:  { nombre: 'Examen de català', icono: '📝', instr: '', ejemplo: '', paso: () => 'Lletres' },
-                pas10:   { nombre: 'Passar pel 10', icono: '🔟', instr: "Restes que passen pel 10. Truc: primer salta fins al 10, després fins al número gran, i suma els dos salts. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ de 8 a 10, 2 · de 10 a 13, 3 · en total, 5', paso: () => 'Passar pel 10' },
-                control: { nombre: 'Missió de repàs', icono: '🧭', instr: "Una barreja de restes, sumes i multiplicacions, sense ajudes. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ escrius 5', paso: () => 'Restes, sumes i multiplicacions' },
+                pas10:   { nombre: 'Passar pel 10', icono: '🔟', instr: "Restes que passen pel 10. Truc: primer salta fins al 10, després fins al número gran, i suma els dos salts. Compte: també hi ha sumes, barrejades amb les restes. Mira bé el signe abans de contestar. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ de 8 a 10, 2 · de 10 a 13, 3 · en total, 5', paso: () => 'Passar pel 10' },
+                control: { nombre: 'Missió de repàs', icono: '🧭', instr: "Una barreja de restes, sumes i multiplicacions, sense ajudes. Mira bé el signe de cada una abans de contestar. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ escrius 5', paso: () => 'Restes, sumes i multiplicacions' },
                 dictat:  { nombre: 'Dictat', icono: '✍️', instr: "Sentiràs una paraula, després una frase amb aquesta paraula, i la paraula una altra vegada. Escriu només la paraula, com creguis que s'escriu. La pots tornar a escoltar tants cops com vulguis. Si no la saps, no passa res: al final del dictat veuràs com s'escriuen.", ejemplo: 'Sents «casa. La meva casa és gran. casa.» ➜ escrius casa', paso: () => 'Dictat' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
@@ -1973,6 +1982,7 @@
             function empezarBloque() {
                 const b = bloqueActual();
                 sesion.hechos = 0;
+                sesion.ultimoSigne = null;
                 if (b.tipo === 'vf') {
                     sesion.fijos = shuffle(VF_ITEMS);
                 } else if (b.tipo === 'grafia') {
@@ -2217,7 +2227,8 @@
                 oralRespuesta = null;
 
                 const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo);
-                opFactorsEl.textContent = item.texto;
+                opFactorsEl.innerHTML = htmlOperacion(item.texto);
+                marcarCanviDeSigne();
                 opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
                 opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat'].includes(item.tipo);
                 opAnswerEl.hidden = !numerico;
@@ -2254,6 +2265,19 @@
                 tInicio = performance.now();
             }
 
+            // El signo, de color (+ verde, − rosa, × lila). Cuando lleva varias del mismo signo y cambia,
+            // va con inercia y no lo mira (papá, 12/10: 10 + 2 → 8 y 10 − 2 → 12): en ese cambio el signo late.
+            const SIGNES = { '+': 'mes', '−': 'menys', '×': 'per' };
+            const htmlOperacion = t => escaparHtml(t).replace(/[+−×]/g, c => `<span class="signe signe-${SIGNES[c]}">${c}</span>`);
+            function marcarCanviDeSigne() {
+                const signe = (item.texto.match(/[+−×]/) || [null])[0];
+                const mixt = ['pas10', 'control'].includes(bloqueActual().tipo);
+                const el = opFactorsEl.querySelector('.signe');
+                item.canviSigne = !!(mixt && sesion.ultimoSigne && signe !== sesion.ultimoSigne);
+                if (item.canviSigne && el) el.classList.add('signe-canvi');
+                sesion.ultimoSigne = signe;
+            }
+
             // La recta de b a a, con el 10 marcado y los dos saltos (valor o «?»)
             function dibujarRecta(it) {
                 const desde = it.b, hasta = it.a, n = hasta - desde;
@@ -2280,7 +2304,12 @@
                 // detrás del igual (17 − 9 = 1) y lo confundía con el resultado (papá, 12/10).
                 if (item && item.pasos) {
                     const salto = item.paso < item.pasos.length - 1;
-                    opFactorsEl.textContent = item.paso === 0 ? `De ${item.b} a 10` : item.paso === 1 ? `De 10 a ${item.a}` : item.texto;
+                    if (item.paso < 2) opFactorsEl.textContent = item.paso === 0 ? `De ${item.b} a 10` : `De 10 a ${item.a}`;
+                    else {
+                        // Recta: el signo se ve al llegar a la operación entera; si ha cambiado, late entonces
+                        opFactorsEl.innerHTML = htmlOperacion(item.texto);
+                        if (item.canviSigne) opFactorsEl.querySelector('.signe').classList.add('signe-canvi');
+                    }
                     opIgualEl.textContent = salto ? '➜' : '=';
                 }
                 const panel = document.getElementById('pas10-panel');

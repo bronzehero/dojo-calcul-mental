@@ -31,6 +31,10 @@ async function contestarEntrenamiento(page, opciones = {}) {
         if ((m = pregunta.match(/^De (\d+) a 10\?$/))) { await teclear(page, 10 - parseInt(m[1], 10)); continue; }
         if ((m = pregunta.match(/^De 10 a (\d+)\?$/))) { await teclear(page, parseInt(m[1], 10) - 10); continue; }
         vistos.push(texto);
+        if (opciones.signes) opciones.signes.push(await page.$eval('#op-factors', el => {
+            const sg = el.querySelector('.signe');
+            return sg ? { signe: sg.textContent, clase: sg.className } : null;
+        }));
         const esObjetivo = opciones.objetivo && /×/.test(texto) && opciones.esObjetivo(texto);
         const respuesta = esObjetivo ? opciones.objetivo(texto, nObjetivo++) : respuestaCorrecta(texto);
         await teclear(page, respuesta);
@@ -381,4 +385,24 @@ test('la de la semana «sin dudar» se mide hasta la primera cifra (puede decirl
         { ok: true, ms: 3500, rectifica: false }              // datos antiguos sin pt: el tiempo total
     ].map(window.__sinDudar));
     expect(casos).toEqual([true, false, false, false, true]);
+});
+
+test('Passar pel 10: el signo va de color y late cuando cambia; la voz avisa de que hay sumas y restas', async ({ page }) => {
+    await simularSupabase(page);
+    await empezarEnMision(page, 7);
+    await page.goto(URL_APP);
+    await page.click('#btn-start-game');
+    await expect(page.locator('#intro-texto')).toContainText('Mira bé el signe');
+    await page.click('#btn-intro-vamos');
+    const signes = [];
+    await contestarEntrenamiento(page, { signes });
+    const pas10 = signes.slice(0, 10);
+    expect(pas10.every(x => x && /signe-(mes|menys)/.test(x.clase))).toBe(true);
+    expect(pas10.every(x => x.clase.includes(x.signe === '+' ? 'signe-mes' : 'signe-menys'))).toBe(true);
+    // Late solo al cambiar de signo (la primera no tiene anterior)
+    pas10.forEach((x, i) => expect(x.clase.includes('signe-canvi')).toBe(i > 0 && x.signe !== pas10[i - 1].signe));
+    expect(pas10.some(x => x.clase.includes('signe-canvi'))).toBe(true);
+    // En la de la semana (todo multiplicaciones) no late nunca
+    const setmana = signes.slice(10);
+    expect(setmana.every(x => x && x.clase.includes('signe-per') && !x.clase.includes('signe-canvi'))).toBe(true);
 });
