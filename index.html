@@ -1396,7 +1396,10 @@
             // Las que todavía no salen solas: no se usan de relleno
             const ATASCADAS = ['6x8', '7x8', '9x9', '3x6', '3x7', '6x9', '5x7'];
             const SETMANA_N = 12, SETMANA_OBJETIVO_EN = [1, 4, 7, 10];
+            // «Sin dudar»: la primera cifra antes de 4 s. Se cuenta hasta la primera tecla y no hasta el final:
+            // a menudo dice el resultado en voz alta, con su entonación, y después lo escribe (papá, 12/10).
             const SETMANA_MAX_MS = 4000, SETMANA_DIAS = 3;
+            const sinDudar = r => r.ok && (r.pt ?? r.ms) <= SETMANA_MAX_MS && !r.rectifica;
 
             // A · Restas que cruzan la decena: «resto sumando» (13 − 8: de 8 a 10, 2; de 10 a 13, 3; total, 5).
             // La ayuda se va retirando: recta guiada → botón «Pista» → sin ayuda. Sube con 2 días buenos.
@@ -1672,6 +1675,7 @@
 
             // Todo lo que puede decir en voz alta (para generar los MP3 y comprobar en las pruebas que no falta ninguno)
             // Per a les proves: la paraula del dictat que hi ha a la pantalla (no es mostra enlloc)
+            window.__sinDudar = sinDudar;
             window.__dictatActual = () => item && item.tipo === 'dictat' ? item.paraula : null;
 
             window.__textosVeu = () => {
@@ -2052,8 +2056,7 @@
                 const antes = JSON.stringify(f);
                 const obj = sesion.objetivo || [];
                 if (obj.length) {
-                    const sinDudar = obj.every(r => r.ok && r.ms <= SETMANA_MAX_MS && !r.rectifica);
-                    if (!sinDudar) f.setmana.dias = [];
+                    if (!obj.every(sinDudar)) f.setmana.dias = [];
                     else if (!f.setmana.dias.includes(hoy())) f.setmana.dias.push(hoy());
                     if (f.setmana.dias.length >= SETMANA_DIAS) {
                         const fet = SETMANA[Math.min(f.setmana.idx, SETMANA.length - 1)];
@@ -2374,7 +2377,7 @@
                 if (item.objetivo !== undefined) {
                     extra.setmana = `${fetSetmana().a}x${fetSetmana().b}`;
                     extra.objetivo = item.objetivo;
-                    if (item.objetivo) sesion.objetivo.push({ ok, ms, rectifica: teclas.some(t => t[1] === 'back') });
+                    if (item.objetivo) sesion.objetivo.push({ ok, ms, pt: teclas.length ? teclas[0][0] : ms, rectifica: teclas.some(t => t[1] === 'back') });
                 }
                 registrar(item, currentInput, ok, ms, extra);
 

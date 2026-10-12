@@ -369,3 +369,16 @@ test.describe('repetir el entrenamiento el 12/10 (la primera vez falló la app)'
         await expect(page.locator('#mision-hecha')).toBeVisible();
     });
 });
+
+test('la de la semana «sin dudar» se mide hasta la primera cifra (puede decirla en voz alta antes de escribir)', async ({ page }) => {
+    await simularSupabase(page);
+    await page.goto(URL_APP);
+    const casos = await page.evaluate(() => [
+        { ok: true, ms: 4130, pt: 3011, rectifica: false },   // la dice cantando y luego la escribe: vale
+        { ok: true, ms: 5000, pt: 4500, rectifica: false },   // tarda en empezar: no vale
+        { ok: true, ms: 2000, pt: 1000, rectifica: true },    // borra: no vale
+        { ok: false, ms: 2000, pt: 1000, rectifica: false },  // mal: no vale
+        { ok: true, ms: 3500, rectifica: false }              // datos antiguos sin pt: el tiempo total
+    ].map(window.__sinDudar));
+    expect(casos).toEqual([true, false, false, false, true]);
+});
