@@ -975,6 +975,16 @@
         .btn-escoltar-dictat { width: 100%; margin: 0 0 12px 0; font-size: 1.3rem; padding: 12px; background: #faf5ff; border: 2px solid #e9d5ff; border-radius: 16px; color: #6b21a8; text-decoration: none; }
         #screen-game.dictat .operation-display { padding: 10px 14px; }
         #screen-game.dictat .operation-text { font-size: 2.4rem; }
+
+        /* Xifres: dues (o quatre) xifres per triar; una pot estar en mirall o girada */
+        .xifres-opcions { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+        .xifra-btn { height: 150px; border: 4px solid #e9dcff; border-radius: 24px; background: #fff; cursor: pointer;
+            font-family: var(--font-main); font-size: 5.5rem; font-weight: 700; color: #1e293b; box-shadow: 0 6px 16px var(--c-shadow); }
+        .xifres-opcions.quatre .xifra-btn { height: 110px; font-size: 3.6rem; }
+        .xifra-btn:active { background: #fce7f3; }
+        .xifra-btn .glif { display: inline-block; }
+        .xifra-btn .glif.mirall { transform: scaleX(-1); }
+        .btn-escoltar-xifra { width: 100%; margin-top: 14px; font-size: 1.3rem; padding: 12px; background: #faf5ff; border: 2px solid #e9d5ff; border-radius: 16px; color: #6b21a8; }
     </style>
 </head>
 <body>
@@ -1103,6 +1113,12 @@
                         <button id="btn-escoltar-dictat" class="btn-subtle btn-escoltar-dictat">🔊 Torna-ho a escoltar</button>
                         <div id="dictat-escrit" class="dictat-escrit buit">…</div>
                         <div id="teclat-lletres" class="teclat-lletres"></div>
+                    </div>
+
+                    <!-- Xifres: escolta i toca la que està ben escrita / el número que ha sentit -->
+                    <div id="xifres-panel" hidden>
+                        <div id="xifres-opcions" class="xifres-opcions"></div>
+                        <button id="btn-escoltar-xifra" class="btn-subtle btn-escoltar-xifra">🔊 Torna-ho a escoltar</button>
                     </div>
 
                     <!-- Mejor decir "no ho sé" que adivinar: una respuesta inventada y errónea se queda grabada -->
@@ -1442,6 +1458,8 @@
                 pas10:   { nombre: 'Passar pel 10', icono: '🔟', instr: "Restes que passen pel 10. Truc: primer salta fins al 10, després fins al número gran, i suma els dos salts. Compte: també hi ha sumes, barrejades amb les restes. Mira bé el signe abans de contestar. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ de 8 a 10, 2 · de 10 a 13, 3 · en total, 5', paso: () => 'Passar pel 10' },
                 control: { nombre: 'Missió de repàs', icono: '🧭', instr: "Una barreja de restes, sumes i multiplicacions, sense ajudes. Mira bé el signe de cada una abans de contestar. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ escrius 5', paso: () => 'Restes, sumes i multiplicacions' },
                 dictat:  { nombre: 'Dictat', icono: '✍️', instr: "Sentiràs una paraula, després una frase amb aquesta paraula, i la paraula una altra vegada. Escriu només la paraula, com creguis que s'escriu. La pots tornar a escoltar tants cops com vulguis. Si no la saps, no passa res: al final del dictat veuràs com s'escriuen.", ejemplo: 'Sents «casa. La meva casa és gran. casa.» ➜ escrius casa', paso: () => 'Dictat' },
+                xifra:   { nombre: 'Quin està ben escrit?', icono: '🔍', instr: "Avui és una prova curta i diferent: no hi ha comptes. Sentiràs un número i en veuràs dos. Un està ben escrit. L'altre està girat, com si el veiessis en un mirall, o és un altre número. Toca el que està ben escrit. Mira'ls bé, sense pressa. Si dubtes, tria el que et sembli: no passa res.", ejemplo: 'Sents «Toca el tres» ➜ toques el 3 ben escrit', paso: () => 'Quin està ben escrit?' },
+                sentir:  { nombre: 'Quin número és?', icono: '👂', instr: "Ara sentiràs un número de dues xifres i en veuràs quatre que s'assemblen molt. Toca el que has sentit. Mira'ls xifra per xifra, sense pressa. El pots tornar a escoltar tantes vegades com vulguis.", ejemplo: 'Sents «trenta-sis» ➜ toques el 36', paso: () => 'Quin número és?' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
 
@@ -1521,11 +1539,37 @@
             const veuDictat = ([paraula, frase]) => `${paraula}. ${frase} ${paraula}.`;
             const paraulesBloc = bloc => DICTAT_PARAULES.slice(bloc * DICTAT_PER_BLOC, (bloc + 1) * DICTAT_PER_BLOC);
 
+            // Xifres: ¿reconoce las cifras en espejo o giradas (6/9, 2/5) y los números de dos cifras que se le parecen?
+            // Sin corrección ni nada en pantalla de aciertos: se apunta qué toca y cuánto tarda (si duda).
+            const NOM_XIFRA = { 1: "l'u", 2: 'el dos', 3: 'el tres', 4: 'el quatre', 5: 'el cinc', 6: 'el sis', 7: 'el set', 9: 'el nou' };
+            const XIFRES_A = [ // [xifra, com és l'altra: 'mirall' o una altra xifra]
+                [1, 'mirall'], [2, 'mirall'], [3, 'mirall'], [4, 'mirall'], [5, 'mirall'], [6, 'mirall'], [7, 'mirall'], [9, 'mirall'],
+                [6, 9], [9, 6], [2, 5], [5, 2]
+            ];
+            const NOM_NUMERO = {
+                24: 'vint-i-quatre', 42: 'quaranta-dos', 54: 'cinquanta-quatre', 45: 'quaranta-cinc', 25: 'vint-i-cinc', 52: 'cinquanta-dos',
+                69: 'seixanta-nou', 96: 'noranta-sis', 26: 'vint-i-sis', 62: 'seixanta-dos', 59: 'cinquanta-nou', 95: 'noranta-cinc'
+            };
+            const XIFRES_B = Object.keys(NOM_NUMERO).map(Number);
+            const GIR_XIFRA = { 2: '5', 5: '2', 6: '9', 9: '6' };
+            const veuXifra = x => `Toca ${NOM_XIFRA[x]}.`;
+            const veuNumero = n => `${NOM_NUMERO[n]}.`;
+            // Les 3 que s'hi assemblen: al revés, amb una xifra girada o les dues coses
+            function semblants(n) {
+                const s = String(n), rev = s[1] + s[0];
+                const girs = t => [0, 1].filter(i => GIR_XIFRA[t[i]]).map(i => i === 0 ? GIR_XIFRA[t[0]] + t[1] : t[0] + GIR_XIFRA[t[1]]);
+                const c = [rev, ...girs(s), ...girs(rev)].filter((x, i, l) => x !== s && x[0] !== '0' && l.indexOf(x) === i);
+                return c.slice(0, 3).map(Number);
+            }
+            const XIFRES = { id: 103, titulo: 'Les xifres', bloques: [{ tipo: 'xifra' }, { tipo: 'sentir' }] };
+            const XIFRES_DES_DE = '2026-10-17'; // surt sola a partir d'aquest dia (després del dictat), fins que la faci
+
             // Misiones fuera del plan: papá las pone para un día concreto desde la Zona Papá
             const MISIONES_EXTRA = [
                 { id: 101, titulo: "Simulacre: examen de català", bloques: EXAMEN_CATALA.map((_, i) => ({ tipo: 'grafia', bloc: i })) },
                 CONTROL,
-                DICTAT
+                DICTAT,
+                XIFRES
             ];
 
             // Oral con papá: atascadas, lentas y controles rápidos (según datos a 29/09/2026)
@@ -1686,6 +1730,8 @@
             // Per a les proves: la paraula del dictat que hi ha a la pantalla (no es mostra enlloc)
             window.__sinDudar = sinDudar;
             window.__dictatActual = () => item && item.tipo === 'dictat' ? item.paraula : null;
+            window.__itemsXifresProva = () => itemsXifra();
+            window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi) } : null;
 
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
@@ -1697,6 +1743,9 @@
                 t.add(fraseMision(CONTROL));
                 t.add(fraseMision(DICTAT));
                 DICTAT_PARAULES.forEach(x => t.add(veuDictat(x)));
+                t.add(fraseMision(XIFRES));
+                XIFRES_A.forEach(([x]) => t.add(veuXifra(x)));
+                XIFRES_B.forEach(n => t.add(veuNumero(n)));
                 return [...t];
             };
 
@@ -1838,6 +1887,7 @@
                 const repasHoy = (p.extras || []).some(x => x.id === CONTROL.id && x.fecha === hoy());
                 if (new Date().getDay() === 0 && yaEntrena && !repasHoy) return CONTROL;
                 if (hoy() >= DICTAT_DES_DE && !(p.extras || []).some(x => x.id === DICTAT.id)) return DICTAT;
+                if (hoy() >= XIFRES_DES_DE && !(p.extras || []).some(x => x.id === XIFRES.id)) return XIFRES;
                 return ENTRENAMENT;
             }
 
@@ -2000,6 +2050,10 @@
                     sesion.fijos = itemsControl();
                 } else if (b.tipo === 'dictat') {
                     sesion.fijos = paraulesBloc(b.bloc);
+                } else if (b.tipo === 'xifra') {
+                    sesion.fijos = itemsXifra();
+                } else if (b.tipo === 'sentir') {
+                    sesion.fijos = itemsSentir();
                 } else {
                     sesion.fijos = null;
                 }
@@ -2141,6 +2195,24 @@
                 return SETMANA_OBJETIVO_EN.map(() => ({ a: f.a, b: f.b, objetivo: true }));
             }
 
+            // Xifres: mezcladas sin la misma cifra dos veces seguidas; la buena, a la izquierda o a la derecha al azar
+            function itemsXifra() {
+                for (let intento = 0; intento < 100; intento++) {
+                    const l = shuffle(XIFRES_A);
+                    if (l.every((c, i) => i === 0 || c[0] !== l[i - 1][0])) return l.map(([x, altra]) => ({ x, altra, buenaIzq: Math.random() < 0.5 }));
+                }
+                return XIFRES_A.map(([x, altra]) => ({ x, altra, buenaIzq: true }));
+            }
+            // Quin número és: sin dos seguidos con las mismas cifras (24 y 42)
+            function itemsSentir() {
+                const mateixes = (a, b) => [...String(a)].sort().join('') === [...String(b)].sort().join('');
+                for (let intento = 0; intento < 100; intento++) {
+                    const l = shuffle(XIFRES_B);
+                    if (l.every((n, i) => i === 0 || !mateixes(n, l[i - 1]))) return l.map(n => ({ n, opcions: shuffle([n, ...semblants(n)]) }));
+                }
+                return XIFRES_B.map(n => ({ n, opcions: [n, ...semblants(n)] }));
+            }
+
             // Repaso: las mismas cada semana, mezcladas sin dos seguidas que se parezcan
             function itemsControl() {
                 const res = c => c[0] === 'x' ? c[1] * c[2] : c[0] === '+' ? c[1] + c[2] : c[1] - c[2];
@@ -2174,6 +2246,20 @@
                 if (tipo === 'dictat') {
                     const [paraula, frase] = sesion.fijos[sesion.hechos];
                     return { tipo, paraula, frase, texto: paraula, clave: paraula, esperado: paraula, escoltat: 0 };
+                }
+                if (tipo === 'xifra') {
+                    const { x, altra, buenaIzq } = sesion.fijos[sesion.hechos];
+                    const bona = { codi: String(x), html: `<span class="glif">${x}</span>` };
+                    const dolenta = altra === 'mirall'
+                        ? { codi: `mirall ${x}`, html: `<span class="glif mirall">${x}</span>` }
+                        : { codi: String(altra), html: `<span class="glif">${altra}</span>` };
+                    return { tipo, x, altra, texto: '🔍', clave: `${x}|${altra}`, esperado: String(x), veu: veuXifra(x),
+                        opcions: buenaIzq ? [bona, dolenta] : [dolenta, bona], escoltat: 0 };
+                }
+                if (tipo === 'sentir') {
+                    const { n, opcions } = sesion.fijos[sesion.hechos];
+                    return { tipo, n, texto: '👂', clave: String(n), esperado: String(n), veu: veuNumero(n),
+                        opcions: opcions.map(o => ({ codi: String(o), html: `<span class="glif">${o}</span>` })), escoltat: 0 };
                 }
                 if (tipo === 'grafia') {
                     const g = sesion.fijos[sesion.hechos];
@@ -2230,13 +2316,22 @@
                 opFactorsEl.innerHTML = htmlOperacion(item.texto);
                 marcarCanviDeSigne();
                 opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
-                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat'].includes(item.tipo);
+                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir'].includes(item.tipo);
                 opAnswerEl.hidden = !numerico;
                 opCardEl.classList.toggle('op-largo', item.tipo === 'vf');
                 opCardEl.classList.toggle('op-frase', item.tipo === 'grafia');
                 if (item.tipo === 'grafia') opFactorsEl.innerHTML = htmlFrase(item);
                 document.getElementById('grafia-panel').hidden = item.tipo !== 'grafia';
                 document.getElementById('dictat-panel').hidden = item.tipo !== 'dictat';
+                const ambXifres = ['xifra', 'sentir'].includes(item.tipo);
+                document.getElementById('xifres-panel').hidden = !ambXifres;
+                if (ambXifres) {
+                    opFactorsEl.textContent = `${item.texto} ${sesion.hechos + 1}`;
+                    const op = document.getElementById('xifres-opcions');
+                    op.classList.toggle('quatre', item.opcions.length === 4);
+                    op.innerHTML = item.opcions.map(o => `<button class="xifra-btn" data-xifra="${escaparHtml(o.codi)}">${o.html}</button>`).join('');
+                    hablar(item.veu);
+                }
                 if (item.tipo === 'dictat') {
                     opFactorsEl.textContent = `🎧 ${sesion.hechos + 1}`;
                     pintarDictat();
@@ -2556,6 +2651,18 @@
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 registrar(item, resposta, resposta === item.esperado, ms, { bloc: bloqueActual().bloc, escoltat: item.escoltat });
+                callarVeu();
+                setTimeout(siguienteItem, 350);
+            }
+
+            // Xifres: sin corrección; se apunta lo que toca, dónde estaba la buena y si lo ha vuelto a escuchar
+            function responderXifra(codi) {
+                if (isEvaluating || !item || !['xifra', 'sentir'].includes(item.tipo)) return;
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                const extra = { escoltat: item.escoltat, opcions: item.opcions.map(o => o.codi) };
+                if (item.tipo === 'xifra') extra.altra = String(item.altra);
+                registrar(item, codi, codi === item.esperado, ms, extra);
                 callarVeu();
                 setTimeout(siguienteItem, 350);
             }
@@ -3681,6 +3788,17 @@
             });
 
             document.getElementById('btn-no-ho-se').addEventListener('click', noHoSe);
+
+            // Xifres
+            document.getElementById('xifres-opcions').addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (btn && btn.dataset.xifra) responderXifra(btn.dataset.xifra);
+            });
+            document.getElementById('btn-escoltar-xifra').addEventListener('click', () => {
+                if (!item || !['xifra', 'sentir'].includes(item.tipo) || isEvaluating) return;
+                item.escoltat++;
+                hablar(item.veu);
+            });
 
             // Passar pel 10 (nivel con pista): enseña la recta con los dos saltos
             document.getElementById('btn-pista').addEventListener('click', () => {

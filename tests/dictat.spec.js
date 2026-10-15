@@ -80,7 +80,7 @@ test.describe('Dictat de partida', () => {
         await expect(page.locator('#mision-hecha')).toBeVisible();
         await page.clock.setFixedTime(new Date('2026-10-17T17:00:00'));
         await page.reload();
-        await expect(page.locator('#mision-titulo')).toHaveText('Entrenament');
+        await expect(page.locator('#mision-titulo')).toHaveText('Les xifres');
     });
 
     test('teclat: esborrar, espai, accents, apòstrof; tornar-ho a escoltar es compta', async ({ page }) => {
