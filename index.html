@@ -1458,7 +1458,7 @@
                 pas10:   { nombre: 'Passar pel 10', icono: '🔟', instr: "Restes que passen pel 10. Truc: primer salta fins al 10, després fins al número gran, i suma els dos salts. Compte: també hi ha sumes, barrejades amb les restes. Mira bé el signe abans de contestar. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ de 8 a 10, 2 · de 10 a 13, 3 · en total, 5', paso: () => 'Passar pel 10' },
                 control: { nombre: 'Missió de repàs', icono: '🧭', instr: "Una barreja de restes, sumes i multiplicacions, sense ajudes. Mira bé el signe de cada una abans de contestar. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ escrius 5', paso: () => 'Restes, sumes i multiplicacions' },
                 dictat:  { nombre: 'Dictat', icono: '✍️', instr: "Sentiràs una paraula, després una frase amb aquesta paraula, i la paraula una altra vegada. Escriu només la paraula, com creguis que s'escriu. La pots tornar a escoltar tants cops com vulguis. Si no la saps, no passa res: al final del dictat veuràs com s'escriuen.", ejemplo: 'Sents «casa. La meva casa és gran. casa.» ➜ escrius casa', paso: () => 'Dictat' },
-                xifra:   { nombre: 'Quin està ben escrit?', icono: '🔍', instr: "Avui és una prova curta i diferent: no hi ha comptes. Sentiràs un número i en veuràs dos. Un està ben escrit. L'altre està girat, com si el veiessis en un mirall, o és un altre número. Toca el que està ben escrit. Mira'ls bé, sense pressa. Si dubtes, tria el que et sembli: no passa res.", ejemplo: 'Sents «Toca el tres» ➜ toques el 3 ben escrit', paso: () => 'Quin està ben escrit?' },
+                xifra:   { nombre: 'Quin està ben escrit?', icono: '🔍', instr: "Ara, una prova curta i diferent: no hi ha comptes. Sentiràs un número i en veuràs dos. Un està ben escrit. L'altre està girat, com si el veiessis en un mirall, o és un altre número. Toca el que està ben escrit. Mira'ls bé, sense pressa. Si dubtes, tria el que et sembli: no passa res.", ejemplo: 'Sents «Toca el tres» ➜ toques el 3 ben escrit', paso: () => 'Quin està ben escrit?' },
                 sentir:  { nombre: 'Quin número és?', icono: '👂', instr: "Ara sentiràs un número de dues xifres i en veuràs quatre que s'assemblen molt. Toca el que has sentit. Mira'ls xifra per xifra, sense pressa. El pots tornar a escoltar tantes vegades com vulguis.", ejemplo: 'Sents «trenta-sis» ➜ toques el 36', paso: () => 'Quin número és?' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
@@ -1562,7 +1562,10 @@
                 return c.slice(0, 3).map(Number);
             }
             const XIFRES = { id: 103, titulo: 'Les xifres', bloques: [{ tipo: 'xifra' }, { tipo: 'sentir' }] };
-            const XIFRES_DES_DE = '2026-10-17'; // surt sola a partir d'aquest dia (després del dictat), fins que la faci
+            // A partir de este día va AÑADIDA: al acabar el entrenamiento (o el repaso del domingo), que se guarda como siempre,
+            // empieza la de les xifres, hasta que la haga una vez. No sustituye nada ni retrasa el plan.
+            // Papá también la puede poner sola otro día desde la Zona Papá.
+            const XIFRES_DES_DE = '2026-10-17';
 
             // Misiones fuera del plan: papá las pone para un día concreto desde la Zona Papá
             const MISIONES_EXTRA = [
@@ -1744,6 +1747,9 @@
                 t.add(fraseMision(DICTAT));
                 DICTAT_PARAULES.forEach(x => t.add(veuDictat(x)));
                 t.add(fraseMision(XIFRES));
+                const ambXifres = m => ({ ...m, bloques: [...m.bloques, ...XIFRES.bloques] });
+                SETMANA.forEach(f => t.add(fraseMision(ambXifres(ENTRENAMENT), f)));
+                t.add(fraseMision(ambXifres(CONTROL)));
                 XIFRES_A.forEach(([x]) => t.add(veuXifra(x)));
                 XIFRES_B.forEach(n => t.add(veuNumero(n)));
                 return [...t];
@@ -1887,8 +1893,18 @@
                 const repasHoy = (p.extras || []).some(x => x.id === CONTROL.id && x.fecha === hoy());
                 if (new Date().getDay() === 0 && yaEntrena && !repasHoy) return CONTROL;
                 if (hoy() >= DICTAT_DES_DE && !(p.extras || []).some(x => x.id === DICTAT.id)) return DICTAT;
-                if (hoy() >= XIFRES_DES_DE && !(p.extras || []).some(x => x.id === XIFRES.id)) return XIFRES;
                 return ENTRENAMENT;
+            }
+
+            // ¿Toca encadenar les xifres al acabar esta misión?
+            function xifresPendents(m) {
+                return [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= XIFRES_DES_DE &&
+                    !(leerPlan().extras || []).some(x => x.id === XIFRES.id);
+            }
+            // Lo que se enseña y se lee en el inicio: la misión y, si tocan, les xifres al final
+            function misionMostrada() {
+                const m = misionActual();
+                return xifresPendents(m) ? { ...m, bloques: [...m.bloques, ...XIFRES.bloques] } : m;
             }
 
             // Estado de la fase 1 (solo en el iPad; una copia va a eventos al acabar cada misión)
@@ -1955,13 +1971,13 @@
             function textoMision(m, f = fetSetmana()) {
                 return m.bloques.map(b => (b.tipo === 'setmana' ? infoSetmana(f) : infoBloque(b)).paso(b.n));
             }
-            const fraseMision = (m, f) => `La missió d'avui: ${textoMision(m, f).join('. ')}.`;
+            const fraseMision = (m, f) => `La missió d'avui: ${textoMision(m, f).join('. ')}.`.replace(/\?\./g, '?');
 
             function renderHome() {
                 document.getElementById('saludo').textContent = `Hola${conNombre()}!`;
                 renderBotonAlbum();
                 const hecha = misionHechaHoy();
-                const m = misionActual();
+                const m = misionMostrada();
                 document.getElementById('mision-card').hidden = hecha;
                 document.getElementById('btn-start-game').hidden = hecha;
                 document.getElementById('mision-hecha').hidden = !hecha;
@@ -2107,6 +2123,12 @@
                 guardarPlan(p);
                 guardarEvento({ modulo: 'mision', item: String(sesion.mision.id), detalle: { titulo: sesion.mision.titulo } });
                 if (sesion.mision.id === ENTRENAMENT.id) actualizarFase1();
+                if (xifresPendents(sesion.mision)) {
+                    // La misión del día ya está guardada; ahora, sin pasar por el resumen, les xifres
+                    sesion = { mision: XIFRES, iBloque: bloqueGuardado(XIFRES), hechos: 0, total: 0, fijos: null, encadenada: true };
+                    mostrarIntroBloque();
+                    return;
+                }
                 document.getElementById('summary-titulo').textContent = `Missió complerta${conNombre()}!`;
                 document.getElementById('summary-texto').textContent = 'Cada dia el teu cervell es fa més fort. A descansar i a gaudir del dia!';
                 sesion = null;
@@ -2141,6 +2163,15 @@
             }
 
             function pararPorHoy() {
+                // Si para en les xifres encadenadas, la misión del día ya está hecha: su resumen y su photocard
+                if (sesion && sesion.encadenada) {
+                    sesion = null;
+                    document.getElementById('summary-titulo').textContent = `Missió complerta${conNombre()}!`;
+                    document.getElementById('summary-texto').textContent = 'Cada dia el teu cervell es fa més fort. A descansar i a gaudir del dia!';
+                    showScreen('summary');
+                    mostrarPhotocard();
+                    return;
+                }
                 // La misión queda pendiente: la próxima vez sigue por el bloque que no ha terminado
                 sesion = null;
                 document.getElementById('summary-titulo').textContent = `Molt bona feina${conNombre()}!`;
@@ -3725,7 +3756,7 @@
             // Inicio: misión del día
             document.getElementById('btn-start-game').addEventListener('click', empezarMision);
             document.getElementById('btn-leer-mision').addEventListener('click', () => {
-                const m = misionActual();
+                const m = misionMostrada();
                 hablar(fraseMision(m));
             });
 

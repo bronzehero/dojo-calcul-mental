@@ -1,8 +1,31 @@
-// Les xifres: surt sola a partir del 17/10 (després del dictat) fins que la fa.
+// Les xifres: a partir del 17/10 va AFEGIDA: quan acaba l'entrenament (o el repàs del diumenge), que es guarda com sempre,
+// comença la de les xifres, fins que la fa un cop. No substitueix res. El papa la pot posar sola un altre dia.
 // Part 1: sent una xifra i en veu dues (una en mirall o una altra xifra que s'hi assembla); toca la ben escrita.
 // Part 2: sent un número de dues xifres i en veu quatre que s'hi assemblen; toca el que ha sentit.
 // Sense correcció ni res d'encerts a la pantalla: es guarda què toca, on era la bona i si ho torna a escoltar.
-const { test, expect, URL_APP, simularSupabase } = require('./ayudas');
+const { test, expect, URL_APP, simularSupabase, teclear, respuestaCorrecta } = require('./ayudas');
+
+/** Fa l'entrenament (bé) fins que arriba a la part de les xifres */
+async function ferEntrenament(page) {
+    const titols = [];
+    for (;;) {
+        if (await page.isVisible('#screen-intro')) {
+            const t = await page.textContent('#intro-titulo');
+            if (t === 'Quin està ben escrit?') return titols;
+            titols.push(t);
+            await page.click('#btn-intro-vamos');
+            continue;
+        }
+        if (await page.isVisible('#gentle-correction-box')) { await page.click('#btn-correction-continue'); continue; }
+        if (!(await page.isVisible('#screen-game'))) { await page.waitForTimeout(100); continue; }
+        const pregunta = (await page.isVisible('#pas10-panel')) ? (await page.textContent('#pas10-pregunta')) : '';
+        let m;
+        if ((m = pregunta.match(/^De (\d+) a 10\?$/))) { await teclear(page, 10 - parseInt(m[1], 10)); continue; }
+        if ((m = pregunta.match(/^De 10 a (\d+)\?$/))) { await teclear(page, parseInt(m[1], 10) - 10); continue; }
+        await teclear(page, respuestaCorrecta(await page.textContent('#op-factors')));
+        await page.waitForTimeout(850);
+    }
+}
 
 const PROHIBIDO_EN_PANTALLA = /segons|cronòmetre|errades|errors|fallades|fallos|\d+\s*\/\s*\d+|malament|incorrect/i;
 const PLAN_ACABAT = [1, 2, 3, 4, 5, 6].map(id => ({ id, fecha: '2026-01-01' })).concat([{ id: 10, fecha: '2026-10-12' }]);
@@ -21,19 +44,23 @@ async function preparar(page, dia, extras = DICTAT_FET) {
 }
 
 test.describe('Les xifres', () => {
-    test('el 16/10 encara surt el dictat; el 17/10, si no ha fet el dictat, primer el dictat', async ({ page }) => {
+    test('el 16/10, el dictat tal qual; el 17/10, si no ha fet el dictat, el dictat (sense xifres)', async ({ page }) => {
         await preparar(page, '2026-10-16', []);
         await expect(page.locator('#mision-titulo')).toHaveText('Dictat');
+        await expect(page.locator('#mision-pasos li')).toHaveCount(2);
         await page.clock.setFixedTime(new Date('2026-10-17T17:00:00'));
         await page.reload();
         await expect(page.locator('#mision-titulo')).toHaveText('Dictat');
+        await expect(page.locator('#mision-pasos li')).toHaveText(['✍️ Dictat, part 1', '✍️ Dictat, part 2']);
     });
 
-    test('el 17/10: 12 xifres i 12 números, sense correcció; es guarda tot; l\'endemà ja no surt', async ({ page }) => {
+    test('el 17/10: entrenament sencer i, afegides al final, 12 xifres i 12 números, sense correcció; es guarda tot; l\'endemà ja no surt', async ({ page }) => {
         const envios = await preparar(page, '2026-10-17');
-        await expect(page.locator('#mision-titulo')).toHaveText('Les xifres');
-        await expect(page.locator('#mision-pasos li')).toHaveText(['🔍 Quin està ben escrit?', '👂 Quin número és?']);
+        await expect(page.locator('#mision-titulo')).toHaveText('Entrenament');
+        await expect(page.locator('#mision-pasos li')).toHaveText(['🔟 Passar pel 10', '⭐ La de la setmana: 6 × 8', '🔍 Quin està ben escrit?', '👂 Quin número és?']);
         await page.click('#btn-start-game');
+        // Primer l'entrenament sencer, com cada dia
+        expect(await ferEntrenament(page)).toEqual(['Passar pel 10', 'La de la setmana']);
 
         // Part 1: la primera, l'altra (en mirall o una altra xifra); la resta, la bona
         await expect(page.locator('#intro-titulo')).toHaveText('Quin està ben escrit?');
@@ -92,12 +119,61 @@ test.describe('Les xifres', () => {
         const d24 = b.find(d => d.esperado === '24');
         expect([...d24.detalle.opcions].sort()).toEqual(['24', '42', '45', '54']);
 
+        // L'entrenament compta com cada dia (i l'estat de la fase 1 s'actualitza); les xifres, a part
         const p = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_plan')));
         expect(p.extras.map(x => x.id)).toEqual([102, 103]);
+        expect(p.hechas[p.hechas.length - 1]).toEqual({ id: 10, fecha: '2026-10-17' });
+        await expect.poll(() => envios.filter(e => e.datos.modulo === 'fase1').length).toBe(1);
+        expect(envios.filter(e => e.datos.modulo === 'mision').map(e => e.datos.item)).toEqual(['10', '103']);
+        await expect(page.locator('#photocard-zona')).toBeVisible();
         await page.click('#btn-summary-home');
+        await expect(page.locator('#mision-hecha')).toBeVisible();
+        // Dilluns: l'entrenament de sempre, sense les xifres
         await page.clock.setFixedTime(new Date('2026-10-19T17:00:00'));
         await page.reload();
         await expect(page.locator('#mision-titulo')).toHaveText('Entrenament');
+        await expect(page.locator('#mision-pasos li')).toHaveCount(2);
+    });
+
+    test('si para a mitad de les xifres: l\'entrenament ja compta, té la seva photocard, i l\'endemà les xifres continuen després de l\'entrenament', async ({ page }) => {
+        const envios = await preparar(page, '2026-10-17');
+        await page.click('#btn-start-game');
+        await ferEntrenament(page);
+        await page.click('#btn-intro-vamos');
+        await page.click('#xifres-opcions .xifra-btn >> nth=0');
+        await expect(page.locator('#op-factors')).toHaveText('🔍 2');
+        await page.click('#btn-exit-game');
+        await expect(page.locator('#summary-titulo')).toHaveText('Missió complerta!');
+        await expect(page.locator('#photocard-zona')).toBeVisible();
+        let p = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_plan')));
+        expect(p.hechas[p.hechas.length - 1]).toEqual({ id: 10, fecha: '2026-10-17' });
+        expect(p.extras.map(x => x.id)).toEqual([102]);
+        await expect.poll(() => envios.filter(e => e.datos.modulo === 'fase1').length).toBe(1);
+        await page.click('#btn-summary-home');
+        await expect(page.locator('#mision-hecha')).toBeVisible();
+        // Diumenge: el repàs i, després, les xifres
+        await page.clock.setFixedTime(new Date('2026-10-18T17:00:00'));
+        await page.reload();
+        await expect(page.locator('#mision-titulo')).toHaveText('Missió de repàs');
+        await expect(page.locator('#mision-pasos li')).toHaveText(['🧭 Restes, sumes i multiplicacions', '🔍 Quin està ben escrit?', '👂 Quin número és?']);
+        await page.click('#btn-start-game');
+        expect(await ferEntrenament(page)).toEqual(['Missió de repàs']);
+        await page.click('#btn-intro-vamos');
+        for (let i = 0; i < 12; i++) {
+            const x = await page.evaluate(() => window.__xifraActual());
+            await page.click(`#xifres-opcions [data-xifra="${x.esperado}"]`);
+            if (i < 11) await expect(page.locator('#op-factors')).toHaveText(`🔍 ${i + 2}`);
+        }
+        await expect(page.locator('#intro-titulo')).toHaveText('Quin número és?');
+        await page.click('#btn-intro-vamos');
+        for (let i = 0; i < 12; i++) {
+            const x = await page.evaluate(() => window.__xifraActual());
+            await page.click(`#xifres-opcions [data-xifra="${x.esperado}"]`);
+            if (i < 11) await expect(page.locator('#op-factors')).toHaveText(`👂 ${i + 2}`);
+        }
+        await expect(page.locator('#summary-titulo')).toBeVisible();
+        p = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_plan')));
+        expect(p.extras.map(x => x.id)).toEqual([102, 11, 103]);
     });
 
     test('la bona no surt sempre al mateix costat ni la mateixa xifra dues vegades seguides', async ({ page }) => {
