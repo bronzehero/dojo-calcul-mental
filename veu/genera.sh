@@ -41,6 +41,8 @@ def para_decir(t):
     # Solo cambia cómo se pronuncia; la clave sale del texto tal cual
     t = t.replace('×', ' per ').replace('−', ' menys ').replace('=', ' és ').replace('+', ' més ')
     t = t.replace('«', '').replace('»', '')
+    # El nom del grup, a l'anglesa («cat's eye»), no lletrejat en català
+    t = t.replace('KATSEYE', 'Cats ai')
     # Paréntesis como pausas: «(8 + 1):» lo leía como un emoticono («cara trista»)
     t = re.sub(r'\s*[()]\s*', ', ', t)
     t = re.sub(r',\s*([:,.])', r'\1', t)
