@@ -64,6 +64,8 @@ test.describe('Fase 1 · Entrenament', () => {
         await page.goto(URL_APP);
         await page.click('#btn-start-game');
         await expect(page.locator('#intro-titulo')).toHaveText('Passar pel 10');
+        // Contar con los dedos y en voz baja está permitido (con eso no falla: papá, 17/10)
+        await expect(page.locator('#intro-texto')).toContainText('Pots comptar amb els dits i dir-ho fluixet');
         await page.click('#btn-intro-vamos');
 
         // Primera resta nueva: la recta con los saltos en blanco y la primera pregunta
