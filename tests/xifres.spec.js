@@ -72,7 +72,8 @@ test.describe('Les xifres', () => {
             await expect(page.locator('#xifres-panel')).toBeVisible();
             await expect(page.locator('#keypad')).toBeHidden();
             await expect(page.locator('#btn-no-ho-se')).toBeHidden();
-            await expect(page.locator('#op-factors')).toHaveText(`🔍 ${i + 1}`);
+            await expect(page.locator('#op-factors')).toHaveText('🔍');
+            await expect.poll(() => page.evaluate(() => window.__xifraActual().n)).toBe(i + 1);
             await expect(page.locator('#xifres-opcions .xifra-btn')).toHaveCount(2);
             const x = await page.evaluate(() => window.__xifraActual());
             expect(x.opcions).toContain(x.esperado);
@@ -89,7 +90,8 @@ test.describe('Les xifres', () => {
         await page.click('#btn-intro-vamos');
         const numeros = [];
         for (let i = 0; i < 12; i++) {
-            await expect(page.locator('#op-factors')).toHaveText(`👂 ${i + 1}`);
+            await expect(page.locator('#op-factors')).toHaveText('👂');
+            await expect.poll(() => page.evaluate(() => window.__xifraActual().n)).toBe(i + 1);
             await expect(page.locator('#xifres-opcions .xifra-btn')).toHaveCount(4);
             const x = await page.evaluate(() => window.__xifraActual());
             expect(new Set(x.opcions).size).toBe(4);
@@ -141,7 +143,7 @@ test.describe('Les xifres', () => {
         await ferEntrenament(page);
         await page.click('#btn-intro-vamos');
         await page.click('#xifres-opcions .xifra-btn >> nth=0');
-        await expect(page.locator('#op-factors')).toHaveText('🔍 2');
+        await expect.poll(() => page.evaluate(() => window.__xifraActual().n)).toBe(2);
         await page.click('#btn-exit-game');
         await expect(page.locator('#summary-titulo')).toHaveText('Missió complerta!');
         await expect(page.locator('#photocard-zona')).toBeVisible();
@@ -162,14 +164,14 @@ test.describe('Les xifres', () => {
         for (let i = 0; i < 12; i++) {
             const x = await page.evaluate(() => window.__xifraActual());
             await page.click(`#xifres-opcions [data-xifra="${x.esperado}"]`);
-            if (i < 11) await expect(page.locator('#op-factors')).toHaveText(`🔍 ${i + 2}`);
+            if (i < 11) await expect.poll(() => page.evaluate(() => window.__xifraActual().n)).toBe(i + 2);
         }
         await expect(page.locator('#intro-titulo')).toHaveText('Quin número és?');
         await page.click('#btn-intro-vamos');
         for (let i = 0; i < 12; i++) {
             const x = await page.evaluate(() => window.__xifraActual());
             await page.click(`#xifres-opcions [data-xifra="${x.esperado}"]`);
-            if (i < 11) await expect(page.locator('#op-factors')).toHaveText(`👂 ${i + 2}`);
+            if (i < 11) await expect.poll(() => page.evaluate(() => window.__xifraActual().n)).toBe(i + 2);
         }
         await expect(page.locator('#summary-titulo')).toBeVisible();
         p = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_plan')));

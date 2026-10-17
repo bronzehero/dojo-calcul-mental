@@ -8,7 +8,8 @@ module.exports = defineConfig({
     // Si algo se rompe de verdad, parar pronto en vez de esperar a que fallen todas
     maxFailures: 4,
     fullyParallel: true,
-    workers: 4,
+    // Todos los hilos del PC a la vez: casi todo el tiempo es esperar las pausas de la app, no CPU
+    workers: '100%',
     reporter: [['list']],
     use: {
         // Tamaño de un iPad en horizontal

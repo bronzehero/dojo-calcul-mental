@@ -1552,7 +1552,8 @@
             };
             const XIFRES_B = Object.keys(NOM_NUMERO).map(Number);
             const GIR_XIFRA = { 2: '5', 5: '2', 6: '9', 9: '6' };
-            const veuXifra = x => `Toca ${NOM_XIFRA[x]}.`;
+            // Sin punto: «set.» es la abreviatura de setembre y la voz decía «Toca el setembre» (17/10)
+            const veuXifra = x => `Toca ${NOM_XIFRA[x]}`;
             const veuNumero = n => `${NOM_NUMERO[n]}.`;
             // Les 3 que s'hi assemblen: al revés, amb una xifra girada o les dues coses
             function semblants(n) {
@@ -1734,7 +1735,7 @@
             window.__sinDudar = sinDudar;
             window.__dictatActual = () => item && item.tipo === 'dictat' ? item.paraula : null;
             window.__itemsXifresProva = () => itemsXifra();
-            window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi) } : null;
+            window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
@@ -2357,7 +2358,9 @@
                 const ambXifres = ['xifra', 'sentir'].includes(item.tipo);
                 document.getElementById('xifres-panel').hidden = !ambXifres;
                 if (ambXifres) {
-                    opFactorsEl.textContent = `${item.texto} ${sesion.hechos + 1}`;
+                    // Solo el icono: el número de orden al lado la despistaba (un número más en pantalla, 17/10)
+                    opFactorsEl.textContent = item.texto;
+                    item.n = sesion.hechos + 1;
                     const op = document.getElementById('xifres-opcions');
                     op.classList.toggle('quatre', item.opcions.length === 4);
                     op.innerHTML = item.opcions.map(o => `<button class="xifra-btn" data-xifra="${escaparHtml(o.codi)}">${o.html}</button>`).join('');

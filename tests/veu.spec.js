@@ -50,3 +50,10 @@ test('todo lo que dice en voz alta tiene su MP3 (si no, ejecutar veu/genera.sh)'
         expect(fs.existsSync(path.join(VEU, `${k}.mp3`)), t).toBe(true);
     }
 });
+
+test('ningún texto hablado acaba una palabra en «set.» (la voz lo lee como la abreviatura de setembre)', async ({ page }) => {
+    await simularSupabase(page);
+    await page.goto(URL_APP);
+    const textos = await page.evaluate(() => window.__textosVeu());
+    for (const t of textos) expect(t, t).not.toMatch(/\bset\.(\s|$)/i);
+});
