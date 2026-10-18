@@ -142,9 +142,10 @@ test.describe('Guardado sin conexión o con la base de datos incompleta', () => 
         await page.click('#btn-intro-vamos');
         for (let i = 0; i < 3; i++) {
             await teclear(page, respuestaCorrecta(await page.textContent('#op-factors')));
+            // Cada respuesta, guardada en el iPad antes de la siguiente (con la máquina cargada, 850 ms no siempre bastan)
+            await expect.poll(async () => (await leerCola(page)).length).toBe(i + 1);
             await page.waitForTimeout(850);
         }
-        await expect.poll(async () => (await leerCola(page)).length).toBe(3);
         expect(sb.envios).toHaveLength(0);
 
         sb.estado.eventos = 'ok';
