@@ -209,6 +209,64 @@ test.describe('Fase 1 · misión entera', () => {
         await expect(page.locator('#mision-pasos li').nth(1)).toHaveText('⭐ La de la setmana: 7 × 8');
     });
 
+    test('7 × 8 desde el 2.º día: sale entre 6 × 8 y 6 × 9, y se apunta como contraste', async ({ page }) => {
+        const { envios } = await simularSupabase(page);
+        await page.clock.setFixedTime(new Date('2026-10-19T17:00:00'));
+        await empezarEnMision(page, 7);
+        await prepararFase1(page, { setmana: { idx: 1, dias: ['2026-10-17'], dominadas: [{ fet: '6x8', fecha: '2026-10-15' }] }, pas10: { nivel: 1, buenos: [] } });
+        await page.goto(URL_APP);
+        await empezar(page);
+        await contestarEntrenamiento(page);
+        await expect(page.locator('#intro-texto')).toContainText('També sortiran 6 × 8 i 6 × 9');
+        await page.click('#btn-intro-vamos');
+        const vistos = await contestarEntrenamiento(page);
+        expect(vistos).toHaveLength(12);
+        const es = (v, x, y) => v === `${x} × ${y}` || v === `${y} × ${x}`;
+        expect(vistos.filter(v => es(v, 7, 8))).toHaveLength(4);
+        expect(vistos.filter(v => es(v, 6, 8))).toHaveLength(1);
+        expect(vistos.filter(v => es(v, 6, 9))).toHaveLength(2);
+        // Cada contraste, justo después de un 7 × 8
+        [2, 5, 8].forEach(i => { expect(es(vistos[i - 1], 7, 8)).toBe(true); expect(es(vistos[i], 7, 8)).toBe(false); });
+        const multis = envios.filter(e => e.tabla === 'registros');
+        expect(multis.filter(e => e.datos.detalle.contraste === true)).toHaveLength(3);
+        expect(multis.filter(e => e.datos.detalle.objetivo === true)).toHaveLength(4);
+        const f = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_fase1')));
+        expect(f.setmana.dias).toEqual(['2026-10-17', '2026-10-19']);
+    });
+
+    test('7 × 8 el primer día: sola, sin contraste', async ({ page }) => {
+        await simularSupabase(page);
+        await page.clock.setFixedTime(new Date('2026-10-19T17:00:00'));
+        await empezarEnMision(page, 7);
+        await prepararFase1(page, { setmana: { idx: 1, dias: [], dominadas: [] }, pas10: { nivel: 1, buenos: [] } });
+        await page.goto(URL_APP);
+        await empezar(page);
+        await contestarEntrenamiento(page);
+        await expect(page.locator('#intro-texto')).not.toContainText('També sortiran');
+        await page.click('#btn-intro-vamos');
+        const vistos = await contestarEntrenamiento(page);
+        expect(vistos.filter(v => /^(6 × 9|9 × 6|6 × 8|8 × 6)$/.test(v))).toHaveLength(0);
+    });
+
+    test('una de contraste mal: la corrección enseña su truco', async ({ page }) => {
+        await simularSupabase(page);
+        await page.clock.setFixedTime(new Date('2026-10-19T17:00:00'));
+        await empezarEnMision(page, 7);
+        await prepararFase1(page, { setmana: { idx: 1, dias: ['2026-10-17'], dominadas: [] }, pas10: { nivel: 1, buenos: [] } });
+        await page.goto(URL_APP);
+        await empezar(page);
+        await contestarEntrenamiento(page);
+        await page.click('#btn-intro-vamos');
+        let texto = await page.textContent('#op-factors');
+        while (texto !== '6 × 9' && texto !== '9 × 6') {
+            await teclear(page, respuestaCorrecta(texto));
+            await page.waitForTimeout(850);
+            texto = await page.textContent('#op-factors');
+        }
+        await teclear(page, 36);
+        await expect(page.locator('#correction-pista')).toContainText('Taula del 9');
+    });
+
     test('2 días buenos en «Passar pel 10»: sube de nivel (de 9 a 9 y 8)', async ({ page }) => {
         await simularSupabase(page);
         await empezarEnMision(page, 7);
@@ -226,7 +284,7 @@ test.describe('Fase 1 · misión entera', () => {
     test('nivel con pista: sin recta hasta que pulsa «Pista», y se apunta', async ({ page }) => {
         const { envios } = await simularSupabase(page);
         await empezarEnMision(page, 7);
-        await prepararFase1(page, { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 3, buenos: [] } });
+        await prepararFase1(page, { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 4, buenos: [] } });
         await page.goto(URL_APP);
         await empezar(page);
         let texto = await page.textContent('#op-factors');
@@ -246,14 +304,64 @@ test.describe('Fase 1 · misión entera', () => {
         await teclear(page, a - b);
         await expect.poll(() => envios.filter(e => e.datos.modulo === 'pas10' && e.datos.detalle.pista === true).length).toBe(1);
         const e = envios.find(x => x.datos.detalle && x.datos.detalle.pista === true);
-        expect(e.datos.detalle.nivel).toBe(3);
+        expect(e.datos.detalle.nivel).toBe(4);
         expect(e.datos.detalle.pasos).toBeUndefined();
+    });
+
+    test('nivel con los pasos sin recta: pregunta los saltos, los enseña en fila y, si falla un salto, el día no cuenta', async ({ page }) => {
+        const { envios } = await simularSupabase(page);
+        await page.clock.setFixedTime(new Date('2026-10-19T17:00:00'));
+        await empezarEnMision(page, 7);
+        await prepararFase1(page, { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 3, buenos: ['2026-10-17'] } });
+        await page.goto(URL_APP);
+        await empezar(page);
+        while (!(await page.isVisible('#pas10-panel'))) {
+            await teclear(page, respuestaCorrecta(await page.textContent('#op-factors')));
+            await page.waitForTimeout(850);
+        }
+        // Sin la recta dibujada; las mismas preguntas
+        await expect(page.locator('#pas10-recta')).toBeHidden();
+        await expect(page.locator('#pas10-salts')).toBeHidden();
+        const b = parseInt((await page.textContent('#pas10-pregunta')).match(/^De (\d+) a 10\?$/)[1], 10);
+        expect([8, 9]).toContain(b);
+        // Se equivoca en el primer salto (como el 14/10: «de 8 a 10, 1»): ve el bueno en rosa
+        await teclear(page, 10 - b + 1);
+        await expect(page.locator('#pas10-salts')).toHaveText(`Primer salt: ${10 - b}`);
+        await expect(page.locator('#pas10-salts .mal')).toHaveText(String(10 - b));
+        const a = parseInt((await page.textContent('#pas10-pregunta')).match(/^De 10 a (\d+)\?$/)[1], 10);
+        await teclear(page, a - 10);
+        await expect(page.locator('#pas10-salts')).toHaveText(`Salts: ${10 - b} + ${a - 10}`);
+        await expect(page.locator('#pas10-pregunta')).toHaveText('Quant has saltat en total?');
+        await expect(page.locator('#op-factors')).toHaveText(`${a} − ${b}`);
+        await teclear(page, a - b);
+        await expect.poll(() => envios.filter(e => e.datos.modulo === 'pas10' && e.datos.detalle.clase === 'nou').length).toBe(1);
+        const e = envios.find(x => x.datos.modulo === 'pas10' && x.datos.detalle.clase === 'nou');
+        expect(e.datos.correcta).toBe(true);
+        expect(e.datos.detalle.ayuda).toBe('passos');
+        expect(e.datos.detalle.nivel).toBe(3);
+        expect(e.datos.detalle.pasos).toEqual([{ r: String(10 - b + 1), ok: false }, { r: String(a - 10), ok: true }]);
+
+        // Las otras tres, con los primeros saltos mal también: el total bien no basta, no es día bueno
+        await page.waitForTimeout(850);
+        while (await page.isVisible('#screen-game')) {
+            const pregunta = (await page.isVisible('#pas10-panel')) ? (await page.textContent('#pas10-pregunta')) : '';
+            let m;
+            if ((m = pregunta.match(/^De (\d+) a 10\?$/))) { await teclear(page, 10 - parseInt(m[1], 10) + 1); continue; }
+            if ((m = pregunta.match(/^De 10 a (\d+)\?$/))) { await teclear(page, parseInt(m[1], 10) - 10); continue; }
+            await teclear(page, respuestaCorrecta(await page.textContent('#op-factors')));
+            await page.waitForTimeout(850);
+        }
+        await page.click('#btn-intro-vamos');
+        await contestarEntrenamiento(page);
+        const f = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_fase1')));
+        expect(f.pas10.nivel).toBe(3);
+        expect(f.pas10.buenos).toEqual([]);
     });
 
     test('si falla una resta nueva, la corrección explica los dos saltos', async ({ page }) => {
         await simularSupabase(page);
         await empezarEnMision(page, 7);
-        await prepararFase1(page, { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 5, buenos: [] } });
+        await prepararFase1(page, { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 6, buenos: [] } });
         await page.goto(URL_APP);
         await empezar(page);
         let texto = await page.textContent('#op-factors');
@@ -320,14 +428,14 @@ test.describe('Fase 1 · Zona Papá', () => {
         await page.goto(URL_APP);
         await page.click('#btn-open-papa');
         await expect(page.locator('#papa-setmana')).toHaveText('6 × 8');
-        await expect(page.locator('#papa-pas10')).toHaveText('nivel 1 de 5');
+        await expect(page.locator('#papa-pas10')).toHaveText('nivel 1 de 6');
         await page.click('#btn-f1-siguiente');
         await expect(page.locator('#papa-setmana')).toHaveText('7 × 8');
         await page.click('#btn-f1-subir');
-        await expect(page.locator('#papa-pas10')).toHaveText('nivel 2 de 5');
+        await expect(page.locator('#papa-pas10')).toHaveText('nivel 2 de 6');
         await page.click('#btn-f1-bajar');
         await page.click('#btn-f1-bajar');
-        await expect(page.locator('#papa-pas10')).toHaveText('nivel 1 de 5');
+        await expect(page.locator('#papa-pas10')).toHaveText('nivel 1 de 6');
         await page.click('#btn-close-papa');
         await expect(page.locator('#mision-pasos li').nth(1)).toHaveText('⭐ La de la setmana: 7 × 8');
     });

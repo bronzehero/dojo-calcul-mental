@@ -944,6 +944,8 @@
         .pas10-panel { background: #fff; border: 3px solid #e0e7ff; border-radius: 20px; padding: 10px 12px 12px; margin: 0 0 14px 0; }
         .pas10-panel svg { width: 100%; height: auto; display: block; }
         .pas10-pregunta { font-size: 1.7rem; font-weight: 800; color: #5b21b6; margin-top: 4px; }
+        .pas10-salts { font-size: 1.5rem; font-weight: 800; color: #1e293b; }
+        .pas10-salts .mal { color: #e0115f; }
         .btn-pista { width: 100%; margin-top: 12px; padding: 10px; border: 2px solid #fde68a; border-radius: 16px; background: #fffbeb; color: #92400e; font-family: var(--font-main); font-size: 1.15rem; font-weight: 700; cursor: pointer; }
         .correction-pista { margin: 6px 0 0 0; color: #5b21b6; font-size: 1.1rem; font-weight: 700; }
 
@@ -1075,6 +1077,7 @@
                     <!-- Passar pel 10: la recta con los dos saltos (de 8 a 10, de 10 a 13) -->
                     <div id="pas10-panel" class="pas10-panel" hidden>
                         <svg id="pas10-recta" viewBox="0 0 420 130" role="img" aria-label="Recta numèrica"></svg>
+                        <div id="pas10-salts" class="pas10-salts" hidden></div>
                         <div id="pas10-pregunta" class="pas10-pregunta"></div>
                     </div>
                 </div>
@@ -1432,7 +1435,11 @@
             // con esta (no salen en el mismo bloque). Pasa a la siguiente con 3 días seguidos sin dudar.
             const SETMANA = [
                 { a: 6, b: 8, pista: '5 vuits són 40, i un vuit més: 48.', diccio: 'sis per vuit, quaranta-vuit', imanes: [24, 42, 54, 64] },
-                { a: 7, b: 8, pista: 'La cançó «Animal» de KATSEYE: set per vuit… cinquanta-sis!', diccio: 'set per vuit, cinquanta-sis', imanes: [48, 54, 64] },
+                { a: 7, b: 8, pista: 'La cançó «Animal» de KATSEYE: set per vuit… cinquanta-sis!', diccio: 'set per vuit, cinquanta-sis', imanes: [48, 54, 64],
+                  // Sola le sale, pero en el repaso del 18/10, mezclada, volvió el 54: desde el 2.º día sale entre 6 × 8 y 6 × 9
+                  contraste: [[6, 8], [6, 9], [9, 6]],
+                  contrasteText: "També sortiran 6 × 8 i 6 × 9, barrejades: fixa't bé en cada una.",
+                  contrasteVeu: "També sortiran sis per vuit i sis per nou, barrejades: fixa't bé en cada una." },
                 { a: 9, b: 9, pista: 'Taula del 9: la desena és un menys (8) i les xifres sumen 9 (8 + 1): 81.', diccio: 'nou per nou, vuitanta-u', imanes: [18, 64, 72] },
                 { a: 3, b: 7, pista: '7 + 7 + 7: 14, 21.', diccio: 'tres per set, vint-i-u', imanes: [12, 24] },
                 { a: 6, b: 9, pista: 'Taula del 9: la desena és un menys (5) i les xifres sumen 9 (5 + 4): 54.', diccio: 'sis per nou, cinquanta-quatre', imanes: [27, 45, 48, 56] },
@@ -1441,17 +1448,22 @@
             // Las que todavía no salen solas: no se usan de relleno
             const ATASCADAS = ['6x8', '7x8', '9x9', '3x6', '3x7', '6x9', '5x7'];
             const SETMANA_N = 12, SETMANA_OBJETIVO_EN = [1, 4, 7, 10];
+            // Las de contraste van justo después de la de la semana (primero la buena, después la que se le cruza)
+            const SETMANA_CONTRASTE_EN = [2, 5, 8];
             // «Sin dudar»: la primera cifra antes de 4 s. Se cuenta hasta la primera tecla y no hasta el final:
             // a menudo dice el resultado en voz alta, con su entonación, y después lo escribe (papá, 12/10).
             const SETMANA_MAX_MS = 4000, SETMANA_DIAS = 3;
             const sinDudar = r => r.ok && (r.pt ?? r.ms) <= SETMANA_MAX_MS && !r.rectifica;
 
             // A · Restas que cruzan la decena: «resto sumando» (13 − 8: de 8 a 10, 2; de 10 a 13, 3; total, 5).
-            // La ayuda se va retirando: recta guiada → botón «Pista» → sin ayuda. Sube con 2 días buenos.
+            // La ayuda se va retirando: recta guiada → los mismos pasos sin la recta → botón «Pista» → sin ayuda.
+            // Sube con 2 días buenos. Los pasos sin recta, desde el 18/10: al quitar los pasos de golpe escribía
+            // el paso del medio (el 10, o lo que le quedaba por quitar) en lugar del resultado.
             const PAS10_NIVELES = [
                 null,
                 { ayuda: 'recta', restan: [9] },
                 { ayuda: 'recta', restan: [9, 8] },
+                { ayuda: 'passos', restan: [9, 8] },
                 { ayuda: 'pista', restan: [9, 8] },
                 { ayuda: 'pista', restan: [9, 8, 7, 6] },
                 { ayuda: 'cap', restan: [9, 8, 7, 6, 5] }
@@ -1801,7 +1813,8 @@
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 SETMANA.forEach(f => {
                     t.add(f.diccio);
-                    t.add(infoSetmana(f).voz);
+                    t.add(infoSetmana(f, false).voz);
+                    if (f.contraste) t.add(infoSetmana(f, true).voz);
                     t.add(fraseMision(ENTRENAMENT, f));
                 });
                 t.add(fraseMision(CONTROL));
@@ -2070,11 +2083,15 @@
                 };
             }
 
-            function infoSetmana(f) {
+            // El contraste empieza el 2.º día: el primero, la de la semana sola con su truco
+            const contrasteActiu = (f, dias = leerFase1().setmana.dias) => !!f.contraste && dias.length >= 1;
+
+            function infoSetmana(f, ambContraste = contrasteActiu(f)) {
                 return {
                     nombre: 'La de la setmana', icono: '⭐',
-                    instr: `La d'aquesta setmana: ${f.a} × ${f.b} = ${f.a * f.b}. Truc: ${f.pista} Sortirà unes quantes vegades, barrejada amb altres que ja saps.`,
-                    voz: `La d'aquesta setmana: ${f.diccio}. Truc: ${f.pista}`,
+                    instr: `La d'aquesta setmana: ${f.a} × ${f.b} = ${f.a * f.b}. Truc: ${f.pista} Sortirà unes quantes vegades, barrejada amb altres que ja saps.` +
+                        (ambContraste ? ` ${f.contrasteText}` : ''),
+                    voz: `La d'aquesta setmana: ${f.diccio}. Truc: ${f.pista}` + (ambContraste ? ` ${f.contrasteVeu}` : ''),
                     ejemplo: `${f.a} × ${f.b} = ${f.a * f.b}`,
                     paso: () => `La de la setmana: ${f.a} × ${f.b}`
                 };
@@ -2333,14 +2350,19 @@
                     const res = c.a * c.b;
                     return !ATASCADAS.includes(clave) && !f.imanes.includes(res) && res !== f.a * f.b && !esGirada(f.a * f.b, res);
                 });
+                const contraste = contrasteActiu(f) ? shuffle(f.contraste) : [];
                 for (let intento = 0; intento < 50; intento++) {
                     const otras = shuffle(relleno);
                     const lista = [];
                     let k = 0;
                     for (let i = 0; i < SETMANA_N; i++) {
+                        const iC = SETMANA_CONTRASTE_EN.indexOf(i);
                         if (SETMANA_OBJETIVO_EN.includes(i)) {
                             const al = SETMANA_OBJETIVO_EN.indexOf(i) % 2 === 1;
                             lista.push({ a: al ? f.b : f.a, b: al ? f.a : f.b, objetivo: true });
+                        } else if (iC >= 0 && iC < contraste.length) {
+                            const [a, b] = contraste[iC];
+                            lista.push({ a, b, objetivo: false, contraste: true });
                         } else lista.push({ ...otras[k++], objetivo: false });
                     }
                     if (lista.every((c, i) => i === 0 || !sePareceA('multi', c, lista[i - 1]))) return lista;
@@ -2428,7 +2450,7 @@
                     const sig = x.op === '+' ? '+' : '−';
                     const it = { tipo, clase: x.clase, a: x.a, b: x.b, texto: `${x.a} ${sig} ${x.b}`, clave: `${x.a}${x.op}${x.b}`,
                         esperado: String(x.op === '+' ? x.a + x.b : x.a - x.b), ayuda: x.clase === 'nou' ? x.ayuda : null, pista: false };
-                    if (it.ayuda === 'recta') {
+                    if (it.ayuda === 'recta' || it.ayuda === 'passos') {
                         it.pasos = [
                             { preg: `De ${x.b} a 10?`, esp: String(10 - x.b) },
                             { preg: `De 10 a ${x.a}?`, esp: String(x.a - 10) },
@@ -2442,7 +2464,7 @@
                 }
                 if (tipo === 'setmana') {
                     const c = sesion.fijos[sesion.hechos];
-                    return { tipo: 'multi', a: c.a, b: c.b, objetivo: c.objetivo, texto: `${c.a} × ${c.b}`, clave: `${c.a}x${c.b}`, esperado: String(c.a * c.b) };
+                    return { tipo: 'multi', a: c.a, b: c.b, objetivo: c.objetivo, contraste: !!c.contraste, texto: `${c.a} × ${c.b}`, clave: `${c.a}x${c.b}`, esperado: String(c.a * c.b) };
                 }
                 if (tipo === 'control') {
                     const [op, a, b] = sesion.fijos[sesion.hechos];
@@ -2512,7 +2534,7 @@
                 if (item.tipo === 'paraules') pintarParaula();
                 document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
                 document.getElementById('correction-pista').hidden = true;
-                mostrarRecta(item.ayuda === 'recta');
+                mostrarRecta(!!item.pasos);
                 if (item.tipo === 'oral') {
                     document.getElementById('oral-paso-1').hidden = false;
                     document.getElementById('oral-paso-2').hidden = true;
@@ -2559,6 +2581,12 @@
                 document.getElementById('pas10-recta').innerHTML = svg;
             }
 
+            // Pasos sin recta: los saltos que ya tiene, en fila; si se equivocó, el bueno en rosa
+            function pintarSalts(el) {
+                const salt = k => `<span class="${item.resPasos[k] && !item.resPasos[k].ok ? 'mal' : ''}">${item.valores[k]}</span>`;
+                el.innerHTML = item.paso === 1 ? `Primer salt: ${salt(0)}` : item.paso === 2 ? `Salts: ${salt(0)} + ${salt(1)}` : '';
+            }
+
             function mostrarRecta(visible) {
                 // Mientras pregunta un salto, la tarjeta enseña ese salto. Con «17 − 9 = ?» escribía el salto
                 // detrás del igual (17 − 9 = 1) y lo confundía con el resultado (papá, 12/10).
@@ -2575,7 +2603,12 @@
                 const panel = document.getElementById('pas10-panel');
                 panel.hidden = !visible;
                 if (!visible) return;
-                dibujarRecta(item);
+                const sinRecta = item.ayuda === 'passos';
+                document.getElementById('pas10-recta').style.display = sinRecta ? 'none' : '';
+                const salts = document.getElementById('pas10-salts');
+                salts.hidden = !sinRecta || item.paso === 0;
+                if (sinRecta) pintarSalts(salts);
+                else dibujarRecta(item);
                 document.getElementById('pas10-pregunta').textContent = item.pasos ? item.pasos[item.paso].preg : '';
             }
 
@@ -2661,11 +2694,14 @@
                     extra.clase = item.clase;
                     if (item.clase === 'nou') { extra.nivel = leerFase1().pas10.nivel; extra.ayuda = item.ayuda; extra.pista = item.pista; }
                     if (item.resPasos) extra.pasos = item.resPasos;
-                    if (item.clase === 'nou') sesion.pas10.push(ok);
+                    // Con pasos, la resta solo cuenta como bien si también los saltos están bien
+                    // (14/10: el total le salía con «de 8 a 10, 1», y subió de nivel sin saber ese salto)
+                    if (item.clase === 'nou') sesion.pas10.push(ok && (item.resPasos || []).every(x => x.ok));
                 }
                 if (item.objetivo !== undefined) {
                     extra.setmana = `${fetSetmana().a}x${fetSetmana().b}`;
                     extra.objetivo = item.objetivo;
+                    if (item.contraste) extra.contraste = true;
                     if (item.objetivo) sesion.objetivo.push({ ok, ms, pt: teclas.length ? teclas[0][0] : ms, rectifica: teclas.some(t => t[1] === 'back') });
                 }
                 registrar(item, currentInput, ok, ms, extra);
@@ -2687,6 +2723,10 @@
                 let txt = '';
                 if (item.tipo === 'pas10' && item.clase === 'nou') txt = trucPas10(item);
                 if (item.objetivo) { txt = `Truc: ${fetSetmana().pista}`; hablar(fetSetmana().diccio); }
+                if (item.contraste) {
+                    const s = SETMANA.find(x => (x.a === item.a && x.b === item.b) || (x.a === item.b && x.b === item.a));
+                    if (s) { txt = `Truc: ${s.pista}`; hablar(s.diccio); }
+                }
                 el.textContent = txt;
                 el.hidden = !txt;
             }
@@ -2961,6 +3001,7 @@
                 if (item.objetivo !== undefined) {
                     extra.setmana = `${fetSetmana().a}x${fetSetmana().b}`;
                     extra.objetivo = item.objetivo;
+                    if (item.contraste) extra.contraste = true;
                     if (item.objetivo) sesion.objetivo.push({ ok: false, ms, rectifica: false });
                 }
                 registrar(item, null, false, ms, extra);
@@ -3572,7 +3613,7 @@
                     const f = leerFase1();
                     const fet = fetSetmana();
                     const niv = nivelPas10();
-                    const AYUDA = { recta: 'recta guiada paso a paso', pista: 'botón «Pista»', cap: 'sin ayuda' };
+                    const AYUDA = { recta: 'recta guiada paso a paso', passos: 'los pasos, sin la recta', pista: 'botón «Pista»', cap: 'sin ayuda' };
                     const div = document.createElement('div');
                     div.id = 'papa-fase1';
                     div.className = 'plan-fila actual';
@@ -3581,6 +3622,7 @@
                         <div><strong>Fase 1 · Entrenamiento</strong> (cada día; los domingos, misión de repaso para medir)</div>
                         <div style="font-size:0.9rem; margin-top:4px;">⭐ La de la semana: <strong id="papa-setmana">${fet.a} × ${fet.b}</strong>
                             · días seguidos sin dudar: ${f.setmana.dias.length} de ${SETMANA_DIAS}
+                            ${contrasteActiu(fet, f.setmana.dias) ? '· mezclada con ' + fet.contraste.map(([a, b]) => a + ' × ' + b).join(', ') : ''}
                             ${f.setmana.dominadas.length ? '· ya dominadas: ' + f.setmana.dominadas.map(d => d.fet.replace('x', '×') + ' (' + d.fecha + ')').join(', ') : ''}</div>
                         <div style="font-size:0.9rem;">🔟 Passar pel 10: <strong id="papa-pas10">nivel ${f.pas10.nivel} de ${PAS10_NIVELES.length - 1}</strong>
                             (restar ${niv.restan.join(', ')}; ${AYUDA[niv.ayuda]}) · días buenos: ${f.pas10.buenos.length} de 2</div>
