@@ -15,6 +15,12 @@ async function simularSupabase(page, opciones = {}) {
     const estado = { eventos: 'ok', registros: 'ok', datos: { registros: [], eventos: [] }, ...opciones };
     const envios = [];
     const lecturas = [];
+    // Las palabras (ortografía) van dentro de la misión del día desde el 18/10: en las demás pruebas, en pausa
+    if (!opciones.paraules) {
+        await page.addInitScript(() => {
+            if (!localStorage.getItem('dojo_paraules')) localStorage.setItem('dojo_paraules', JSON.stringify({ pausa: true }));
+        });
+    }
     await page.route('**/*.supabase.co/**', async (ruta) => {
         const req = ruta.request();
         const tabla = new URL(req.url()).pathname.split('/rest/v1/')[1] || '';

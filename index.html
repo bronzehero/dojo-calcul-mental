@@ -976,6 +976,17 @@
         #screen-game.dictat .operation-display { padding: 10px 14px; }
         #screen-game.dictat .operation-text { font-size: 2.4rem; }
 
+        /* Paraules: la paraula gran, la lletra que costa de color i el truc a sota */
+        .paraules-panel { margin-top: 6px; text-align: center; }
+        .paraula-gran { margin: 4px 0 12px 0; padding: 14px; border: 4px solid #e9dcff; border-radius: 20px; background: #fff;
+            font-size: 3.4rem; font-weight: 700; letter-spacing: 0.06em; color: #1e293b; word-break: break-word; }
+        .paraula-gran .clau { color: #db2777; background: #fce7f3; border-radius: 10px; padding: 0 4px; }
+        .paraula-truc { margin: 0 0 12px 0; padding: 12px 16px; border-radius: 16px; background: #faf5ff; color: #4c1d95; font-size: 1.35rem; line-height: 1.4; }
+        .paraula-tu { margin: 0 0 8px 0; font-size: 1.3rem; color: #64748b; }
+        .paraula-tu b { color: #475569; text-decoration: line-through; text-decoration-color: #f9a8d4; }
+        .btn-paraula-seguir { width: 100%; }
+        .btn-paraula-seguir:hover { transform: none; }
+
         /* Xifres: dues (o quatre) xifres per triar; una pot estar en mirall o girada */
         .xifres-opcions { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
         .xifra-btn { height: 150px; border: 4px solid #e9dcff; border-radius: 24px; background: #fff; cursor: pointer;
@@ -1113,6 +1124,15 @@
                         <button id="btn-escoltar-dictat" class="btn-subtle btn-escoltar-dictat">🔊 Torna-ho a escoltar</button>
                         <div id="dictat-escrit" class="dictat-escrit buit">…</div>
                         <div id="teclat-lletres" class="teclat-lletres"></div>
+                    </div>
+
+                    <!-- Paraules: la paraula gran, amb la lletra que costa de color, i el seu truc -->
+                    <div id="paraules-panel" class="paraules-panel" hidden>
+                        <div id="paraula-tu" class="paraula-tu" hidden></div>
+                        <div id="paraula-gran" class="paraula-gran"></div>
+                        <div id="paraula-truc" class="paraula-truc"></div>
+                        <button id="btn-escoltar-paraula" class="btn-subtle btn-escoltar-dictat">🔊 Torna-ho a escoltar</button>
+                        <button id="btn-paraula-seguir" class="btn-action btn-paraula-seguir">Ja la tinc! Tapa-la 🙈</button>
                     </div>
 
                     <!-- Xifres: escolta i toca la que està ben escrita / el número que ha sentit -->
@@ -1460,6 +1480,7 @@
                 dictat:  { nombre: 'Dictat', icono: '✍️', instr: "Sentiràs una paraula, després una frase amb aquesta paraula, i la paraula una altra vegada. Escriu només la paraula, com creguis que s'escriu. La pots tornar a escoltar tants cops com vulguis. Si no la saps, no passa res: al final del dictat veuràs com s'escriuen.", ejemplo: 'Sents «casa. La meva casa és gran. casa.» ➜ escrius casa', paso: () => 'Dictat' },
                 xifra:   { nombre: 'Quin està ben escrit?', icono: '🔍', instr: "Ara, una prova curta i diferent: no hi ha comptes. Sentiràs un número i en veuràs dos. Un està ben escrit. L'altre està girat, com si el veiessis en un mirall, o és un altre número. Toca el que està ben escrit. Mira'ls bé, sense pressa. Si dubtes, tria el que et sembli: no passa res.", ejemplo: 'Sents «Toca el tres» ➜ toques el 3 ben escrit', paso: () => 'Quin està ben escrit?' },
                 sentir:  { nombre: 'Quin número és?', icono: '👂', instr: "Ara sentiràs un número de dues xifres i en veuràs quatre que s'assemblen molt. Toca el que has sentit. Mira'ls xifra per xifra, sense pressa. El pots tornar a escoltar tantes vegades com vulguis.", ejemplo: 'Sents «trenta-sis» ➜ toques el 36', paso: () => 'Quin número és?' },
+                paraules: { nombre: 'Paraules', icono: '🔤', instr: "Paraules que costen d'escriure. Les noves, primer les mires bé amb el seu truc i, quan te les sàpigues, les tapes i les escrius de memòria. Les que ja has vist, les sents i les escrius de memòria. Si no surt, la tornes a mirar i la tornes a escriure. Al teu ritme.", ejemplo: 'Mires «bien» (B de Bueno) ➜ la tapes ➜ escrius bien', paso: () => 'Paraules' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
 
@@ -1567,6 +1588,44 @@
             // empieza la de les xifres, hasta que la haga una vez. No sustituye nada ni retrasa el plan.
             // Papá también la puede poner sola otro día desde la Zona Papá.
             const XIFRES_DES_DE = '2026-10-17';
+
+            // PARAULES · ortografía palabra a palabra, cada día al final del entrenamiento (o del repaso del domingo),
+            // DENTRO de la misión: no está complerta hasta acabarlas. Las nuevas: mirar con su truco → tapar → escribir de
+            // memoria → comparar y volver a escribir. Las ya vistas: de memoria (el primer intento del día es la medida).
+            // Dominada: 3 días seguidos bien al primer intento; después, repaso cada 7 días.
+            // [x] = la letra que cuesta (sale de color). Por orden de entrada: primero las del examen de castellano.
+            const PARAULES = [
+                { id: 'es-bien', idioma: 'es', marca: '[b]ien', frase: 'La profesora dice que está bien.', truc: 'Con B de Bueno. No lleva tilde.' },
+                { id: 'es-hemos', idioma: 'es', marca: '[h]emos', frase: 'Hemos terminado el trabajo.', truc: 'Del verbo haber, siempre con h: he, has, ha, hemos. Sin tilde.' },
+                { id: 'es-ha-dicho', idioma: 'es', marca: '[h]a dicho', frase: 'La profesora nos ha dicho que está bien.', truc: 'Ha, del verbo haber, con h: he dicho, has dicho, ha dicho.' },
+                { id: 'es-estaba', idioma: 'es', marca: 'esta[b]a', frase: 'La casa estaba vacía.', truc: 'Todo lo que acaba en aba va con b: estaba, jugaba, cantaba.' },
+                { id: 'es-hicimos', idioma: 'es', marca: '[h]i[c]imos', frase: 'Ayer hicimos un trabajo en grupo.', truc: 'Del verbo hacer, con h: hice, hicimos, hecho.' },
+                { id: 'es-informacion', idioma: 'es', marca: 'informaci[ó]n', frase: 'Busqué información en internet.', truc: 'Las palabras que acaban en ción llevan tilde: información, canción.' },
+                { id: 'es-busque', idioma: 'es', marca: 'busqu[é]', frase: 'Yo busqué información en internet.', truc: 'Yo busqué, yo llegué: la e del final suena fuerte y lleva tilde.' },
+                { id: 'es-fotografias', idioma: 'es', marca: 'fotograf[í]as', frase: 'Mi compañero trajo unas fotografías.', truc: 'Fo, to, gra, FÍ, as: la i suena fuerte y lleva tilde.' },
+                { id: 'es-cohesion', idioma: 'es', marca: 'co[h]esi[ó]n', frase: 'Falla la cohesión: faltan conectores.', truc: 'Empieza como cohete: co, he. Cohesión rima con unión: une las frases.' },
+                { id: 'es-coherencia', idioma: 'es', marca: 'co[h]erencia', frase: 'Falla la coherencia: se va del tema.', truc: 'Empieza como cohete: co, he. Sin tilde.' },
+                { id: 'ca-perque', idioma: 'ca', marca: 'perqu[è]', frase: 'No vinc perquè plou.', truc: 'Acaba amb è oberta: perquè.' },
+                { id: 'ca-tambe', idioma: 'ca', marca: 'ta[m]b[é]', frase: 'Jo també vull venir.', truc: 'Abans de b, sempre m. I acaba amb é tancada.' },
+                { id: 'ca-hem', idioma: 'ca', marca: '[h]em', frase: 'Avui hem après moltes coses.', truc: 'Del verb haver, amb h: he, has, ha, hem, heu, han.' },
+                { id: 'ca-lhora', idioma: 'ca', marca: "l'[h]ora", frase: "Ja és l'hora del pati.", truc: "Hora va amb h. Davant de h, l'apòstrof: l'hora." },
+                { id: 'ca-important', idioma: 'ca', marca: 'i[m]portant', frase: 'Això és molt important.', truc: 'Abans de p i de b, sempre m: important, també.' },
+                { id: 'ca-necessitem', idioma: 'ca', marca: 'ne[c]e[ss]item', frase: 'Necessitem més temps.', truc: 'Ne, ce, ssi, tem: primer c, després dues s.' },
+                { id: 'ca-classe', idioma: 'ca', marca: 'cla[ss]e', frase: 'Entrem a classe.', truc: 'La s forta entre dues vocals són dues s: classe.' },
+                { id: 'ca-cervell', idioma: 'ca', marca: '[c]er[v]ell', frase: 'El cervell treballa molt.', truc: 'Comença amb c. I acaba com vell, amb v: cer, vell.' },
+                { id: 'ca-historia', idioma: 'ca', marca: '[h]ist[ò]ria', frase: "M'agrada la història.", truc: 'Amb h, com en castellà. I la o porta accent: història.' },
+                { id: 'ca-ciencies', idioma: 'ca', marca: '[c]i[è]n[c]i[e]s', frase: 'Demà tinc examen de ciències.', truc: 'Amb c, com en castellà. En català acaba en ies: ciències.' },
+                { id: 'ca-anar', idioma: 'ca', marca: 'ana[r]', frase: 'Vull anar al cine.', truc: 'Els verbs acaben amb r, encara que no soni: anar, menjar, jugar.' },
+                { id: 'ca-principi', idioma: 'ca', marca: 'prin[c]i[p]i', frase: 'Al principi no ho entenia.', truc: 'Amb c, com principio en castellà: principi.' }
+            ].map(w => ({ ...w, paraula: w.marca.replace(/[\[\]]/g, '') }));
+            const PARAULES_DES_DE = '2026-10-18';
+            const PARAULES_DIES_DOMINADA = 3, PARAULES_REPAS_CADA = 7;
+            const NOM_IDIOMA = { es: 'castellà', ca: 'català' };
+            // Lo que dice la voz. Las de castellano llevan «[es] » delante: otra voz (y el iPad, en castellano si no hay MP3)
+            const ambIdioma = (w, t) => (w.idioma === 'es' ? '[es] ' : '') + t;
+            const veuDicta = w => ambIdioma(w, `${w.paraula}. ${w.frase} ${w.paraula}.`);
+            const veuMira = w => ambIdioma(w, `${w.paraula}. ${w.frase} ${w.paraula}. ${w.truc}`);
+            const htmlMarca = m => escaparHtml(m).replace(/\[([^\]]+)\]/g, '<span class="clau">$1</span>');
 
             // Misiones fuera del plan: papá las pone para un día concreto desde la Zona Papá
             const MISIONES_EXTRA = [
@@ -1734,6 +1793,7 @@
             // Per a les proves: la paraula del dictat que hi ha a la pantalla (no es mostra enlloc)
             window.__sinDudar = sinDudar;
             window.__dictatActual = () => item && item.tipo === 'dictat' ? item.paraula : null;
+            window.__paraulaActual = () => item && item.tipo === 'paraules' ? { id: item.w.id, paraula: item.paraula, fase: item.fase, etapa: item.etapa } : null;
             window.__itemsXifresProva = () => itemsXifra();
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
@@ -1753,16 +1813,24 @@
                 t.add(fraseMision(ambXifres(CONTROL)));
                 XIFRES_A.forEach(([x]) => t.add(veuXifra(x)));
                 XIFRES_B.forEach(n => t.add(veuNumero(n)));
+                SETMANA.forEach(f => {
+                    t.add(fraseMision(conParaules(ENTRENAMENT), f));
+                    t.add(fraseMision(ambXifres(conParaules(ENTRENAMENT)), f));
+                });
+                t.add(fraseMision(conParaules(CONTROL)));
+                t.add(fraseMision(ambXifres(conParaules(CONTROL))));
+                PARAULES.forEach(w => { t.add(veuDicta(w)); t.add(veuMira(w)); });
                 return [...t];
             };
 
             function vozSistema(texto) {
                 try {
                     speechSynthesis.cancel();
-                    const u = new SpeechSynthesisUtterance(texto);
-                    u.lang = 'ca-ES';
+                    const es = texto.startsWith('[es] ');
+                    const u = new SpeechSynthesisUtterance(es ? texto.slice(5) : texto);
+                    u.lang = es ? 'es-ES' : 'ca-ES';
                     u.rate = 0.9;
-                    const voz = speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith('ca'));
+                    const voz = speechSynthesis.getVoices().find(v => v.lang && v.lang.toLowerCase().startsWith(es ? 'es' : 'ca'));
                     if (voz) u.voice = voz;
                     speechSynthesis.speak(u);
                 } catch (e) {}
@@ -1897,6 +1965,49 @@
                 return ENTRENAMENT;
             }
 
+            // Estado de las palabras (solo en el iPad; una copia va a eventos al acabar el bloque).
+            // w[id] = { intro, dies: [días bien al primer intento], racha, dominada, ultima }. pausa: no salen.
+            function leerParaules() {
+                try {
+                    const st = JSON.parse(localStorage.getItem('dojo_paraules'));
+                    if (st && typeof st === 'object') return { w: {}, ...st };
+                } catch (e) {}
+                return { w: {} };
+            }
+            function guardarParaules(st) {
+                try { localStorage.setItem('dojo_paraules', JSON.stringify(st)); } catch (e) {}
+            }
+            const diesEntre = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+
+            // Las de hoy: primero las ya vistas (de memoria), después las nuevas (mirar → escribir) y, al final,
+            // las nuevas otra vez de memoria. Cuantas más pendientes, menos nuevas.
+            function itemsParaules() {
+                const st = leerParaules(), d = hoy();
+                const e = w => st.w[w.id];
+                const vistes = PARAULES.filter(w => e(w) && e(w).intro < d);
+                const pendents = vistes.filter(w => !e(w).dominada).slice(0, 8);
+                const repas = vistes.filter(w => e(w).dominada && diesEntre(e(w).ultima, d) >= PARAULES_REPAS_CADA).slice(0, 2);
+                const quantes = pendents.length >= 8 ? 0 : pendents.length >= 5 ? 2 : 4;
+                const noves = PARAULES.filter(w => !e(w) || e(w).intro === d).slice(0, quantes);
+                const recorda = shuffle([...pendents, ...repas]);
+                let final = shuffle(noves);
+                for (let i = 0; i < 20 && noves.length > 1 && final[0] === noves[noves.length - 1]; i++) final = shuffle(noves);
+                return [
+                    ...recorda.map(w => ({ w, fase: 'recorda' })),
+                    ...noves.map(w => ({ w, fase: 'nova' })),
+                    ...final.map(w => ({ w, fase: 'final' }))
+                ];
+            }
+
+            // ¿Van las palabras dentro de esta misión? (cada día, en el entrenamiento o en el repaso del domingo)
+            function paraulesPendents(m) {
+                const st = leerParaules();
+                return [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= PARAULES_DES_DE && !st.pausa &&
+                    st.fet !== hoy() && itemsParaules().length > 0;
+            }
+            const conParaules = m => ({ ...m, bloques: [...m.bloques, { tipo: 'paraules' }] });
+            const missioDelDia = m => (paraulesPendents(m) ? conParaules(m) : m);
+
             // ¿Toca encadenar les xifres al acabar esta misión?
             function xifresPendents(m) {
                 return [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= XIFRES_DES_DE &&
@@ -1904,7 +2015,7 @@
             }
             // Lo que se enseña y se lee en el inicio: la misión y, si tocan, les xifres al final
             function misionMostrada() {
-                const m = misionActual();
+                const m = missioDelDia(misionActual());
                 return xifresPendents(m) ? { ...m, bloques: [...m.bloques, ...XIFRES.bloques] } : m;
             }
 
@@ -2012,9 +2123,15 @@
             }
 
             function empezarMision() {
-                if (PRUEBA_POR_URL) return empezarPrueba(misionActual());
-                const m = misionActual();
+                if (PRUEBA_POR_URL) return empezarPrueba(missioDelDia(misionActual()));
+                const m = missioDelDia(misionActual());
                 sesion = { mision: m, iBloque: bloqueGuardado(m), hechos: 0, total: 0, fijos: null };
+                // Si paró a medias, lo de los bloques ya hechos (para actualizar la fase 1 al acabar la misión)
+                const enCurso = leerPlan().enCurso;
+                if (enCurso && enCurso.id === m.id && enCurso.fecha === hoy()) {
+                    if (enCurso.objetivo) sesion.objetivo = enCurso.objetivo;
+                    if (enCurso.pas10) sesion.pas10 = enCurso.pas10;
+                }
                 mostrarIntroBloque();
             }
 
@@ -2071,6 +2188,8 @@
                     sesion.fijos = itemsXifra();
                 } else if (b.tipo === 'sentir') {
                     sesion.fijos = itemsSentir();
+                } else if (b.tipo === 'paraules') {
+                    sesion.fijos = itemsParaules();
                 } else {
                     sesion.fijos = null;
                 }
@@ -2084,7 +2203,7 @@
                     document.getElementById('grafia-panel').classList.add(`bloc-${e.color}`);
                     document.getElementById('grafia-botones').innerHTML = e.opciones.map(o => `<button class="grafia-btn" data-lletra="${o}">${o}</button>`).join('');
                 }
-                screens.game.classList.toggle('dictat', b.tipo === 'dictat');
+                screens.game.classList.toggle('dictat', ['dictat', 'paraules'].includes(b.tipo));
                 showScreen('game');
                 siguienteItem();
             }
@@ -2097,7 +2216,9 @@
                     mostrarIntroBloque();
                 } else {
                     const p = leerPlan();
-                    p.enCurso = { id: sesion.mision.id, bloque: sesion.iBloque };
+                    p.enCurso = { id: sesion.mision.id, bloque: sesion.iBloque, fecha: hoy() };
+                    if (sesion.objetivo) p.enCurso.objetivo = sesion.objetivo;
+                    if (sesion.pas10) p.enCurso.pas10 = sesion.pas10;
                     guardarPlan(p);
                     mostrarIntroBloque();
                 }
@@ -2279,6 +2400,11 @@
                     const [paraula, frase] = sesion.fijos[sesion.hechos];
                     return { tipo, paraula, frase, texto: paraula, clave: paraula, esperado: paraula, escoltat: 0 };
                 }
+                if (tipo === 'paraules') {
+                    const { w, fase } = sesion.fijos[sesion.hechos];
+                    return { tipo, w, fase, paraula: w.paraula, texto: w.paraula, clave: w.id, esperado: w.paraula,
+                        etapa: fase === 'nova' ? 'mira' : 'escriu', intent: 1, escoltat: 0, mirat_ms: null, ultima: null };
+                }
                 if (tipo === 'xifra') {
                     const { x, altra, buenaIzq } = sesion.fijos[sesion.hechos];
                     const bona = { codi: String(x), html: `<span class="glif">${x}</span>` };
@@ -2335,7 +2461,10 @@
             function siguienteItem() {
                 if (sesion.hechos >= sesion.total) {
                     if (['grafia', 'dictat'].includes(bloqueActual().tipo)) mostrarRepas();
-                    else finBloque();
+                    else {
+                        if (bloqueActual().tipo === 'paraules') tancarParaules();
+                        finBloque();
+                    }
                     return;
                 }
                 item = crearItem();
@@ -2348,13 +2477,14 @@
                 opFactorsEl.innerHTML = htmlOperacion(item.texto);
                 marcarCanviDeSigne();
                 opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
-                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir'].includes(item.tipo);
+                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir', 'paraules'].includes(item.tipo);
                 opAnswerEl.hidden = !numerico;
                 opCardEl.classList.toggle('op-largo', item.tipo === 'vf');
                 opCardEl.classList.toggle('op-frase', item.tipo === 'grafia');
                 if (item.tipo === 'grafia') opFactorsEl.innerHTML = htmlFrase(item);
                 document.getElementById('grafia-panel').hidden = item.tipo !== 'grafia';
                 document.getElementById('dictat-panel').hidden = item.tipo !== 'dictat';
+                document.getElementById('paraules-panel').hidden = true;
                 const ambXifres = ['xifra', 'sentir'].includes(item.tipo);
                 document.getElementById('xifres-panel').hidden = !ambXifres;
                 if (ambXifres) {
@@ -2379,6 +2509,7 @@
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
                 document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10'].includes(item.tipo);
+                if (item.tipo === 'paraules') pintarParaula();
                 document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
                 document.getElementById('correction-pista').hidden = true;
                 mostrarRecta(item.ayuda === 'recta');
@@ -2648,9 +2779,9 @@
             // Dictat: teclat de lletres en pantalla (minúscules, amb les vocals accentuades i la ç)
             const TECLAT_FILES = [
                 ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
-                ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ç'],
+                ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ñ', 'ç'],
                 ['z', 'x', 'c', 'v', 'b', 'n', 'm', "'", '·', 'back'],
-                ['à', 'è', 'é', 'í', 'ï', 'ò', 'ó', 'ú', 'ü'],
+                ['à', 'á', 'è', 'é', 'í', 'ï', 'ò', 'ó', 'ú', 'ü'],
                 ['espai', 'enter']
             ];
             const LLETRES_DICTAT = TECLAT_FILES.flat().filter(k => k.length === 1);
@@ -2658,7 +2789,7 @@
                 if (k === 'back') return '<button class="tecla esborrar" data-tecla="back" aria-label="Esborrar">⌫</button>';
                 if (k === 'espai') return '<button class="tecla espai" data-tecla=" ">espai</button>';
                 if (k === 'enter') return '<button id="btn-dictat-fet" class="tecla fet" data-tecla="enter" disabled>Fet ✓</button>';
-                return `<button class="tecla${/[àèéíïòóúü]/.test(k) ? ' accent' : ''}" data-tecla="${escaparHtml(k)}">${escaparHtml(k)}</button>`;
+                return `<button class="tecla${/[àáèéíïòóúü]/.test(k) ? ' accent' : ''}" data-tecla="${escaparHtml(k)}">${escaparHtml(k)}</button>`;
             }).join('') + '</div>').join('');
 
             function pintarDictat() {
@@ -2669,10 +2800,12 @@
             }
 
             function teclaDictat(k) {
-                if (isEvaluating || !item || item.tipo !== 'dictat') return;
+                if (isEvaluating || !item) return;
+                const escrivint = item.tipo === 'dictat' || (item.tipo === 'paraules' && item.etapa === 'escriu');
+                if (!escrivint) return;
                 teclas.push([Math.round(performance.now() - tInicio), k]);
                 if (k === 'back') currentInput = currentInput.slice(0, -1);
-                else if (k === 'enter') return evaluarDictat();
+                else if (k === 'enter') return item.tipo === 'paraules' ? evaluarParaula(currentInput.trim()) : evaluarDictat();
                 else if (k === ' ') { if (currentInput && !currentInput.endsWith(' ')) currentInput += ' '; }
                 else if (currentInput.length < 24) currentInput += k;
                 pintarDictat();
@@ -2689,6 +2822,111 @@
                 setTimeout(siguienteItem, 350);
             }
 
+            // PARAULES: mirar (las nuevas) → escribir de memoria → si no sale, mirarla otra vez y volver a escribirla (hasta 3 veces)
+            function pintarParaula() {
+                const w = item.w;
+                const escriu = item.etapa === 'escriu';
+                const emoji = { mira: '👀', escriu: '🎧', corregeix: '🔍' }[item.etapa];
+                opFactorsEl.textContent = `${emoji} ${NOM_IDIOMA[w.idioma]}`;
+                document.getElementById('paraules-panel').hidden = escriu;
+                document.getElementById('dictat-panel').hidden = !escriu;
+                document.getElementById('btn-no-ho-se').hidden = !escriu;
+                gentleBox.style.display = 'none';
+                opFeedbackEl.innerHTML = '';
+                isEvaluating = false;
+                if (escriu) {
+                    currentInput = '';
+                    teclas = [];
+                    pintarDictat();
+                    tInicio = performance.now();
+                    hablar(veuDicta(w));
+                    return;
+                }
+                document.getElementById('paraula-gran').innerHTML = htmlMarca(w.marca);
+                const tu = document.getElementById('paraula-tu');
+                tu.hidden = item.etapa !== 'corregeix';
+                tu.innerHTML = item.ultima ? `Has escrit: <b>${escaparHtml(item.ultima)}</b>` : 'Mira-la bé:';
+                document.getElementById('paraula-truc').textContent = w.truc;
+                const boto = document.getElementById('btn-paraula-seguir');
+                boto.textContent = item.etapa === 'mira' ? 'Ja la tinc! Tapa-la 🙈' : item.intent > 3 ? 'Seguim ➜' : 'La torno a escriure ✍️';
+                item.tMira = performance.now();
+                hablar(veuMira(w));
+            }
+
+            function seguirParaula() {
+                if (!item || item.tipo !== 'paraules' || item.etapa === 'escriu') return;
+                callarVeu();
+                if (item.etapa === 'mira') item.mirat_ms = Math.round(performance.now() - item.tMira);
+                if (item.etapa === 'corregeix' && item.intent > 3) return acabarParaula();
+                item.etapa = 'escriu';
+                pintarParaula();
+            }
+
+            // resposta: lo que ha escrito, o null si ha pulsado «No ho sé»
+            function evaluarParaula(resposta) {
+                if (isEvaluating || !item || item.tipo !== 'paraules' || item.etapa !== 'escriu') return;
+                if (resposta === '') return;
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                const ok = resposta === item.paraula;
+                callarVeu();
+                if (!enPrueba()) {
+                    guardarEvento({
+                        modulo: 'paraules', item: item.w.id, esperado: item.paraula, respuesta: resposta, correcta: ok,
+                        tiempo_ms: ms, primera_tecla_ms: teclas.length ? teclas[0][0] : null,
+                        detalle: { mision: sesion.mision.id, fase: item.fase, intent: item.intent, idioma: item.w.idioma,
+                            teclas, escoltat: item.escoltat, mirat_ms: item.mirat_ms, no_lo_se: resposta === null || undefined }
+                    });
+                    if (item.intent === 1 && item.fase === 'recorda') apuntarRecorda(item.w, ok);
+                }
+                if (ok) {
+                    acabarParaula(true);
+                    return;
+                }
+                playFeedbackSound(false);
+                item.ultima = resposta;
+                item.intent++;
+                item.etapa = 'corregeix';
+                pintarParaula();
+            }
+
+            function acabarParaula(celebra = false) {
+                if (!enPrueba() && item.fase === 'nova') {
+                    const st = leerParaules();
+                    if (!st.w[item.w.id]) st.w[item.w.id] = { intro: hoy(), dies: [], racha: 0, dominada: null, ultima: hoy() };
+                    guardarParaules(st);
+                }
+                sesion.hechos++;
+                if (celebra) celebrar();
+                else siguienteItem();
+            }
+
+            // El primer intento del día de una ya vista: cuenta para dominarla (3 días seguidos) o la devuelve a practicar
+            function apuntarRecorda(w, ok) {
+                const st = leerParaules();
+                const e = st.w[w.id];
+                if (!e || e.dies.includes(hoy())) return;
+                e.ultima = hoy();
+                if (ok) {
+                    e.dies.push(hoy());
+                    e.racha++;
+                    if (e.racha >= PARAULES_DIES_DOMINADA && !e.dominada) e.dominada = hoy();
+                } else {
+                    e.racha = 0;
+                    e.dominada = null;
+                }
+                guardarParaules(st);
+            }
+
+            // Al acabar el bloque: hechas por hoy, y una copia del estado para analizarlo
+            function tancarParaules() {
+                if (enPrueba()) return;
+                const st = leerParaules();
+                st.fet = hoy();
+                guardarParaules(st);
+                guardarEvento({ modulo: 'paraules', item: 'estado', detalle: st });
+            }
+
             // Xifres: sin corrección; se apunta lo que toca, dónde estaba la buena y si lo ha vuelto a escuchar
             function responderXifra(codi) {
                 if (isEvaluating || !item || !['xifra', 'sentir'].includes(item.tipo)) return;
@@ -2703,6 +2941,7 @@
 
             // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
             function noHoSe() {
+                if (item && item.tipo === 'paraules') return evaluarParaula(null);
                 if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10'].includes(item.tipo)) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
@@ -3860,9 +4099,15 @@
                 if (btn && btn.dataset.tecla) teclaDictat(btn.dataset.tecla);
             });
             document.getElementById('btn-escoltar-dictat').addEventListener('click', () => {
-                if (!item || item.tipo !== 'dictat' || isEvaluating) return;
+                if (!item || !['dictat', 'paraules'].includes(item.tipo) || isEvaluating) return;
                 item.escoltat++;
-                hablar(veuDictat([item.paraula, item.frase]));
+                hablar(item.tipo === 'paraules' ? veuDicta(item.w) : veuDictat([item.paraula, item.frase]));
+            });
+            document.getElementById('btn-paraula-seguir').addEventListener('click', seguirParaula);
+            document.getElementById('btn-escoltar-paraula').addEventListener('click', () => {
+                if (!item || item.tipo !== 'paraules' || item.etapa === 'escriu') return;
+                item.escoltat++;
+                hablar(veuMira(item.w));
             });
 
             // Panel de papá (oral)

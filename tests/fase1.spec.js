@@ -189,6 +189,8 @@ test.describe('Fase 1 · misión entera', () => {
 
     test('3 días seguidos sin dudar: pasa a la siguiente multiplicación (7 × 8)', async ({ page }) => {
         await simularSupabase(page);
+        // Un día entre semana: en domingo, después del entrenamiento tocaría el repaso
+        await page.clock.setFixedTime(new Date('2026-10-14T17:00:00'));
         await empezarEnMision(page, 7);
         await prepararFase1(page, { setmana: { idx: 0, dias: ['2026-10-01', '2026-10-02'], dominadas: [] }, pas10: { nivel: 1, buenos: [] } });
         await page.goto(URL_APP);

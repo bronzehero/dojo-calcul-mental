@@ -1,5 +1,6 @@
 #!/bin/bash
 # Genera con la voz de la Joana (edge-tts, gratis) un MP3 por cada texto que el Dojo dice en voz alta.
+# Los textos que empiezan por «[es] » (palabras de castellano) van con una voz castellana.
 # Ejecutar después de cambiar cualquier texto hablado: las pruebas fallan si falta alguno.
 # Uso: veu/genera.sh
 set -e
@@ -22,9 +23,9 @@ for mod in list(sys.modules.values()):
     if getattr(mod, '__name__', '').startswith('edge_tts') and hasattr(mod, 'WSS_URL'):
         mod.WSS_URL = URL
 
-def sintetiza(texto, fichero):
+def sintetiza(texto, fichero, voz='ca-ES-JoanaNeural'):
     try:
-        asyncio.run(edge_tts.Communicate(texto, 'ca-ES-JoanaNeural').save(fichero))
+        asyncio.run(edge_tts.Communicate(texto, voz).save(fichero))
         return True
     except Exception as e:
         print('error:', e)
@@ -56,7 +57,9 @@ for t in textos:
     if not os.path.exists(f'{k}.mp3'):
         # El servicio limita las peticiones: una cada 2 s y, si falla, reintentar con más espera
         for intento in range(4):
-            if sintetiza(para_decir(t), f'{k}.tmp') and os.path.getsize(f'{k}.tmp') > 1000:
+            es = t.startswith('[es] ')
+            voz = 'es-ES-ElviraNeural' if es else 'ca-ES-JoanaNeural'
+            if sintetiza(para_decir(t[5:] if es else t), f'{k}.tmp', voz) and os.path.getsize(f'{k}.tmp') > 1000:
                 os.replace(f'{k}.tmp', f'{k}.mp3'); print('nou:', k, t[:60]); break
             time.sleep(30 * (intento + 1))
         else:
