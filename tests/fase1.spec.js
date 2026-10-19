@@ -203,6 +203,7 @@ test.describe('Fase 1 · misión entera', () => {
         expect(f.setmana.idx).toBe(1);
         expect(f.setmana.dias).toEqual([]);
         expect(f.setmana.dominadas.map(d => d.fet)).toEqual(['6x8']);
+        expect(f.setmana.mezcla).toBeNull(); // la nueva empieza sola, sin contraste
         await page.click('#btn-summary-home');
         await page.evaluate(() => { const p = JSON.parse(localStorage.getItem('dojo_plan')); p.permitirOtra = new Date().toLocaleDateString('sv-SE'); localStorage.setItem('dojo_plan', JSON.stringify(p)); });
         await page.reload();
@@ -246,6 +247,33 @@ test.describe('Fase 1 · misión entera', () => {
         await page.click('#btn-intro-vamos');
         const vistos = await contestarEntrenamiento(page);
         expect(vistos.filter(v => /^(6 × 9|9 × 6|6 × 8|8 × 6)$/.test(v))).toHaveLength(0);
+        const f = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_fase1')));
+        expect(f.setmana.mezcla).toBe(1);
+    });
+
+    test('7 × 8: un día que no cuenta (una duda) no quita la mezcla', async ({ page }) => {
+        await simularSupabase(page);
+        await page.clock.setFixedTime(new Date('2026-10-20T17:00:00'));
+        await empezarEnMision(page, 7);
+        await prepararFase1(page, { setmana: { idx: 1, dias: [], dominadas: [{ fet: '6x8', fecha: '2026-10-15' }], mezcla: 1 }, pas10: { nivel: 1, buenos: [] } });
+        await page.goto(URL_APP);
+        await empezar(page);
+        await contestarEntrenamiento(page);
+        await expect(page.locator('#intro-texto')).toContainText('També sortiran 6 × 8 i 6 × 9');
+        await page.click('#btn-intro-vamos');
+        const vistos = await contestarEntrenamiento(page);
+        expect(vistos.filter(v => /^(6 × 9|9 × 6|6 × 8|8 × 6)$/.test(v))).toHaveLength(3);
+    });
+
+    test('estado de antes de la mezcla, con la de la semana ya empezada: sale con contraste', async ({ page }) => {
+        await simularSupabase(page);
+        await page.clock.setFixedTime(new Date('2026-10-20T17:00:00'));
+        await empezarEnMision(page, 7);
+        await prepararFase1(page, { setmana: { idx: 1, dias: [], dominadas: [{ fet: '6x8', fecha: '2026-10-15' }] }, pas10: { nivel: 3, buenos: ['2026-10-19'] } });
+        await page.goto(URL_APP);
+        await empezar(page);
+        await contestarEntrenamiento(page);
+        await expect(page.locator('#intro-texto')).toContainText('També sortiran 6 × 8 i 6 × 9');
     });
 
     test('una de contraste mal: la corrección enseña su truco', async ({ page }) => {

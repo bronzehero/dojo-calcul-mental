@@ -2034,10 +2034,14 @@
 
             // Estado de la fase 1 (solo en el iPad; una copia va a eventos al acabar cada misión)
             function leerFase1() {
-                const base = { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 1, buenos: [] } };
+                const base = { setmana: { idx: 0, dias: [], dominadas: [], mezcla: null }, pas10: { nivel: 1, buenos: [] } };
                 try {
                     const f = JSON.parse(localStorage.getItem('dojo_fase1'));
-                    if (f && f.setmana && f.pas10) return { setmana: { ...base.setmana, ...f.setmana }, pas10: { ...base.pas10, ...f.pas10 } };
+                    if (f && f.setmana && f.pas10) {
+                        // Estados de antes de «mezcla»: si ya había días o dominadas, la de ahora ya se ha practicado
+                        if (!('mezcla' in f.setmana)) f.setmana.mezcla = (f.setmana.dias || []).length || (f.setmana.dominadas || []).length ? f.setmana.idx : null;
+                        return { setmana: { ...base.setmana, ...f.setmana }, pas10: { ...base.pas10, ...f.pas10 } };
+                    }
                 } catch (e) {}
                 return base;
             }
@@ -2083,8 +2087,9 @@
                 };
             }
 
-            // El contraste empieza el 2.º día: el primero, la de la semana sola con su truco
-            const contrasteActiu = (f, dias = leerFase1().setmana.dias) => !!f.contraste && dias.length >= 1;
+            // El contraste empieza el 2.º día: el primero, la de la semana sola con su truco.
+            // Una vez empezado, sigue aunque un día no cuente (19/10: una duda suelta de 7 s, con las demás rápidas, lo quitaba).
+            const contrasteActiu = (f, s = leerFase1().setmana) => !!f.contraste && (s.dias.length >= 1 || s.mezcla === s.idx);
 
             function infoSetmana(f, ambContraste = contrasteActiu(f)) {
                 return {
@@ -2281,13 +2286,14 @@
                 const antes = JSON.stringify(f);
                 const obj = sesion.objetivo || [];
                 if (obj.length) {
+                    f.setmana.mezcla = f.setmana.idx; // ya se ha practicado: desde mañana, con contraste
                     if (!obj.every(sinDudar)) f.setmana.dias = [];
                     else if (!f.setmana.dias.includes(hoy())) f.setmana.dias.push(hoy());
                     if (f.setmana.dias.length >= SETMANA_DIAS) {
                         const fet = SETMANA[Math.min(f.setmana.idx, SETMANA.length - 1)];
                         f.setmana.dominadas.push({ fet: `${fet.a}x${fet.b}`, fecha: hoy() });
                         f.setmana.dias = [];
-                        if (f.setmana.idx < SETMANA.length - 1) f.setmana.idx++;
+                        if (f.setmana.idx < SETMANA.length - 1) { f.setmana.idx++; f.setmana.mezcla = null; }
                     }
                 }
                 const nous = sesion.pas10 || [];
@@ -3622,7 +3628,7 @@
                         <div><strong>Fase 1 · Entrenamiento</strong> (cada día; los domingos, misión de repaso para medir)</div>
                         <div style="font-size:0.9rem; margin-top:4px;">⭐ La de la semana: <strong id="papa-setmana">${fet.a} × ${fet.b}</strong>
                             · días seguidos sin dudar: ${f.setmana.dias.length} de ${SETMANA_DIAS}
-                            ${contrasteActiu(fet, f.setmana.dias) ? '· mezclada con ' + fet.contraste.map(([a, b]) => a + ' × ' + b).join(', ') : ''}
+                            ${contrasteActiu(fet, f.setmana) ? '· mezclada con ' + fet.contraste.map(([a, b]) => a + ' × ' + b).join(', ') : ''}
                             ${f.setmana.dominadas.length ? '· ya dominadas: ' + f.setmana.dominadas.map(d => d.fet.replace('x', '×') + ' (' + d.fecha + ')').join(', ') : ''}</div>
                         <div style="font-size:0.9rem;">🔟 Passar pel 10: <strong id="papa-pas10">nivel ${f.pas10.nivel} de ${PAS10_NIVELES.length - 1}</strong>
                             (restar ${niv.restan.join(', ')}; ${AYUDA[niv.ayuda]}) · días buenos: ${f.pas10.buenos.length} de 2</div>
@@ -3634,7 +3640,7 @@
                     lista.appendChild(div);
                     div.querySelector('#btn-f1-siguiente').addEventListener('click', () => {
                         const g = leerFase1();
-                        if (g.setmana.idx < SETMANA.length - 1) { g.setmana.idx++; g.setmana.dias = []; }
+                        if (g.setmana.idx < SETMANA.length - 1) { g.setmana.idx++; g.setmana.dias = []; g.setmana.mezcla = null; }
                         guardarFase1(g); renderPlan();
                     });
                     div.querySelector('#btn-f1-bajar').addEventListener('click', () => {
