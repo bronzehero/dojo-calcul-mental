@@ -10,6 +10,9 @@ module.exports = defineConfig({
     fullyParallel: true,
     // Todos los hilos del PC a la vez: casi todo el tiempo es esperar las pausas de la app, no CPU
     workers: '100%',
+    // Con todos los hilos, alguna prueba de tiempos falla de vez en cuando por carga (cada vez otra, y sola pasa).
+    // Se repite una vez: un fallo de verdad falla las dos y no se publica.
+    retries: 1,
     reporter: [['list']],
     use: {
         // Tamaño de un iPad en horizontal
