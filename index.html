@@ -987,6 +987,12 @@
         .paraula-tu { margin: 0 0 8px 0; font-size: 1.3rem; color: #64748b; }
         .paraula-tu b { color: #475569; text-decoration: line-through; text-decoration-color: #f9a8d4; }
         .btn-paraula-seguir { width: 100%; }
+        /* La família de la paraula (hemos → he, has, ha…): totes amb la mateixa lletra de color i un forat per a la que falta */
+        .paraula-familia { margin: 0 0 10px 0; padding: 10px 14px; border-radius: 16px; background: #faf5ff; color: #4c1d95; font-size: 1.35rem; line-height: 1.6; text-align: center; }
+        .paraula-familia .verb { display: block; font-weight: 700; font-size: 1.15rem; margin-bottom: 2px; }
+        .paraula-familia .membre { white-space: nowrap; margin: 0 6px; }
+        .paraula-familia .clau { color: #db2777; background: #fce7f3; border-radius: 8px; padding: 0 3px; }
+        .paraula-familia .buit-familia { display: inline-block; min-width: 3.5em; border-bottom: 3px solid #db2777; }
         .btn-paraula-seguir:hover { transform: none; }
 
         /* Xifres: dues (o quatre) xifres per triar; una pot estar en mirall o girada */
@@ -1124,6 +1130,7 @@
 
                     <!-- Dictat: escolta la paraula i l'escriu amb el teclat de lletres -->
                     <div id="dictat-panel" class="dictat-panel" hidden>
+                        <div id="paraula-familia" class="paraula-familia" hidden></div>
                         <button id="btn-escoltar-dictat" class="btn-subtle btn-escoltar-dictat">🔊 Torna-ho a escoltar</button>
                         <div id="dictat-escrit" class="dictat-escrit buit">…</div>
                         <div id="teclat-lletres" class="teclat-lletres"></div>
@@ -1608,10 +1615,13 @@
             // [x] = la letra que cuesta (sale de color). Por orden de entrada: primero las del examen de castellano.
             const PARAULES = [
                 { id: 'es-bien', idioma: 'es', marca: '[b]ien', frase: 'La profesora dice que está bien.', truc: 'Con B de Bueno. No lleva tilde.' },
-                { id: 'es-hemos', idioma: 'es', marca: '[h]emos', frase: 'Hemos terminado el trabajo.', truc: 'Del verbo haber, siempre con h: he, has, ha, hemos. Sin tilde.' },
-                { id: 'es-ha-dicho', idioma: 'es', marca: '[h]a dicho', frase: 'La profesora nos ha dicho que está bien.', truc: 'Ha, del verbo haber, con h: he dicho, has dicho, ha dicho.' },
+                { id: 'es-hemos', idioma: 'es', marca: '[h]emos', frase: 'Hemos terminado el trabajo.', truc: 'Del verbo haber, siempre con h: he, has, ha, hemos. Sin tilde.',
+                  familia: { verb: 'haber', serie: ['he', 'has', 'ha', 'hemos', 'habéis', 'han'], veu: 'Viene del verbo haber, y toda la familia lleva hache: he, has, ha, hemos, habéis, han. Escribe la que falta.' } },
+                { id: 'es-ha-dicho', idioma: 'es', marca: '[h]a dicho', frase: 'La profesora nos ha dicho que está bien.', truc: 'Ha, del verbo haber, con h: he dicho, has dicho, ha dicho.',
+                  familia: { verb: 'haber', serie: ['he dicho', 'has dicho', 'ha dicho', 'hemos dicho'], veu: 'Viene del verbo haber, con hache: he dicho, has dicho, ha dicho, hemos dicho. Escribe la que falta.' } },
                 { id: 'es-estaba', idioma: 'es', marca: 'esta[b]a', frase: 'La casa estaba vacía.', truc: 'Todo lo que acaba en aba va con b: estaba, jugaba, cantaba.' },
-                { id: 'es-hicimos', idioma: 'es', marca: '[h]i[c]imos', frase: 'Ayer hicimos un trabajo en grupo.', truc: 'Del verbo hacer, con h: hice, hicimos, hecho.' },
+                { id: 'es-hicimos', idioma: 'es', marca: '[h]i[c]imos', frase: 'Ayer hicimos un trabajo en grupo.', truc: 'Del verbo hacer, con h: hice, hicimos, hecho.',
+                  familia: { verb: 'hacer', serie: ['hice', 'hiciste', 'hizo', 'hicimos', 'hicieron'], veu: 'Viene del verbo hacer, y toda la familia lleva hache: hice, hiciste, hizo, hicimos, hicieron. Escribe la que falta.' } },
                 { id: 'es-informacion', idioma: 'es', marca: 'informaci[ó]n', frase: 'Busqué información en internet.', truc: 'Las palabras que acaban en ción llevan tilde: información, canción.' },
                 { id: 'es-busque', idioma: 'es', marca: 'busqu[é]', frase: 'Yo busqué información en internet.', truc: 'Yo busqué, yo llegué: la e del final suena fuerte y lleva tilde.' },
                 { id: 'es-fotografias', idioma: 'es', marca: 'fotograf[í]as', frase: 'Mi compañero trajo unas fotografías.', truc: 'Fo, to, gra, FÍ, as: la i suena fuerte y lleva tilde.' },
@@ -1619,7 +1629,8 @@
                 { id: 'es-coherencia', idioma: 'es', marca: 'co[h]erencia', frase: 'Falla la coherencia: se va del tema.', truc: 'Empieza como cohete: co, he. Sin tilde.' },
                 { id: 'ca-perque', idioma: 'ca', marca: 'perqu[è]', frase: 'No vinc perquè plou.', truc: 'Acaba amb è oberta: perquè.' },
                 { id: 'ca-tambe', idioma: 'ca', marca: 'ta[m]b[é]', frase: 'Jo també vull venir.', truc: 'Abans de b, sempre m. I acaba amb é tancada.' },
-                { id: 'ca-hem', idioma: 'ca', marca: '[h]em', frase: 'Avui hem après moltes coses.', truc: 'Del verb haver, amb h: he, has, ha, hem, heu, han.' },
+                { id: 'ca-hem', idioma: 'ca', marca: '[h]em', frase: 'Avui hem après moltes coses.', truc: 'Del verb haver, amb h: he, has, ha, hem, heu, han.',
+                  familia: { verb: 'haver', serie: ['he', 'has', 'ha', 'hem', 'heu', 'han'], veu: "Ve del verb haver, i tota la família porta hac: he, has, ha, hem, heu, han. Escriu la que falta." } },
                 { id: 'ca-lhora', idioma: 'ca', marca: "l'[h]ora", frase: "Ja és l'hora del pati.", truc: "Hora va amb h. Davant de h, l'apòstrof: l'hora." },
                 { id: 'ca-important', idioma: 'ca', marca: 'i[m]portant', frase: 'Això és molt important.', truc: 'Abans de p i de b, sempre m: important, també.' },
                 { id: 'ca-necessitem', idioma: 'ca', marca: 'ne[c]e[ss]item', frase: 'Necessitem més temps.', truc: 'Ne, ce, ssi, tem: primer c, després dues s.' },
@@ -1637,6 +1648,8 @@
             const ambIdioma = (w, t) => (w.idioma === 'es' ? '[es] ' : '') + t;
             const veuDicta = w => ambIdioma(w, `${w.paraula}. ${w.frase} ${w.paraula}.`);
             const veuMira = w => ambIdioma(w, `${w.paraula}. ${w.frase} ${w.paraula}. ${w.truc}`);
+            // Les de la h d'un verb (hemos, hicimos…): si no surt de memòria, abans de tornar-la a mirar, l'escriu dins de la seva família
+            const veuFamilia = w => ambIdioma(w, w.familia.veu);
             const htmlMarca = m => escaparHtml(m).replace(/\[([^\]]+)\]/g, '<span class="clau">$1</span>');
 
             // Misiones fuera del plan: papá las pone para un día concreto desde la Zona Papá
@@ -1832,7 +1845,7 @@
                 });
                 t.add(fraseMision(conParaules(CONTROL)));
                 t.add(fraseMision(ambXifres(conParaules(CONTROL))));
-                PARAULES.forEach(w => { t.add(veuDicta(w)); t.add(veuMira(w)); });
+                PARAULES.forEach(w => { t.add(veuDicta(w)); t.add(veuMira(w)); if (w.familia) t.add(veuFamilia(w)); });
                 return [...t];
             };
 
@@ -2847,7 +2860,7 @@
 
             function teclaDictat(k) {
                 if (isEvaluating || !item) return;
-                const escrivint = item.tipo === 'dictat' || (item.tipo === 'paraules' && item.etapa === 'escriu');
+                const escrivint = item.tipo === 'dictat' || (item.tipo === 'paraules' && ['escriu', 'familia'].includes(item.etapa));
                 if (!escrivint) return;
                 teclas.push([Math.round(performance.now() - tInicio), k]);
                 if (k === 'back') currentInput = currentInput.slice(0, -1);
@@ -2871,12 +2884,16 @@
             // PARAULES: mirar (las nuevas) → escribir de memoria → si no sale, mirarla otra vez y volver a escribirla (hasta 3 veces)
             function pintarParaula() {
                 const w = item.w;
-                const escriu = item.etapa === 'escriu';
-                const emoji = { mira: '👀', escriu: '🎧', corregeix: '🔍' }[item.etapa];
+                const familia = item.etapa === 'familia';
+                const escriu = item.etapa === 'escriu' || familia;
+                const emoji = { mira: '👀', escriu: '🎧', corregeix: '🔍', familia: '👨‍👩‍👧' }[item.etapa];
                 opFactorsEl.textContent = `${emoji} ${NOM_IDIOMA[w.idioma]}`;
                 document.getElementById('paraules-panel').hidden = escriu;
                 document.getElementById('dictat-panel').hidden = !escriu;
                 document.getElementById('btn-no-ho-se').hidden = !escriu;
+                const fam = document.getElementById('paraula-familia');
+                fam.hidden = !familia;
+                if (familia) fam.innerHTML = htmlFamilia(w);
                 gentleBox.style.display = 'none';
                 opFeedbackEl.innerHTML = '';
                 isEvaluating = false;
@@ -2885,7 +2902,7 @@
                     teclas = [];
                     pintarDictat();
                     tInicio = performance.now();
-                    hablar(veuDicta(w));
+                    hablar(familia ? veuFamilia(w) : veuDicta(w));
                     return;
                 }
                 document.getElementById('paraula-gran').innerHTML = htmlMarca(w.marca);
@@ -2899,6 +2916,14 @@
                 hablar(veuMira(w));
             }
 
+            // La família amb la h (o la lletra que costi) de color; la paraula que toca, un forat
+            function htmlFamilia(w) {
+                const lletra = w.marca.match(/\[([^\]]+)\]/)[1];
+                const membres = w.familia.serie.map(m => m === w.paraula ? '<span class="buit-familia">&nbsp;</span>'
+                    : '<span class="membre">' + (m.startsWith(lletra) ? `<span class="clau">${escaparHtml(lletra)}</span>${escaparHtml(m.slice(lletra.length))}` : escaparHtml(m)) + '</span>');
+                return `<span class="verb">${escaparHtml(w.familia.verb.toUpperCase())}</span>${membres.join(' · ')}`;
+            }
+
             function seguirParaula() {
                 if (!item || item.tipo !== 'paraules' || item.etapa === 'escriu') return;
                 callarVeu();
@@ -2910,8 +2935,9 @@
 
             // resposta: lo que ha escrito, o null si ha pulsado «No ho sé»
             function evaluarParaula(resposta) {
-                if (isEvaluating || !item || item.tipo !== 'paraules' || item.etapa !== 'escriu') return;
+                if (isEvaluating || !item || item.tipo !== 'paraules' || !['escriu', 'familia'].includes(item.etapa)) return;
                 if (resposta === '') return;
+                const enFamilia = item.etapa === 'familia';
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 const ok = resposta === item.paraula;
@@ -2921,7 +2947,8 @@
                         modulo: 'paraules', item: item.w.id, esperado: item.paraula, respuesta: resposta, correcta: ok,
                         tiempo_ms: ms, primera_tecla_ms: teclas.length ? teclas[0][0] : null,
                         detalle: { mision: sesion.mision.id, fase: item.fase, intent: item.intent, idioma: item.w.idioma,
-                            teclas, escoltat: item.escoltat, mirat_ms: item.mirat_ms, no_lo_se: resposta === null || undefined }
+                            teclas, escoltat: item.escoltat, mirat_ms: item.mirat_ms, no_lo_se: resposta === null || undefined,
+                            familia: enFamilia || undefined }
                     });
                     if (item.intent === 1 && item.fase === 'recorda') apuntarRecorda(item.w, ok);
                 }
@@ -2932,7 +2959,11 @@
                 playFeedbackSound(false);
                 item.ultima = resposta;
                 item.intent++;
-                item.etapa = 'corregeix';
+                // Primer, dins de la seva família (un cop per paraula i dia); si tampoc surt, mirar-la com sempre
+                if (item.w.familia && !enFamilia && !item.familiaFeta) {
+                    item.familiaFeta = true;
+                    item.etapa = 'familia';
+                } else item.etapa = 'corregeix';
                 pintarParaula();
             }
 
@@ -4149,7 +4180,7 @@
             document.getElementById('btn-escoltar-dictat').addEventListener('click', () => {
                 if (!item || !['dictat', 'paraules'].includes(item.tipo) || isEvaluating) return;
                 item.escoltat++;
-                hablar(item.tipo === 'paraules' ? veuDicta(item.w) : veuDictat([item.paraula, item.frase]));
+                hablar(item.tipo !== 'paraules' ? veuDictat([item.paraula, item.frase]) : item.etapa === 'familia' ? veuFamilia(item.w) : veuDicta(item.w));
             });
             document.getElementById('btn-paraula-seguir').addEventListener('click', seguirParaula);
             document.getElementById('btn-escoltar-paraula').addEventListener('click', () => {

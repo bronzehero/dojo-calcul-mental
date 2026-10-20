@@ -184,6 +184,66 @@ test.describe('Paraules', () => {
         expect(recorda).toHaveLength(4);
     });
 
+    test('la h d\'un verb (hemos, hicimos): si no surt de memòria, primer l\'escriu dins de la seva família; si tampoc, la mira com sempre', async ({ page }) => {
+        const ahir = { intro: '2026-10-19', dies: [], racha: 0, dominada: null, ultima: '2026-10-20' };
+        const paraules = { fet: '2026-10-20', w: { 'es-hemos': ahir, 'es-hicimos': ahir } };
+        const envios = await preparar(page, '2026-10-21', { plan: { enCurso: { id: 10, bloque: 2, fecha: '2026-10-21' } }, paraules });
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toHaveText('Paraules');
+        await page.click('#btn-intro-vamos');
+
+        // hemos: a la família surt bé · hicimos: tampoc a la família → la torna a mirar (amb el truc) i la torna a escriure
+        let anterior = 'null', vistes = 0;
+        for (let i = 0; i < 12 && vistes < 2; i++) {
+            const p = await seguent(page, anterior);
+            if (p.fase !== 'recorda') { await contestarParaula(page); anterior = await ara(page); continue; }
+            vistes++;
+            expect(p.etapa).toBe('escriu');
+            await expect(page.locator('#paraula-familia')).toBeHidden();
+            await contestarParaula(page, p.paraula.slice(1));
+            await expect.poll(async () => (await actual(page)).etapa).toBe('familia');
+            const fam = page.locator('#paraula-familia');
+            await expect(fam).toBeVisible();
+            await expect(page.locator('#paraules-panel')).toBeHidden();
+            await expect(page.locator('#dictat-panel')).not.toContainText(PROHIBIDO_EN_PANTALLA);
+            await expect(fam.locator('.buit-familia')).toHaveCount(1);
+            if (p.paraula === 'hemos') {
+                // El verb, les altres amb la h de color i un forat per a la que falta
+                await expect(fam.locator('.verb')).toHaveText('HABER');
+                await expect(fam.locator('.membre')).toHaveText(['he', 'has', 'ha', 'habéis', 'han']);
+                await expect(fam.locator('.clau')).toHaveCount(5);
+                await escriure(page, 'hemos');
+                await page.click('#btn-dictat-fet');
+            } else {
+                await expect(fam.locator('.verb')).toHaveText('HACER');
+                await escriure(page, 'isimos');
+                await page.click('#btn-dictat-fet');
+                await expect.poll(async () => (await actual(page)).etapa).toBe('corregeix');
+                await expect(page.locator('#paraules-panel')).toBeVisible();
+                await expect(fam).toBeHidden();
+                await page.click('#btn-paraula-seguir');
+                await escriure(page, 'hicimos');
+                await page.click('#btn-dictat-fet');
+            }
+            anterior = await ara(page);
+        }
+        expect(vistes).toBe(2);
+        for (let i = 0; i < 8 && !(await page.locator('#summary-titulo').isVisible()); i++) {
+            await seguent(page, anterior);
+            await contestarParaula(page);
+            anterior = await ara(page);
+        }
+        await expect(page.locator('#summary-titulo')).toHaveText('Missió complerta!');
+
+        const dades = envios.filter(e => e.datos.modulo === 'paraules' && e.datos.item !== 'estado').map(e => e.datos);
+        const de = id => dades.filter(d => d.item === id).map(d => [d.respuesta, d.correcta, d.detalle.intent, !!d.detalle.familia]);
+        expect(de('es-hemos')).toEqual([['emos', false, 1, false], ['hemos', true, 2, true]]);
+        expect(de('es-hicimos')).toEqual([['icimos', false, 1, false], ['isimos', false, 2, true], ['hicimos', true, 3, false]]);
+        // El primer intent és la mesura: la família no la compta com a bona
+        const st = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_paraules')));
+        expect(st.w['es-hemos']).toMatchObject({ racha: 0, dies: [] });
+    });
+
     test('«No ho sé»: la torna a veure i la torna a escriure, com si s\'hagués equivocat', async ({ page }) => {
         const envios = await preparar(page, '2026-10-18');
         await page.click('#btn-start-game');
