@@ -21,6 +21,12 @@ async function simularSupabase(page, opciones = {}) {
             if (!localStorage.getItem('dojo_paraules')) localStorage.setItem('dojo_paraules', JSON.stringify({ pausa: true }));
         });
     }
+    // Lo mismo con el tema 1 de mates (desde el 22/10)
+    if (!opciones.tema1) {
+        await page.addInitScript(() => {
+            if (!localStorage.getItem('dojo_tema1')) localStorage.setItem('dojo_tema1', JSON.stringify({ pausa: true }));
+        });
+    }
     await page.route('**/*.supabase.co/**', async (ruta) => {
         const req = ruta.request();
         const tabla = new URL(req.url()).pathname.split('/rest/v1/')[1] || '';

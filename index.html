@@ -1003,6 +1003,14 @@
         .xifra-btn:active { background: #fce7f3; }
         .xifra-btn .glif { display: inline-block; }
         .xifra-btn .glif.mirall { transform: scaleX(-1); }
+        /* Tema 1 de mates: la pregunta petita a sobre, el número o la paraula clau en gran, i les opcions una sota l'altra */
+        .tema1-preg { font-size: 1.25rem; font-weight: 700; color: #6b21a8; margin-bottom: 6px; }
+        .op-tema1-clau .operation-text { font-size: 2.2rem; letter-spacing: 0.04em; }
+        .tema1-opcions { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 14px; }
+        .tema1-btn { min-height: 76px; padding: 12px 18px; border: 4px solid #e9dcff; border-radius: 20px; background: #fff; cursor: pointer;
+            font-family: var(--font-main); font-size: 1.35rem; font-weight: 700; line-height: 1.35; color: #1e293b; text-align: left; box-shadow: 0 6px 16px var(--c-shadow); }
+        .tema1-btn.roma { font-size: 2.4rem; letter-spacing: 0.1em; text-align: center; }
+        .tema1-btn:active { background: #fce7f3; }
         .btn-escoltar-xifra { width: 100%; margin-top: 14px; font-size: 1.3rem; padding: 12px; background: #faf5ff; border: 2px solid #e9d5ff; border-radius: 16px; color: #6b21a8; }
     </style>
 </head>
@@ -1073,6 +1081,7 @@
                 <div class="game-left-col">
                     <!-- Operación visual grande -->
                     <div id="op-card" class="operation-display">
+                        <div id="tema1-preg" class="tema1-preg" hidden></div>
                         <div class="operation-text">
                             <span id="op-factors">7 × 8</span>
                             <span id="op-igual">=</span>
@@ -1149,6 +1158,11 @@
                     <div id="xifres-panel" hidden>
                         <div id="xifres-opcions" class="xifres-opcions"></div>
                         <button id="btn-escoltar-xifra" class="btn-subtle btn-escoltar-xifra">🔊 Torna-ho a escoltar</button>
+                    </div>
+
+                    <!-- Tema 1 de mates: triar la bona (com s'escriu en romans, què vol dir additiu…) -->
+                    <div id="tema1-panel" hidden>
+                        <div id="tema1-opcions" class="tema1-opcions"></div>
                     </div>
 
                     <!-- Mejor decir "no ho sé" que adivinar: una respuesta inventada y errónea se queda grabada -->
@@ -1500,6 +1514,7 @@
                 xifra:   { nombre: 'Quin està ben escrit?', icono: '🔍', instr: "Ara, una prova curta i diferent: no hi ha comptes. Sentiràs un número i en veuràs dos. Un està ben escrit. L'altre està girat, com si el veiessis en un mirall, o és un altre número. Toca el que està ben escrit. Mira'ls bé, sense pressa. Si dubtes, tria el que et sembli: no passa res.", ejemplo: 'Sents «Toca el tres» ➜ toques el 3 ben escrit', paso: () => 'Quin està ben escrit?' },
                 sentir:  { nombre: 'Quin número és?', icono: '👂', instr: "Ara sentiràs un número de dues xifres i en veuràs quatre que s'assemblen molt. Toca el que has sentit. Mira'ls xifra per xifra, sense pressa. El pots tornar a escoltar tantes vegades com vulguis.", ejemplo: 'Sents «trenta-sis» ➜ toques el 36', paso: () => 'Quin número és?' },
                 paraules: { nombre: 'Paraules', icono: '🔤', instr: "Paraules que costen d'escriure. Les noves, primer les mires bé amb el seu truc i, quan te les sàpigues, les tapes i les escrius de memòria. Les que ja has vist, les sents i les escrius de memòria. Si no surt, la tornes a mirar i la tornes a escriure. Al teu ritme.", ejemplo: 'Mires «bien» (B de Bueno) ➜ la tapes ➜ escrius bien', paso: () => 'Paraules' },
+                tema1:   { nombre: 'Tema 1 de mates', icono: '🏛️', instr: "Repàs del tema 1 de mates, per a l'examen: els nombres romans, el binari i què vol dir additiu i posicional. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'XIV ➜ escrius 14', paso: () => 'Tema 1 de mates' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
 
@@ -1607,6 +1622,69 @@
             // empieza la de les xifres, hasta que la haga una vez. No sustituye nada ni retrasa el plan.
             // Papá también la puede poner sola otro día desde la Zona Papá.
             const XIFRES_DES_DE = '2026-10-17';
+
+            // TEMA 1 DE MATES · el examen del tema 1 (dossier SA1) entra entero: cada día, en el entrenamiento y en el repaso,
+            // un bloque corto antes de las palabras. Leer y escribir números romanos, binario → número y la teoría de la pág. 11
+            // (qué es additiu y qué es posicional), con la forma de las actividades del dossier. Si falla, ve la solución explicada.
+            const TEMA1_DES_DE = '2026-10-22';
+            const TEMA1_LLEGIR = ['XIV', 'XXVI', 'XC', 'XL', 'XIX', 'XLIV', 'CM', 'MMXXVI', 'LXXXVIII', 'CDXC', 'MCMXXVII', 'IX', 'XCIX'];
+            // Escribir en romanos: la buena y dos que se le pueden cruzar (sumar de más, el símbolo pequeño en el lado que no toca)
+            const TEMA1_ESCRIURE = [
+                [4, ['IIII', 'VI']], [9, ['VIIII', 'XI']], [19, ['IXX', 'XVIIII']], [40, ['XXXX', 'LX']], [49, ['IL', 'XXXXVIIII']],
+                [90, ['LXXXX', 'CX']], [38, ['XXXIIX', 'XLII']], [400, ['CCCC', 'DC']], [2026, ['MMXXIV', 'MMXVI']]
+            ];
+            const TEMA1_BINARI = ['101', '110', '1010', '1101', '111', '1001', '1100', '1111'];
+            const TEMA1_CONCEPTES = [
+                { clau: 'ADDITIU', preg: 'Un sistema de numeració additiu vol dir…', bona: "Que se sumen els valors dels símbols. L'ordre no importa.",
+                  altra: 'Que el valor de cada xifra depèn del lloc on és.', explica: "Com els egipcis: si canvies l'ordre dels dibuixos, és el mateix número." },
+                { clau: 'POSICIONAL', preg: 'Un sistema de numeració posicional vol dir…', bona: 'Que el valor de cada xifra depèn del lloc on és.',
+                  altra: "Que se sumen els valors dels símbols. L'ordre no importa.", explica: '12 i 21 no són el mateix: el 2 val 2 o val 20, segons el lloc on és.' },
+                { clau: 'EL NOSTRE', preg: 'El nostre sistema de numeració és…', bona: 'Posicional i decimal: de 10 en 10, amb les xifres del 0 al 9.',
+                  altra: 'Additiu, com el dels egipcis.', explica: 'Comptem de 10 en 10, i el lloc de cada xifra canvia el que val: unitats, desenes, centenes…' },
+                { clau: 'SISTEMA DE NUMERACIÓ', preg: 'Un sistema de numeració és…', bona: "Una manera d'escriure els números amb símbols.",
+                  altra: 'Una manera de fer sumes i restes.', explica: 'Els egipcis, els babilonis, els romans i nosaltres escrivim els números amb símbols diferents.' },
+                { clau: 'ELS EGIPCIS', preg: 'El sistema de numeració dels egipcis és…', bona: 'Additiu', altra: 'Posicional',
+                  explica: "Se sumen els dibuixos (10 + 10 + 1 = 21), i l'ordre no importa." },
+                { clau: 'ELS BABILONIS', preg: 'El sistema de numeració dels babilonis és…', bona: 'Posicional, de 60 en 60', altra: 'Additiu, sense llocs',
+                  explica: "Si hi ha un espai, el símbol de l'esquerra val 60 vegades més." }
+            ];
+            const ROMANS = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
+            function aRoma(n) {
+                let s = '';
+                for (const [v, r] of ROMANS) while (n >= v) { s += r; n -= v; }
+                return s;
+            }
+            function deRoma(s) {
+                let n = 0, i = 0;
+                for (const [v, r] of ROMANS) while (s.startsWith(r, i)) { n += v; i += r.length; }
+                return n;
+            }
+            // 1927 → [1000, 900, 20, 7]: cada lloc (milers, centenes, desenes, unitats) amb el seu tros en romans
+            const llocs = n => [1000, 100, 10, 1].map(p => Math.floor(n / p) % 10 * p).filter(Boolean);
+            function explicaRoma(n) {
+                const trossos = llocs(n).map(v => `${aRoma(v)} = ${v}`).join(' · ');
+                const resta = ROMANS.find(([, r]) => r.length === 2 && aRoma(n).includes(r));
+                const regla = resta ? ` Un símbol petit davant d'un de més gran, es resta: ${resta[1]} = ${deRoma(resta[1][1])} − ${deRoma(resta[1][0])} = ${resta[0]}.` : '';
+                return `${trossos}.${regla}`;
+            }
+            function explicaBinari(b) {
+                const valors = [...b].map((x, i) => (x === '1' ? 2 ** (b.length - 1 - i) : 0)).filter(Boolean);
+                const llocsB = [...b].map((x, i) => 2 ** (b.length - 1 - i)).join(' · ');
+                return `Cada lloc, començant per la dreta, val 1, 2, 4, 8… Aquí: ${llocsB}. Se sumen els llocs on hi ha un 1: ${valors.join(' + ')} = ${parseInt(b, 2)}.`;
+            }
+            // Cada día: 3 para leer, 3 para escribir, 2 de binario y 2 de teoría (en este orden: así cambia de tarea pocas veces)
+            function itemsTema1() {
+                const llegir = shuffle(TEMA1_LLEGIR).slice(0, 3).map(r => ({ modo: 'llegir', r }));
+                const escriure = shuffle(TEMA1_ESCRIURE).slice(0, 3).map(([n, altres]) => ({ modo: 'escriure', n, altres }));
+                const binari = shuffle(TEMA1_BINARI).slice(0, 2).map(b => ({ modo: 'binari', b }));
+                const teoria = shuffle(TEMA1_CONCEPTES).slice(0, 2).map(c => ({ modo: 'concepte', c }));
+                return [...llegir, ...escriure, ...binari, ...teoria];
+            }
+            function leerTema1() {
+                try { return JSON.parse(localStorage.getItem('dojo_tema1')) || {}; } catch (e) { return {}; }
+            }
+            const tema1Pendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= TEMA1_DES_DE && !leerTema1().pausa;
+            const conTema1 = m => ({ ...m, bloques: [...m.bloques, { tipo: 'tema1' }] });
 
             // PARAULES · ortografía palabra a palabra, cada día al final del entrenamiento (o del repaso del domingo),
             // DENTRO de la misión: no está complerta hasta acabarlas. Las nuevas: mirar con su truco → tapar → escribir de
@@ -1822,6 +1900,7 @@
             window.__itemsXifresProva = () => itemsXifra();
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
+            window.__tema1Actual = () => item && item.tipo === 'tema1' ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 SETMANA.forEach(f => {
@@ -1845,6 +1924,11 @@
                 });
                 t.add(fraseMision(conParaules(CONTROL)));
                 t.add(fraseMision(ambXifres(conParaules(CONTROL))));
+                // Desde el 22/10, con el tema 1 de mates (con o sin palabras, con o sin xifres)
+                [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
+                    SETMANA.forEach(f => t.add(fraseMision(ambX(ambP(conTema1(ENTRENAMENT))), f)));
+                    t.add(fraseMision(ambX(ambP(conTema1(CONTROL)))));
+                }));
                 PARAULES.forEach(w => { t.add(veuDicta(w)); t.add(veuMira(w)); if (w.familia) t.add(veuFamilia(w)); });
                 return [...t];
             };
@@ -2032,7 +2116,11 @@
                     st.fet !== hoy() && itemsParaules().length > 0;
             }
             const conParaules = m => ({ ...m, bloques: [...m.bloques, { tipo: 'paraules' }] });
-            const missioDelDia = m => (paraulesPendents(m) ? conParaules(m) : m);
+            // El tema 1 va antes de las palabras: así, si para en las palabras, al volver la misión tiene los mismos bloques
+            const missioDelDia = m => {
+                const t = tema1Pendent(m) ? conTema1(m) : m;
+                return paraulesPendents(m) ? conParaules(t) : t;
+            };
 
             // ¿Toca encadenar les xifres al acabar esta misión?
             function xifresPendents(m) {
@@ -2225,6 +2313,8 @@
                     sesion.fijos = itemsSentir();
                 } else if (b.tipo === 'paraules') {
                     sesion.fijos = itemsParaules();
+                } else if (b.tipo === 'tema1') {
+                    sesion.fijos = itemsTema1();
                 } else {
                     sesion.fijos = null;
                 }
@@ -2491,6 +2581,28 @@
                     if (op === '+') return { tipo: 'suma', a, b, texto: `${a} + ${b}`, clave: `${a}+${b}`, esperado: String(a + b) };
                     return { tipo: 'resta', a, b, texto: `${a} − ${b}`, clave: `${a}-${b}`, esperado: String(a - b) };
                 }
+                if (tipo === 'tema1') {
+                    const x = sesion.fijos[sesion.hechos];
+                    if (x.modo === 'llegir') {
+                        const n = deRoma(x.r);
+                        return { tipo, modo: x.modo, texto: x.r, clave: `llegir:${x.r}`, esperado: String(n), maxXifres: 4,
+                            preg: 'Quin número és?', solucio: `${x.r} = ${n}`, explica: explicaRoma(n) };
+                    }
+                    if (x.modo === 'binari') {
+                        const n = parseInt(x.b, 2);
+                        return { tipo, modo: x.modo, texto: x.b, clave: `binari:${x.b}`, esperado: String(n), maxXifres: 2,
+                            preg: 'En binari. Quin número és?', solucio: `${x.b} en binari = ${n}`, explica: explicaBinari(x.b) };
+                    }
+                    if (x.modo === 'escriure') {
+                        const bona = aRoma(x.n);
+                        return { tipo, modo: x.modo, texto: String(x.n), clave: `escriure:${x.n}`, esperado: bona,
+                            preg: 'Com s\'escriu en nombres romans?', opcions: shuffle([bona, ...x.altres]),
+                            solucio: `${x.n} = ${bona}`, explica: explicaRoma(x.n) };
+                    }
+                    const c = x.c;
+                    return { tipo, modo: x.modo, texto: c.clau, clave: `concepte:${c.clau}`, esperado: c.bona,
+                        preg: c.preg, opcions: shuffle([c.bona, c.altra]), solucio: c.bona, explica: c.explica };
+                }
                 if (tipo === 'vf') {
                     const [a, b, c] = sesion.fijos[sesion.hechos];
                     return { tipo, a, b, c, texto: `${a} × ${b} = ${c}`, clave: `${a}x${b}=${c}`, esperado: c === a * b ? 'V' : 'F' };
@@ -2514,13 +2626,24 @@
                 teclas = [];
                 oralRespuesta = null;
 
-                const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo);
+                const ambOpcions = item.tipo === 'tema1' && !!item.opcions;
+                const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo) || (item.tipo === 'tema1' && !ambOpcions);
                 opFactorsEl.innerHTML = htmlOperacion(item.texto);
                 marcarCanviDeSigne();
                 opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
-                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir', 'paraules'].includes(item.tipo);
+                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir', 'paraules'].includes(item.tipo) || ambOpcions;
                 opAnswerEl.hidden = !numerico;
-                opCardEl.classList.toggle('op-largo', item.tipo === 'vf');
+                opCardEl.classList.toggle('op-largo', item.tipo === 'vf' || item.tipo === 'tema1');
+                // Tema 1: la pregunta, petita, a sobre; el que s'ha de mirar (el número, la paraula clau), gran
+                const preg = document.getElementById('tema1-preg');
+                preg.hidden = item.tipo !== 'tema1';
+                preg.textContent = item.tipo === 'tema1' ? item.preg : '';
+                opCardEl.classList.toggle('op-tema1-clau', item.modo === 'concepte');
+                document.getElementById('tema1-panel').hidden = !ambOpcions;
+                if (ambOpcions) {
+                    document.getElementById('tema1-opcions').innerHTML = item.opcions
+                        .map(o => `<button class="tema1-btn${item.modo === 'escriure' ? ' roma' : ''}" data-opcio="${escaparHtml(o)}">${escaparHtml(o)}</button>`).join('');
+                }
                 opCardEl.classList.toggle('op-frase', item.tipo === 'grafia');
                 if (item.tipo === 'grafia') opFactorsEl.innerHTML = htmlFrase(item);
                 document.getElementById('grafia-panel').hidden = item.tipo !== 'grafia';
@@ -2549,7 +2672,7 @@
                 keypad.style.display = numerico ? 'grid' : 'none';
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
-                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10'].includes(item.tipo);
+                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1'].includes(item.tipo);
                 if (item.tipo === 'paraules') pintarParaula();
                 document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
                 document.getElementById('correction-pista').hidden = true;
@@ -2649,8 +2772,8 @@
                 teclas.push([Math.round(performance.now() - tInicio), key]);
 
                 if (key >= '0' && key <= '9') {
-                    // Todas las respuestas tienen como máximo 2 cifras
-                    if (currentInput.length < 2) {
+                    // Todas las respuestas tienen como máximo 2 cifras (los romanos del tema 1, hasta 4)
+                    if (currentInput.length < (item.maxXifres || 2)) {
                         currentInput += key;
                         updateInputDisplay();
                     }
@@ -2709,6 +2832,7 @@
                 const girada = !ok && item.tipo !== 'teclear' && esGirada(item.esperado, currentInput);
                 const extra = {};
                 if (girada) extra.girada = true;
+                if (item.tipo === 'tema1') extra.modo = item.modo;
                 if (item.tipo === 'pas10') {
                     extra.clase = item.clase;
                     if (item.clase === 'nou') { extra.nivel = leerFase1().pas10.nivel; extra.ayuda = item.ayuda; extra.pista = item.pista; }
@@ -2729,7 +2853,7 @@
                     if (item.objetivo) hablar(fetSetmana().diccio);
                     celebrar();
                 } else {
-                    const mates = item.tipo === 'teclear' ? item.texto : `${item.texto} = ${item.esperado}`;
+                    const mates = item.tipo === 'teclear' ? item.texto : item.tipo === 'tema1' ? item.solucio : `${item.texto} = ${item.esperado}`;
                     const titulo = girada ? '🔄 Les xifres són bones, però girades!' : '🌸 Gairebé! Fixa-t\'hi bé:';
                     mostrarCorreccion(titulo, mates, `Tu has posat: ${currentInput}`);
                     mostrarPistaCorreccion();
@@ -2741,6 +2865,7 @@
                 const el = document.getElementById('correction-pista');
                 let txt = '';
                 if (item.tipo === 'pas10' && item.clase === 'nou') txt = trucPas10(item);
+                if (item.tipo === 'tema1') txt = item.explica;
                 if (item.objetivo) { txt = `Truc: ${fetSetmana().pista}`; hablar(fetSetmana().diccio); }
                 if (item.contraste) {
                     const s = SETMANA.find(x => (x.a === item.a && x.b === item.b) || (x.a === item.b && x.b === item.a));
@@ -2748,6 +2873,21 @@
                 }
                 el.textContent = txt;
                 el.hidden = !txt;
+            }
+
+            // Tema 1, triar: si no és la bona, la solució explicada (com a les altres, s'atura a la primera que falla)
+            function responderTema1(opcio) {
+                if (isEvaluating || !item || item.tipo !== 'tema1' || !item.opcions) return;
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                const ok = opcio === item.esperado;
+                registrar(item, opcio, ok, ms, { modo: item.modo, opcions: item.opcions });
+                document.getElementById('tema1-panel').hidden = true;
+                if (ok) celebrar();
+                else {
+                    mostrarCorreccion('🌸 Gairebé! Fixa-t\'hi bé:', item.solucio, `Tu has triat: ${opcio}`);
+                    mostrarPistaCorreccion();
+                }
             }
 
             function responderVF(dice) {
@@ -3019,9 +3159,16 @@
             // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
             function noHoSe() {
                 if (item && item.tipo === 'paraules') return evaluarParaula(null);
-                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10'].includes(item.tipo)) return;
+                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1'].includes(item.tipo)) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
+                if (item.tipo === 'tema1') {
+                    registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo });
+                    document.getElementById('tema1-panel').hidden = true;
+                    mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', item.solucio, 'Millor això que endevinar. Mira-la bé i seguim.', false);
+                    mostrarPistaCorreccion();
+                    return;
+                }
                 if (item.tipo === 'grafia') {
                     // En el simulacro, igual que el resto: sin corrección hasta el repaso del bloque
                     registrar(item, null, false, ms, { no_lo_se: true, bloc: EXAMEN_CATALA[item.iBloc].color, escoltat: item.escoltat });
@@ -4142,6 +4289,10 @@
             document.getElementById('btn-no-ho-se').addEventListener('click', noHoSe);
 
             // Xifres
+            document.getElementById('tema1-opcions').addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (btn && btn.dataset.opcio) responderTema1(btn.dataset.opcio);
+            });
             document.getElementById('xifres-opcions').addEventListener('click', (e) => {
                 const btn = e.target.closest('button');
                 if (btn && btn.dataset.xifra) responderXifra(btn.dataset.xifra);
