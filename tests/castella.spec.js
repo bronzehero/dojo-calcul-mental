@@ -25,17 +25,17 @@ async function seguent(page, anterior) {
 const pasos = page => page.locator('#mision-pasos li').allTextContents();
 
 test.describe("Castellà per a l'examen", () => {
-    test('només del 23 al 27/10, després del tema 1 de mates', async ({ page }) => {
-        await preparar(page, '2026-10-22');
-        expect(await pasos(page)).not.toContain("💬 Castellà per a l'examen");
-        for (const [dia, hi] of [['2026-10-23', true], ['2026-10-27', true], ['2026-10-28', false]]) {
-            await page.clock.setFixedTime(new Date(`${dia}T17:00:00`));
-            await page.reload();
+    // Només del 23 al 27/10 (la vigília de l'examen és l'últim dia), després del tema 1 de mates
+    for (const [dia, hi] of [['2026-10-22', false], ['2026-10-23', true], ['2026-10-27', true], ['2026-10-28', false]]) {
+        test(`el ${dia}, ${hi ? 'hi és, després del tema 1' : 'no hi és'}`, async ({ page }) => {
+            await preparar(page, dia);
+            await expect(page.locator('#mision-titulo')).toHaveText('Entrenament');
+            await expect.poll(async () => (await pasos(page)).at(-1)).toBe(hi ? "💬 Castellà per a l'examen" : '🏛️ Tema 1 de mates');
             const p = await pasos(page);
-            if (hi) expect(p.slice(-2)).toEqual(['🏛️ Tema 1 de mates', "💬 Castellà per a l'examen"]);
-            else expect(p).not.toContain("💬 Castellà per a l'examen");
-        }
-    });
+            if (hi) expect(p.at(-2)).toBe('🏛️ Tema 1 de mates');
+            else expect(p.join(' ')).not.toContain('Castellà');
+        });
+    }
 
     test('propietats, tipus de text, plans, angle i còmic: si falla, la solució explicada; es guarda cada resposta', async ({ page }) => {
         const envios = await preparar(page, '2026-10-23', { enCurso: { id: 10, bloque: 3, fecha: '2026-10-23' } });

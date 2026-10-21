@@ -33,16 +33,17 @@ async function seguent(page, anterior) {
 }
 
 test.describe('Tema 1 de mates', () => {
-    test('fins al 21/10 no hi és; des del 22/10 va a la missió, abans de les paraules', async ({ page }) => {
-        await preparar(page, '2026-10-21', {}, { paraules: true });
-        await expect(page.locator('#mision-pasos')).not.toContainText('Tema 1');
-        await page.clock.setFixedTime(new Date('2026-10-22T17:00:00'));
-        await page.reload();
-        await expect(page.locator('#mision-titulo')).toHaveText('Entrenament');
-        const pasos = await page.locator('#mision-pasos li').allTextContents();
-        expect(pasos.at(-2)).toBe('🏛️ Tema 1 de mates');
-        expect(pasos.at(-1)).toBe('🔤 Paraules');
-    });
+    // Fins al 21/10 no hi és; des del 22/10 va a la missió, abans de les paraules (cada data, una pàgina nova: sense recarregar)
+    for (const [dia, hi] of [['2026-10-21', false], ['2026-10-22', true]]) {
+        test(`el ${dia}, ${hi ? 'hi és, abans de les paraules' : 'no hi és'}`, async ({ page }) => {
+            await preparar(page, dia, {}, { paraules: true });
+            await expect(page.locator('#mision-titulo')).toHaveText('Entrenament');
+            await expect.poll(async () => (await page.locator('#mision-pasos li').allTextContents()).at(-1)).toBe('🔤 Paraules');
+            const pasos = await page.locator('#mision-pasos li').allTextContents();
+            if (hi) expect(pasos.at(-2)).toBe('🏛️ Tema 1 de mates');
+            else expect(pasos.join(' ')).not.toContain('Tema 1');
+        });
+    }
 
     test('romans, binari i teoria: si falla, la solució explicada; es guarda cada resposta', async ({ page }) => {
         const envios = await preparar(page, '2026-10-22', { enCurso: { id: 10, bloque: 2, fecha: '2026-10-22' } });
