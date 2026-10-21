@@ -27,6 +27,12 @@ async function simularSupabase(page, opciones = {}) {
             if (!localStorage.getItem('dojo_tema1')) localStorage.setItem('dojo_tema1', JSON.stringify({ pausa: true }));
         });
     }
+    // Y con el castellano (del 23 al 27/10)
+    if (!opciones.castella) {
+        await page.addInitScript(() => {
+            if (!localStorage.getItem('dojo_castella')) localStorage.setItem('dojo_castella', JSON.stringify({ pausa: true }));
+        });
+    }
     await page.route('**/*.supabase.co/**', async (ruta) => {
         const req = ruta.request();
         const tabla = new URL(req.url()).pathname.split('/rest/v1/')[1] || '';

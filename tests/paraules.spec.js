@@ -272,4 +272,26 @@ test.describe('Paraules', () => {
         await expect(altra.locator('#mision-titulo')).toHaveText('Entrenament');
         await expect(altra.locator('#mision-pasos li')).toHaveCount(2);
     });
+
+    test('les que escriu com en català (estava): quan les torna a mirar, la parella català / castellà', async ({ page }) => {
+        const ahir = { intro: '2026-10-18', dies: [], racha: 0, dominada: null, ultima: '2026-10-20' };
+        const paraules = { fet: '2026-10-20', w: { 'es-estaba': ahir, 'es-bien': ahir } };
+        await preparar(page, '2026-10-21', { plan: { enCurso: { id: 10, bloque: 2, fecha: '2026-10-21' } }, paraules });
+        await page.click('#btn-start-game');
+        await page.click('#btn-intro-vamos');
+        let anterior = 'null';
+        for (let i = 0; i < 10; i++) {
+            const p = await seguent(page, anterior);
+            if (p.paraula !== 'estaba' || p.fase !== 'recorda') { await contestarParaula(page); anterior = await ara(page); continue; }
+            await contestarParaula(page, 'estava');
+            await expect(page.locator('#paraules-panel')).toBeVisible();
+            const parella = page.locator('#paraula-parella');
+            await expect(parella).toBeVisible();
+            await expect(parella).toContainText('En català: estava');
+            await expect(parella).toContainText('En castellà: estaba');
+            await expect(parella.locator('.clau')).toHaveText(['v', 'b']);
+            return;
+        }
+        throw new Error('no ha sortit «estaba» per recordar');
+    });
 });

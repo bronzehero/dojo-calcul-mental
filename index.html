@@ -984,6 +984,9 @@
             font-size: 3.4rem; font-weight: 700; letter-spacing: 0.06em; color: #1e293b; word-break: break-word; }
         .paraula-gran .clau { color: #db2777; background: #fce7f3; border-radius: 10px; padding: 0 4px; }
         .paraula-truc { margin: 0 0 12px 0; padding: 12px 16px; border-radius: 16px; background: #faf5ff; color: #4c1d95; font-size: 1.35rem; line-height: 1.4; }
+        /* La pareja catalán / castellano: lo que cambia, de color en las dos */
+        .paraula-parella { margin: -4px 0 12px 0; padding: 10px 16px; border-radius: 16px; background: #fff7ed; color: #7c2d12; font-size: 1.3rem; line-height: 1.5; }
+        .paraula-parella .clau { color: #db2777; background: #fce7f3; border-radius: 8px; padding: 0 3px; font-weight: 700; }
         .paraula-tu { margin: 0 0 8px 0; font-size: 1.3rem; color: #64748b; }
         .paraula-tu b { color: #475569; text-decoration: line-through; text-decoration-color: #f9a8d4; }
         .btn-paraula-seguir { width: 100%; }
@@ -1011,6 +1014,11 @@
             font-family: var(--font-main); font-size: 1.35rem; font-weight: 700; line-height: 1.35; color: #1e293b; text-align: left; box-shadow: 0 6px 16px var(--c-shadow); }
         .tema1-btn.roma { font-size: 2.4rem; letter-spacing: 0.1em; text-align: center; }
         .tema1-btn:active { background: #fce7f3; }
+        /* Castellano: el texto corto, a la izquierda y legible; la viñeta, grande */
+        .op-cast-text .operation-text { font-size: 1.45rem; font-weight: 600; line-height: 1.55; text-align: left; letter-spacing: 0.02em; }
+        .op-cast-dibuix .operation-text { width: 100%; }
+        .op-cast-dibuix #op-factors { display: block; width: 100%; }
+        .dibuix-cast { display: block; width: 100%; height: auto; aspect-ratio: 5 / 3; border-radius: 14px; border: 3px solid #1e293b; background: #fff; }
         .btn-escoltar-xifra { width: 100%; margin-top: 14px; font-size: 1.3rem; padding: 12px; background: #faf5ff; border: 2px solid #e9d5ff; border-radius: 16px; color: #6b21a8; }
     </style>
 </head>
@@ -1150,6 +1158,7 @@
                         <div id="paraula-tu" class="paraula-tu" hidden></div>
                         <div id="paraula-gran" class="paraula-gran"></div>
                         <div id="paraula-truc" class="paraula-truc"></div>
+                        <div id="paraula-parella" class="paraula-parella" hidden></div>
                         <button id="btn-escoltar-paraula" class="btn-subtle btn-escoltar-dictat">🔊 Torna-ho a escoltar</button>
                         <button id="btn-paraula-seguir" class="btn-action btn-paraula-seguir">Ja la tinc! Tapa-la 🙈</button>
                     </div>
@@ -1515,6 +1524,7 @@
                 sentir:  { nombre: 'Quin número és?', icono: '👂', instr: "Ara sentiràs un número de dues xifres i en veuràs quatre que s'assemblen molt. Toca el que has sentit. Mira'ls xifra per xifra, sense pressa. El pots tornar a escoltar tantes vegades com vulguis.", ejemplo: 'Sents «trenta-sis» ➜ toques el 36', paso: () => 'Quin número és?' },
                 paraules: { nombre: 'Paraules', icono: '🔤', instr: "Paraules que costen d'escriure. Les noves, primer les mires bé amb el seu truc i, quan te les sàpigues, les tapes i les escrius de memòria. Les que ja has vist, les sents i les escrius de memòria. Si no surt, la tornes a mirar i la tornes a escriure. Al teu ritme.", ejemplo: 'Mires «bien» (B de Bueno) ➜ la tapes ➜ escrius bien', paso: () => 'Paraules' },
                 tema1:   { nombre: 'Tema 1 de mates', icono: '🏛️', instr: "Repàs del tema 1 de mates, per a l'examen: els nombres romans, el binari i què vol dir additiu i posicional. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'XIV ➜ escrius 14', paso: () => 'Tema 1 de mates' },
+                castella: { nombre: 'Castellà per a l\'examen', icono: '💬', instr: "Repàs del control de castellà, com a l'examen: llegeixes un text curt o mires una vinyeta i tries què és. Quina propietat falla, quin tipus de text és, quin pla, quin angle o quina part del còmic. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '«Primero, bate dos huevos…» ➜ Instructivo', paso: () => 'Castellà per a l\'examen' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
 
@@ -1686,25 +1696,154 @@
             const tema1Pendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= TEMA1_DES_DE && !leerTema1().pausa;
             const conTema1 = m => ({ ...m, bloques: [...m.bloques, { tipo: 'tema1' }] });
 
+            // CASTELLANO · la recuperación del control de la unidad 1 (28/10): hasta la víspera, un bloque corto después del tema 1.
+            // Como el control: no pide definiciones, da un texto o una viñeta nuevos y hay que decir qué es. Textos cortos, nuestros.
+            // Los planos y los ángulos, por separado (como en el examen): plano = cuánto se ve; ángulo = desde dónde mira la cámara.
+            const CASTELLA_DES_DE = '2026-10-23', CASTELLA_FINS = '2026-10-27';
+            const PROPIETATS = {
+                'Cohesión': 'Son frases sueltas, sin conectores (y, después, luego, porque). Cohesión rima con unión: une las frases.',
+                'Coherencia': 'Se va del tema: empieza hablando de una cosa y acaba hablando de otra.',
+                'Adecuación': 'No habla como toca para quien lo va a leer: a un director o a un alcalde se le habla con respeto.'
+            };
+            const CASTELLA_PROPIETATS = [
+                ['Ayer fui al parque. Hacía sol. Jugué al fútbol. Volví a casa. Cené pronto.', 'Cohesión'],
+                ['Me levanté. Me duché. Desayuné. Cogí la mochila. Salí de casa.', 'Cohesión'],
+                ['Mi perro se llama Rufo y es muy juguetón. Le encanta correr por el parque. Los volcanes expulsan lava cuando entran en erupción.', 'Coherencia'],
+                ['El sábado fuimos a la playa y mi hermana se compró un helado. La Luna gira alrededor de la Tierra.', 'Coherencia'],
+                ['(Un alumno escribe al director del instituto) ¡Ey, tío! Mañana no vengo, que paso de clase.', 'Adecuación'],
+                ['(Una carta al alcalde) Señor alcalde: el parque nuevo mola mazo, ¿vale? Pues eso.', 'Adecuación']
+            ];
+            const TIPUS_TEXT = {
+                'Narrativo': 'Cuenta lo que pasó, con personajes, casi siempre en pasado.',
+                'Descriptivo': 'Explica cómo es algo o alguien.',
+                'Argumentativo': 'Da una opinión y razones para convencer: «pienso que…».',
+                'Instructivo': 'Da pasos para hacer algo: primero, después, por último.',
+                'Expositivo': 'Explica un tema, sin opinar.',
+                'Predictivo': 'Dice lo que pasará: el tiempo de mañana, el horóscopo.'
+            };
+            const CASTELLA_TIPUS = [
+                ['Había una vez un niño que vivía en el bosque. Un día encontró una cueva y entró sin miedo.', 'Narrativo'],
+                ['Mi abuela es bajita, tiene el pelo blanco y unos ojos verdes muy grandes.', 'Descriptivo'],
+                ['Pienso que los móviles no deberían usarse en clase, porque nos distraen.', 'Argumentativo'],
+                ['Primero, bate dos huevos. Después, añade la sal. Por último, ponlos en la sartén.', 'Instructivo'],
+                ['Los volcanes son aberturas de la Tierra por donde sale el magma del interior.', 'Expositivo'],
+                ['Mañana lloverá en el norte y las temperaturas bajarán unos cinco grados.', 'Predictivo'],
+                ['El corazón es un músculo que bombea la sangre por todo el cuerpo.', 'Expositivo'],
+                ['El verano pasado fuimos de excursión y nos perdimos en la montaña.', 'Narrativo']
+            ];
+            // Planos: una misma escena, encuadrada más lejos o más cerca (viewBox de 5 × 3)
+            const PLANOS = {
+                'Gran plano general': { vb: '0 0 400 240', explica: 'Se ve todo el paisaje y el personaje, muy pequeño.' },
+                'Plano entero': { vb: '96 106 208 125', explica: 'Se ve el personaje entero, de la cabeza a los pies.' },
+                'Plano americano': { vb: '123 108 153 92', explica: 'De la cabeza a las rodillas.' },
+                'Plano medio': { vb: '143 110 113 68', explica: 'De la cabeza a la cintura (medio = la mitad).' },
+                'Primer plano': { vb: '172 111 55 33', explica: 'La cara y los hombros. «Plano frontal» no existe: frontal es un ángulo.' },
+                'Plano detalle': { vb: '189.6 119.4 13 7.8', explica: 'Solo una cosa muy pequeña: un ojo, una mano.' }
+            };
+            const ANGULOS = {
+                'Picado': 'La cámara está arriba y mira hacia abajo: el personaje se ve pequeño.',
+                'Contrapicado': 'La cámara está abajo y mira hacia arriba: el personaje se ve grande, poderoso.',
+                'Frontal': 'La cámara está a la altura de los ojos, de frente. Es un ángulo: nunca lleva «plano» delante.'
+            };
+            const ELEMENTOS = {
+                'Cartucho': 'El recuadro con la voz del narrador («Al día siguiente…»).',
+                'Bocadillo': 'Donde va lo que dice el personaje, con un rabito hacia quien habla.',
+                'Viñeta': 'Cada recuadro del cómic.',
+                'Onomatopeya': 'Una palabra que imita un ruido: ¡crash!, ¡boom!',
+                'Líneas cinéticas': 'Las rayas que dibujan el movimiento.',
+                'Metáfora visual': 'Un dibujo que dice lo que piensa o siente: una bombilla = ha tenido una idea.'
+            };
+            const SVG_ATTR = 'xmlns="http://www.w3.org/2000/svg" class="dibuix-cast" role="img"';
+            const NS = 'vector-effect="non-scaling-stroke"';
+            function svgPersona() {
+                return `<circle cx="200" cy="125" r="10" fill="#fde2c8" stroke="#1e293b" stroke-width="2" ${NS}/>` +
+                    `<path d="M190 121 Q200 110 210 121" fill="none" stroke="#7c2d12" stroke-width="3" ${NS}/>` +
+                    `<circle cx="196" cy="123" r="1.6" fill="#fff" stroke="#1e293b" stroke-width="1" ${NS}/><circle cx="196" cy="123.2" r="0.8" fill="#1e293b"/>` +
+                    `<circle cx="204" cy="123" r="1.6" fill="#fff" stroke="#1e293b" stroke-width="1" ${NS}/><circle cx="204" cy="123.2" r="0.8" fill="#1e293b"/>` +
+                    `<path d="M196.5 128.5 Q200 131 203.5 128.5" fill="none" stroke="#be185d" stroke-width="1.5" ${NS}/>` +
+                    `<rect x="188" y="136" width="24" height="40" rx="5" fill="#a78bfa" stroke="#1e293b" stroke-width="2" ${NS}/>` +
+                    `<path d="M188 142 L176 168 M212 142 L224 168" stroke="#1e293b" stroke-width="3" ${NS}/>` +
+                    `<path d="M194 176 L192 226 M206 176 L208 226" stroke="#1e3a8a" stroke-width="5" ${NS}/>` +
+                    `<circle cx="193" cy="200" r="1.4" fill="#1e293b"/><circle cx="207" cy="200" r="1.4" fill="#1e293b"/>`;
+            }
+            function svgPlano(nom) {
+                const fons = `<rect x="0" y="0" width="400" height="240" fill="#e0f2fe"/>` +
+                    `<polygon points="0,200 70,120 140,190 230,100 320,185 400,130 400,240 0,240" fill="#bbf7d0"/>` +
+                    `<circle cx="60" cy="45" r="20" fill="#fde047"/>` +
+                    `<rect x="322" y="150" width="10" height="78" fill="#92400e"/><circle cx="327" cy="140" r="26" fill="#4ade80"/>` +
+                    `<rect x="0" y="226" width="400" height="14" fill="#86efac"/>`;
+                return `<svg ${SVG_ATTR} viewBox="${PLANOS[nom].vb}" preserveAspectRatio="xMidYMid slice" aria-label="Viñeta">${fons}${svgPersona()}</svg>`;
+            }
+            function svgAngulo(nom) {
+                // El personaje, como lo ve la cámara: desde arriba, cabeza grande y pies pequeños; desde abajo, al revés
+                const k = nom === 'Picado' ? 1 : nom === 'Contrapicado' ? -1 : 0;
+                const rCap = 22 + 12 * k, ample = 34 + 20 * k, peus = 34 - 20 * k;
+                const yCap = 70 - 6 * k;
+                const cos = `<polygon points="${210 - ample / 2},${yCap + rCap + 4} ${210 + ample / 2},${yCap + rCap + 4} ${210 + peus / 2},212 ${210 - peus / 2},212" fill="#a78bfa" stroke="#1e293b" stroke-width="2"/>`;
+                const cap = `<circle cx="210" cy="${yCap}" r="${rCap}" fill="#fde2c8" stroke="#1e293b" stroke-width="2"/>` +
+                    `<circle cx="${210 - rCap / 3}" cy="${yCap - 2}" r="2.5" fill="#1e293b"/><circle cx="${210 + rCap / 3}" cy="${yCap - 2}" r="2.5" fill="#1e293b"/>`;
+                const yCam = { 1: 34, 0: 70, '-1': 200 }[k];
+                const camera = `<g transform="translate(40 ${yCam - 14})"><rect x="0" y="4" width="40" height="26" rx="5" fill="#334155"/><rect x="10" y="0" width="14" height="6" rx="2" fill="#334155"/><circle cx="20" cy="17" r="8" fill="#94a3b8" stroke="#e2e8f0" stroke-width="2"/></g>`;
+                const mira = `<path d="M84 ${yCam} L180 ${k === 1 ? 120 : k === -1 ? 120 : yCam}" stroke="#db2777" stroke-width="3" stroke-dasharray="7 6" marker-end="url(#fletxa)"/>`;
+                const defs = '<defs><marker id="fletxa" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#db2777"/></marker></defs>';
+                return `<svg ${SVG_ATTR} viewBox="0 0 300 230" aria-label="Viñeta">${defs}<rect width="300" height="230" fill="#f8fafc"/>${cos}${cap}${camera}${mira}</svg>`;
+            }
+            function svgElemento(nom) {
+                const marc = '<rect x="40" y="16" width="340" height="208" fill="#fff" stroke="#1e293b" stroke-width="4"/>';
+                const nen = '<circle cx="290" cy="112" r="20" fill="#fde2c8" stroke="#1e293b" stroke-width="2"/><circle cx="283" cy="110" r="2.5" fill="#1e293b"/><circle cx="297" cy="110" r="2.5" fill="#1e293b"/>' +
+                    '<rect x="274" y="134" width="32" height="54" rx="6" fill="#a78bfa" stroke="#1e293b" stroke-width="2"/><path d="M282 188 L280 220 M298 188 L300 220" stroke="#1e3a8a" stroke-width="6"/>';
+                const el = {
+                    'Cartucho': ['<rect x="52" y="28" width="170" height="40" fill="#fef9c3" stroke="#1e293b" stroke-width="2"/><text x="62" y="54" font-size="17" font-style="italic" fill="#1e293b">Al día siguiente…</text>', [140, 76]],
+                    'Bocadillo': ['<ellipse cx="170" cy="62" rx="72" ry="34" fill="#fff" stroke="#1e293b" stroke-width="2.5"/><path d="M218 86 L268 104 L200 92" fill="#fff" stroke="#1e293b" stroke-width="2.5"/><text x="170" y="70" font-size="24" font-weight="700" text-anchor="middle" fill="#1e293b">¡Hola!</text>', [130, 100]],
+                    'Viñeta': ['', [40, 150]],
+                    'Onomatopeya': ['<text x="80" y="110" font-size="46" font-weight="900" fill="#ea580c" stroke="#7c2d12" stroke-width="1.5" transform="rotate(-10 140 100)">¡CRASH!</text>', [150, 130]],
+                    'Líneas cinéticas': ['<circle cx="200" cy="190" r="16" fill="#f8fafc" stroke="#1e293b" stroke-width="2.5"/><path d="M90 178 L172 180 M80 192 L170 191 M92 205 L174 202" stroke="#1e293b" stroke-width="3"/>', [120, 168]],
+                    'Metáfora visual': ['<circle cx="290" cy="50" r="15" fill="#fde047" stroke="#a16207" stroke-width="2"/><rect x="283" y="64" width="14" height="10" fill="#94a3b8"/><path d="M290 22 L290 14 M266 36 L259 30 M314 36 L321 30" stroke="#a16207" stroke-width="3"/>', [262, 64]]
+                }[nom];
+                const [dx, dy] = el[1];
+                const fletxa = `<path d="M8 236 L${dx - 6} ${dy + 6}" stroke="#db2777" stroke-width="5" marker-end="url(#fletxa2)"/>`;
+                const defs = '<defs><marker id="fletxa2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#db2777"/></marker></defs>';
+                return `<svg ${SVG_ATTR} viewBox="0 0 400 244" aria-label="Viñeta">${defs}${marc}${nen}${el[0]}${fletxa}</svg>`;
+            }
+            // La buena y dos más de la misma familia (nunca de la otra: un plano no se confunde con un ángulo)
+            const ambAltres = (bona, totes, n = 2) => shuffle([bona, ...shuffle(totes.filter(x => x !== bona)).slice(0, n)]);
+            // Cada día: 2 propiedades, 2 tipos de texto, 2 planos, 1 ángulo y 1 elemento del cómic, en este orden
+            function itemsCastella() {
+                const planos = shuffle(Object.keys(PLANOS)).slice(0, 2);
+                return [
+                    ...shuffle(CASTELLA_PROPIETATS).slice(0, 2).map(([text, bona]) => ({ modo: 'propiedad', text, bona })),
+                    ...shuffle(CASTELLA_TIPUS).slice(0, 2).map(([text, bona]) => ({ modo: 'tipo', text, bona })),
+                    ...planos.map(bona => ({ modo: 'plano', bona })),
+                    { modo: 'angulo', bona: shuffle(Object.keys(ANGULOS))[0] },
+                    { modo: 'elemento', bona: shuffle(Object.keys(ELEMENTOS))[0] }
+                ];
+            }
+            function leerCastella() {
+                try { return JSON.parse(localStorage.getItem('dojo_castella')) || {}; } catch (e) { return {}; }
+            }
+            const castellaPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= CASTELLA_DES_DE && hoy() <= CASTELLA_FINS && !leerCastella().pausa;
+            const conCastella = m => ({ ...m, bloques: [...m.bloques, { tipo: 'castella' }] });
+
             // PARAULES · ortografía palabra a palabra, cada día al final del entrenamiento (o del repaso del domingo),
             // DENTRO de la misión: no está complerta hasta acabarlas. Las nuevas: mirar con su truco → tapar → escribir de
             // memoria → comparar y volver a escribir. Las ya vistas: de memoria (el primer intento del día es la medida).
             // Dominada: 3 días seguidos bien al primer intento; después, repaso cada 7 días.
             // [x] = la letra que cuesta (sale de color). Por orden de entrada: primero las del examen de castellano.
+            // catala: las que escribe como en catalán (estava, informació): al mirarla, la pareja, con lo que cambia de color.
             const PARAULES = [
                 { id: 'es-bien', idioma: 'es', marca: '[b]ien', frase: 'La profesora dice que está bien.', truc: 'Con B de Bueno. No lleva tilde.' },
                 { id: 'es-hemos', idioma: 'es', marca: '[h]emos', frase: 'Hemos terminado el trabajo.', truc: 'Del verbo haber, siempre con h: he, has, ha, hemos. Sin tilde.',
                   familia: { verb: 'haber', serie: ['he', 'has', 'ha', 'hemos', 'habéis', 'han'], veu: 'Viene del verbo haber, y toda la familia lleva hache: he, has, ha, hemos, habéis, han. Escribe la que falta.' } },
                 { id: 'es-ha-dicho', idioma: 'es', marca: '[h]a dicho', frase: 'La profesora nos ha dicho que está bien.', truc: 'Ha, del verbo haber, con h: he dicho, has dicho, ha dicho.',
                   familia: { verb: 'haber', serie: ['he dicho', 'has dicho', 'ha dicho', 'hemos dicho'], veu: 'Viene del verbo haber, con hache: he dicho, has dicho, ha dicho, hemos dicho. Escribe la que falta.' } },
-                { id: 'es-estaba', idioma: 'es', marca: 'esta[b]a', frase: 'La casa estaba vacía.', truc: 'Todo lo que acaba en aba va con b: estaba, jugaba, cantaba.' },
+                { id: 'es-estaba', idioma: 'es', marca: 'esta[b]a', frase: 'La casa estaba vacía.', truc: 'Todo lo que acaba en aba va con b: estaba, jugaba, cantaba.', catala: { ca: 'esta[v]a', es: 'esta[b]a' } },
                 { id: 'es-hicimos', idioma: 'es', marca: '[h]i[c]imos', frase: 'Ayer hicimos un trabajo en grupo.', truc: 'Del verbo hacer, con h: hice, hicimos, hecho.',
                   familia: { verb: 'hacer', serie: ['hice', 'hiciste', 'hizo', 'hicimos', 'hicieron'], veu: 'Viene del verbo hacer, y toda la familia lleva hache: hice, hiciste, hizo, hicimos, hicieron. Escribe la que falta.' } },
-                { id: 'es-informacion', idioma: 'es', marca: 'informaci[ó]n', frase: 'Busqué información en internet.', truc: 'Las palabras que acaban en ción llevan tilde: información, canción.' },
+                { id: 'es-informacion', idioma: 'es', marca: 'informaci[ó]n', frase: 'Busqué información en internet.', truc: 'Las palabras que acaban en ción llevan tilde: información, canción.', catala: { ca: 'informació', es: 'informació[n]' } },
                 { id: 'es-busque', idioma: 'es', marca: 'busqu[é]', frase: 'Yo busqué información en internet.', truc: 'Yo busqué, yo llegué: la e del final suena fuerte y lleva tilde.' },
-                { id: 'es-fotografias', idioma: 'es', marca: 'fotograf[í]as', frase: 'Mi compañero trajo unas fotografías.', truc: 'Fo, to, gra, FÍ, as: la i suena fuerte y lleva tilde.' },
-                { id: 'es-cohesion', idioma: 'es', marca: 'co[h]esi[ó]n', frase: 'Falla la cohesión: faltan conectores.', truc: 'Empieza como cohete: co, he. Cohesión rima con unión: une las frases.' },
-                { id: 'es-coherencia', idioma: 'es', marca: 'co[h]erencia', frase: 'Falla la coherencia: se va del tema.', truc: 'Empieza como cohete: co, he. Sin tilde.' },
+                { id: 'es-fotografias', idioma: 'es', marca: 'fotograf[í]as', frase: 'Mi compañero trajo unas fotografías.', truc: 'Fo, to, gra, FÍ, as: la i suena fuerte y lleva tilde.', catala: { ca: 'fotograf[ie]s', es: 'fotograf[ía]s' } },
+                { id: 'es-cohesion', idioma: 'es', marca: 'co[h]esi[ó]n', frase: 'Falla la cohesión: faltan conectores.', truc: 'Empieza como cohete: co, he. Cohesión rima con unión: une las frases.', catala: { ca: 'cohesió', es: 'cohesió[n]' } },
+                { id: 'es-coherencia', idioma: 'es', marca: 'co[h]erencia', frase: 'Falla la coherencia: se va del tema.', truc: 'Empieza como cohete: co, he. Sin tilde.', catala: { ca: 'coher[è]ncia', es: 'coher[e]ncia' } },
                 { id: 'ca-perque', idioma: 'ca', marca: 'perqu[è]', frase: 'No vinc perquè plou.', truc: 'Acaba amb è oberta: perquè.' },
                 { id: 'ca-tambe', idioma: 'ca', marca: 'ta[m]b[é]', frase: 'Jo també vull venir.', truc: 'Abans de b, sempre m. I acaba amb é tancada.' },
                 { id: 'ca-hem', idioma: 'ca', marca: '[h]em', frase: 'Avui hem après moltes coses.', truc: 'Del verb haver, amb h: he, has, ha, hem, heu, han.',
@@ -1900,7 +2039,7 @@
             window.__itemsXifresProva = () => itemsXifra();
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
-            window.__tema1Actual = () => item && item.tipo === 'tema1' ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
+            window.__tema1Actual = () => item && ['tema1', 'castella'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 SETMANA.forEach(f => {
@@ -1924,11 +2063,11 @@
                 });
                 t.add(fraseMision(conParaules(CONTROL)));
                 t.add(fraseMision(ambXifres(conParaules(CONTROL))));
-                // Desde el 22/10, con el tema 1 de mates (con o sin palabras, con o sin xifres)
-                [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
-                    SETMANA.forEach(f => t.add(fraseMision(ambX(ambP(conTema1(ENTRENAMENT))), f)));
-                    t.add(fraseMision(ambX(ambP(conTema1(CONTROL)))));
-                }));
+                // Desde el 22/10, con el tema 1 de mates; del 23 al 27/10, también con el castellano (con o sin palabras, con o sin xifres)
+                [conTema1, m => conCastella(conTema1(m))].forEach(ambT => [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
+                    SETMANA.forEach(f => t.add(fraseMision(ambX(ambP(ambT(ENTRENAMENT))), f)));
+                    t.add(fraseMision(ambX(ambP(ambT(CONTROL)))));
+                })));
                 PARAULES.forEach(w => { t.add(veuDicta(w)); t.add(veuMira(w)); if (w.familia) t.add(veuFamilia(w)); });
                 return [...t];
             };
@@ -2116,9 +2255,10 @@
                     st.fet !== hoy() && itemsParaules().length > 0;
             }
             const conParaules = m => ({ ...m, bloques: [...m.bloques, { tipo: 'paraules' }] });
-            // El tema 1 va antes de las palabras: así, si para en las palabras, al volver la misión tiene los mismos bloques
+            // El tema 1 y el castellano van antes de las palabras: así, si para en las palabras, al volver la misión tiene los mismos bloques
             const missioDelDia = m => {
-                const t = tema1Pendent(m) ? conTema1(m) : m;
+                let t = tema1Pendent(m) ? conTema1(m) : m;
+                if (castellaPendent(m)) t = conCastella(t);
                 return paraulesPendents(m) ? conParaules(t) : t;
             };
 
@@ -2315,6 +2455,8 @@
                     sesion.fijos = itemsParaules();
                 } else if (b.tipo === 'tema1') {
                     sesion.fijos = itemsTema1();
+                } else if (b.tipo === 'castella') {
+                    sesion.fijos = itemsCastella();
                 } else {
                     sesion.fijos = null;
                 }
@@ -2603,6 +2745,20 @@
                     return { tipo, modo: x.modo, texto: c.clau, clave: `concepte:${c.clau}`, esperado: c.bona,
                         preg: c.preg, opcions: shuffle([c.bona, c.altra]), solucio: c.bona, explica: c.explica };
                 }
+                if (tipo === 'castella') {
+                    const x = sesion.fijos[sesion.hechos];
+                    const base = { tipo, modo: x.modo, esperado: x.bona, solucio: x.bona };
+                    if (x.modo === 'propiedad') return { ...base, texto: x.text, clave: `propiedad:${x.text.slice(0, 24)}`, preg: '¿Qué propiedad falla en este texto?',
+                        opcions: shuffle(Object.keys(PROPIETATS)), explica: PROPIETATS[x.bona] };
+                    if (x.modo === 'tipo') return { ...base, texto: x.text, clave: `tipo:${x.text.slice(0, 24)}`, preg: '¿Qué tipo de texto es?',
+                        opcions: ambAltres(x.bona, Object.keys(TIPUS_TEXT)), explica: `${TIPUS_TEXT[x.bona]} Los tipos de texto acaban en -IVO.` };
+                    if (x.modo === 'plano') return { ...base, texto: '', html: svgPlano(x.bona), clave: `plano:${x.bona}`, preg: 'Indica el tipo de plano.',
+                        opcions: ambAltres(x.bona, Object.keys(PLANOS)), explica: PLANOS[x.bona].explica };
+                    if (x.modo === 'angulo') return { ...base, texto: '', html: svgAngulo(x.bona), clave: `angulo:${x.bona}`, preg: 'Indica el tipo de ángulo.',
+                        opcions: shuffle(Object.keys(ANGULOS)), explica: ANGULOS[x.bona] };
+                    return { ...base, texto: '', html: svgElemento(x.bona), clave: `elemento:${x.bona}`, preg: '¿Cómo se llama lo que señala la flecha?',
+                        opcions: ambAltres(x.bona, Object.keys(ELEMENTOS)), explica: ELEMENTOS[x.bona] };
+                }
                 if (tipo === 'vf') {
                     const [a, b, c] = sesion.fijos[sesion.hechos];
                     return { tipo, a, b, c, texto: `${a} × ${b} = ${c}`, clave: `${a}x${b}=${c}`, esperado: c === a * b ? 'V' : 'F' };
@@ -2626,19 +2782,22 @@
                 teclas = [];
                 oralRespuesta = null;
 
-                const ambOpcions = item.tipo === 'tema1' && !!item.opcions;
+                const ambPreg = ['tema1', 'castella'].includes(item.tipo);
+                const ambOpcions = ambPreg && !!item.opcions;
                 const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo) || (item.tipo === 'tema1' && !ambOpcions);
-                opFactorsEl.innerHTML = htmlOperacion(item.texto);
+                opFactorsEl.innerHTML = item.html || htmlOperacion(item.texto);
                 marcarCanviDeSigne();
                 opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
                 opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir', 'paraules'].includes(item.tipo) || ambOpcions;
                 opAnswerEl.hidden = !numerico;
                 opCardEl.classList.toggle('op-largo', item.tipo === 'vf' || item.tipo === 'tema1');
-                // Tema 1: la pregunta, petita, a sobre; el que s'ha de mirar (el número, la paraula clau), gran
+                // Tema 1 y castellano: la pregunta, pequeña, arriba; lo que hay que mirar (el número, la palabra clave, el texto, la viñeta), grande
                 const preg = document.getElementById('tema1-preg');
-                preg.hidden = item.tipo !== 'tema1';
-                preg.textContent = item.tipo === 'tema1' ? item.preg : '';
+                preg.hidden = !ambPreg;
+                preg.textContent = ambPreg ? item.preg : '';
                 opCardEl.classList.toggle('op-tema1-clau', item.modo === 'concepte');
+                opCardEl.classList.toggle('op-cast-text', item.tipo === 'castella' && !item.html);
+                opCardEl.classList.toggle('op-cast-dibuix', item.tipo === 'castella' && !!item.html);
                 document.getElementById('tema1-panel').hidden = !ambOpcions;
                 if (ambOpcions) {
                     document.getElementById('tema1-opcions').innerHTML = item.opcions
@@ -2672,7 +2831,7 @@
                 keypad.style.display = numerico ? 'grid' : 'none';
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
-                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1'].includes(item.tipo);
+                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella'].includes(item.tipo);
                 if (item.tipo === 'paraules') pintarParaula();
                 document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
                 document.getElementById('correction-pista').hidden = true;
@@ -2865,7 +3024,7 @@
                 const el = document.getElementById('correction-pista');
                 let txt = '';
                 if (item.tipo === 'pas10' && item.clase === 'nou') txt = trucPas10(item);
-                if (item.tipo === 'tema1') txt = item.explica;
+                if (['tema1', 'castella'].includes(item.tipo)) txt = item.explica;
                 if (item.objetivo) { txt = `Truc: ${fetSetmana().pista}`; hablar(fetSetmana().diccio); }
                 if (item.contraste) {
                     const s = SETMANA.find(x => (x.a === item.a && x.b === item.b) || (x.a === item.b && x.b === item.a));
@@ -2875,9 +3034,9 @@
                 el.hidden = !txt;
             }
 
-            // Tema 1, triar: si no és la bona, la solució explicada (com a les altres, s'atura a la primera que falla)
+            // Tema 1 y castellano, elegir: si no es la buena, la solución explicada (como en las demás, se para en la primera que falla)
             function responderTema1(opcio) {
-                if (isEvaluating || !item || item.tipo !== 'tema1' || !item.opcions) return;
+                if (isEvaluating || !item || !['tema1', 'castella'].includes(item.tipo) || !item.opcions) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 const ok = opcio === item.esperado;
@@ -3050,6 +3209,9 @@
                 tu.hidden = item.etapa !== 'corregeix';
                 tu.innerHTML = item.ultima ? `Has escrit: <b>${escaparHtml(item.ultima)}</b>` : 'Mira-la bé:';
                 document.getElementById('paraula-truc').textContent = w.truc;
+                const parella = document.getElementById('paraula-parella');
+                parella.hidden = !w.catala;
+                parella.innerHTML = w.catala ? `En català: <b>${htmlMarca(w.catala.ca)}</b> · En castellà: <b>${htmlMarca(w.catala.es)}</b>` : '';
                 const boto = document.getElementById('btn-paraula-seguir');
                 boto.textContent = item.etapa === 'mira' ? 'Ja la tinc! Tapa-la 🙈' : item.intent > 3 ? 'Seguim ➜' : 'La torno a escriure ✍️';
                 item.tMira = performance.now();
@@ -3159,10 +3321,10 @@
             // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
             function noHoSe() {
                 if (item && item.tipo === 'paraules') return evaluarParaula(null);
-                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1'].includes(item.tipo)) return;
+                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella'].includes(item.tipo)) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
-                if (item.tipo === 'tema1') {
+                if (['tema1', 'castella'].includes(item.tipo)) {
                     registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo });
                     document.getElementById('tema1-panel').hidden = true;
                     mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', item.solucio, 'Millor això que endevinar. Mira-la bé i seguim.', false);
