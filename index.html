@@ -1013,6 +1013,10 @@
         .tema1-btn { min-height: 76px; padding: 12px 18px; border: 4px solid #e9dcff; border-radius: 20px; background: #fff; cursor: pointer;
             font-family: var(--font-main); font-size: 1.35rem; font-weight: 700; line-height: 1.35; color: #1e293b; text-align: left; box-shadow: 0 6px 16px var(--c-shadow); }
         .tema1-btn.roma { font-size: 2.4rem; letter-spacing: 0.1em; text-align: center; }
+        /* Binari: el valor de cada lloc (8 · 4 · 2 · 1) a sobre de cada xifra, com ho fa en paper */
+        .binari { display: inline-flex; gap: 0.3em; align-items: flex-end; }
+        .bit { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; }
+        .bit small { font-size: 0.5em; color: #7c3aed; font-weight: 700; margin-bottom: 0.2em; }
         .tema1-btn:active { background: #fce7f3; }
         /* Castellano: el texto corto, a la izquierda y legible; la viñeta, grande */
         .op-cast-text .operation-text { font-size: 1.45rem; font-weight: 600; line-height: 1.55; text-align: left; letter-spacing: 0.02em; }
@@ -1677,6 +1681,8 @@
                 const regla = resta ? ` Un símbol petit davant d'un de més gran, es resta: ${resta[1]} = ${deRoma(resta[1][1])} − ${deRoma(resta[1][0])} = ${resta[0]}.` : '';
                 return `${trossos}.${regla}`;
             }
+            // A sobre de cada xifra, el que val el seu lloc (des de la dreta: 1, 2, 4, 8): així ho escriu en paper amb papà
+            const htmlBinari = b => `<span class="binari">${[...b].map((x, i) => `<span class="bit"><small>${2 ** (b.length - 1 - i)}</small>${x}</span>`).join('')}</span>`;
             function explicaBinari(b) {
                 const valors = [...b].map((x, i) => (x === '1' ? 2 ** (b.length - 1 - i) : 0)).filter(Boolean);
                 const llocsB = [...b].map((x, i) => 2 ** (b.length - 1 - i)).join(' · ');
@@ -2732,7 +2738,7 @@
                     }
                     if (x.modo === 'binari') {
                         const n = parseInt(x.b, 2);
-                        return { tipo, modo: x.modo, texto: x.b, clave: `binari:${x.b}`, esperado: String(n), maxXifres: 2,
+                        return { tipo, modo: x.modo, texto: x.b, html: htmlBinari(x.b), clave: `binari:${x.b}`, esperado: String(n), maxXifres: 2,
                             preg: 'En binari. Quin número és?', solucio: `${x.b} en binari = ${n}`, explica: explicaBinari(x.b) };
                     }
                     if (x.modo === 'escriure') {

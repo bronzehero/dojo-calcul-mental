@@ -57,9 +57,18 @@ test.describe('Tema 1 de mates', () => {
             const t = await seguent(page, anterior);
             modes.push(t.modo);
             await expect(page.locator('#tema1-preg')).toBeVisible();
-            await expect(page.locator('#op-factors')).toHaveText(t.texto);
+            if (t.modo === 'binari') {
+                // Cada xifra, amb el valor del seu lloc a sobre (des de la dreta: 1, 2, 4, 8)
+                expect(t.esperado).toBe(String(parseInt(t.texto, 2)));
+                const bits = page.locator('#op-factors .bit');
+                await expect(bits).toHaveCount(t.texto.length);
+                const llocs = [...t.texto].map((_, j) => String(2 ** (t.texto.length - 1 - j)));
+                await expect(bits.locator('small')).toHaveText(llocs);
+                for (let j = 0; j < t.texto.length; j++) expect((await bits.nth(j).textContent()).slice(llocs[j].length)).toBe(t.texto[j]);
+            } else {
+                await expect(page.locator('#op-factors')).toHaveText(t.texto);
+            }
             if (t.modo === 'llegir') expect(t.esperado).toBe(String(romaANumero(t.texto)));
-            if (t.modo === 'binari') expect(t.esperado).toBe(String(parseInt(t.texto, 2)));
             if (t.modo === 'escriure') {
                 expect(romaANumero(t.esperado)).toBe(Number(t.texto));
                 expect(t.opcions).toHaveLength(3);
