@@ -65,6 +65,18 @@ test.describe('Tema 1 de mates', () => {
                 const llocs = [...t.texto].map((_, j) => String(2 ** (t.texto.length - 1 - j)));
                 await expect(bits.locator('small')).toHaveText(llocs);
                 for (let j = 0; j < t.texto.length; j++) expect((await bits.nth(j).textContent()).slice(llocs[j].length)).toBe(t.texto[j]);
+                // Sobre un 0, el valor tachado: no se suma
+                for (let j = 0; j < t.texto.length; j++) await expect(bits.nth(j).locator('small')).toHaveClass(t.texto[j] === '0' ? /zero/ : /^$/);
+            } else if (t.modo === 'llegir') {
+                // Lo que vale cada letra, encima; las dos que se restan, en una caja con la resta («500 − 100»)
+                const v = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 }, trossos = [];
+                for (let j = 0; j < t.texto.length; j++) {
+                    if (v[t.texto[j + 1]] > v[t.texto[j]]) { trossos.push([`${v[t.texto[j + 1]]} − ${v[t.texto[j]]}`, t.texto.slice(j, j + 2)]); j++; }
+                    else trossos.push([String(v[t.texto[j]]), t.texto[j]]);
+                }
+                const caixes = page.locator('#op-factors .binari > span');
+                await expect(caixes.locator('small')).toHaveText(trossos.map(([e]) => e));
+                for (let j = 0; j < trossos.length; j++) expect((await caixes.nth(j).textContent()).slice(trossos[j][0].length)).toBe(trossos[j][1]);
             } else {
                 await expect(page.locator('#op-factors')).toHaveText(t.texto);
             }

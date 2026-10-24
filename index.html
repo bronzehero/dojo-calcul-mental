@@ -1016,7 +1016,12 @@
         /* Binari: el valor de cada lloc (8 · 4 · 2 · 1) a sobre de cada xifra, com ho fa en paper */
         .binari { display: inline-flex; gap: 0.3em; align-items: flex-end; }
         .bit { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; }
-        .bit small { font-size: 0.5em; color: #7c3aed; font-weight: 700; margin-bottom: 0.2em; }
+        .bit small { font-size: 0.6em; color: #7c3aed; font-weight: 700; margin-bottom: 0.2em; }
+        /* El valor sobre un 0 no se suma: tachado y en gris, como cuando lo tacha en el papel (24/10: sumaba todos, 1001 → 15) */
+        .bit small.zero { color: #cbd5e1; text-decoration: line-through; }
+        /* Romanos: lo que vale cada letra, encima; las dos que se restan, juntas en una caja con la resta encima */
+        .parell { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; border: 3px dashed #c4b5fd; border-radius: 12px; padding: 0.1em 0.15em; }
+        .parell small { font-size: 0.6em; color: #7c3aed; font-weight: 700; margin-bottom: 0.2em; white-space: nowrap; }
         .tema1-btn:active { background: #fce7f3; }
         /* Castellano: el texto corto, a la izquierda y legible; la viñeta, grande */
         .op-cast-text .operation-text { font-size: 1.45rem; font-weight: 600; line-height: 1.55; text-align: left; letter-spacing: 0.02em; }
@@ -1527,7 +1532,7 @@
                 xifra:   { nombre: 'Quin està ben escrit?', icono: '🔍', instr: "Ara, una prova curta i diferent: no hi ha comptes. Sentiràs un número i en veuràs dos. Un està ben escrit. L'altre està girat, com si el veiessis en un mirall, o és un altre número. Toca el que està ben escrit. Mira'ls bé, sense pressa. Si dubtes, tria el que et sembli: no passa res.", ejemplo: 'Sents «Toca el tres» ➜ toques el 3 ben escrit', paso: () => 'Quin està ben escrit?' },
                 sentir:  { nombre: 'Quin número és?', icono: '👂', instr: "Ara sentiràs un número de dues xifres i en veuràs quatre que s'assemblen molt. Toca el que has sentit. Mira'ls xifra per xifra, sense pressa. El pots tornar a escoltar tantes vegades com vulguis.", ejemplo: 'Sents «trenta-sis» ➜ toques el 36', paso: () => 'Quin número és?' },
                 paraules: { nombre: 'Paraules', icono: '🔤', instr: "Paraules que costen d'escriure. Les noves, primer les mires bé amb el seu truc i, quan te les sàpigues, les tapes i les escrius de memòria. Les que ja has vist, les sents i les escrius de memòria. Si no surt, la tornes a mirar i la tornes a escriure. Al teu ritme.", ejemplo: 'Mires «bien» (B de Bueno) ➜ la tapes ➜ escrius bien', paso: () => 'Paraules' },
-                tema1:   { nombre: 'Tema 1 de mates', icono: '🏛️', instr: "Repàs del tema 1 de mates, per a l'examen: els nombres romans, el binari i què vol dir additiu i posicional. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'XIV ➜ escrius 14', paso: () => 'Tema 1 de mates' },
+                tema1:   { nombre: 'Tema 1 de mates', icono: '🏛️', instr: "Repàs del tema 1 de mates, per a l'examen: els nombres romans, el binari i què vol dir additiu i posicional. A sobre de cada lletra i de cada xifra hi ha el que val. Al binari, suma només els que tenen un 1. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'XIV ➜ escrius 14', paso: () => 'Tema 1 de mates' },
                 castella: { nombre: 'Castellà per a l\'examen', icono: '💬', instr: "Repàs del control de castellà, com a l'examen: llegeixes un text curt o mires una vinyeta i tries què és. Quina propietat falla, quin tipus de text és, quin pla, quin angle o quina part del còmic. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '«Primero, bate dos huevos…» ➜ Instructivo', paso: () => 'Castellà per a l\'examen' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
@@ -1682,7 +1687,19 @@
                 return `${trossos}.${regla}`;
             }
             // A sobre de cada xifra, el que val el seu lloc (des de la dreta: 1, 2, 4, 8): així ho escriu en paper amb papà
-            const htmlBinari = b => `<span class="binari">${[...b].map((x, i) => `<span class="bit"><small>${2 ** (b.length - 1 - i)}</small>${x}</span>`).join('')}</span>`;
+            // Sobre un 0, tachado: ese no se suma
+            const htmlBinari = b => `<span class="binari">${[...b].map((x, i) => `<span class="bit"><small${x === '0' ? ' class="zero"' : ''}>${2 ** (b.length - 1 - i)}</small>${x}</span>`).join('')}</span>`;
+            // Romanos igual que el binario: lo que vale cada letra encima (CDXC: [500 − 100] [100 − 10]), y ella suma
+            const VALOR_ROMA = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+            function htmlRoma(r) {
+                const trossos = [];
+                for (let i = 0; i < r.length; i++) {
+                    const v = VALOR_ROMA[r[i]], seg = VALOR_ROMA[r[i + 1]];
+                    if (seg > v) { trossos.push(`<span class="parell"><small>${seg} − ${v}</small>${r[i]}${r[i + 1]}</span>`); i++; }
+                    else trossos.push(`<span class="lletra bit"><small>${v}</small>${r[i]}</span>`);
+                }
+                return `<span class="binari">${trossos.join('')}</span>`;
+            }
             function explicaBinari(b) {
                 const valors = [...b].map((x, i) => (x === '1' ? 2 ** (b.length - 1 - i) : 0)).filter(Boolean);
                 const llocsB = [...b].map((x, i) => 2 ** (b.length - 1 - i)).join(' · ');
@@ -1848,7 +1865,7 @@
                 { id: 'es-informacion', idioma: 'es', marca: 'informaci[ó]n', frase: 'Busqué información en internet.', truc: 'Las palabras que acaban en ción llevan tilde: información, canción.', catala: { ca: 'informació', es: 'informació[n]' } },
                 { id: 'es-busque', idioma: 'es', marca: 'busqu[é]', frase: 'Yo busqué información en internet.', truc: 'Yo busqué, yo llegué: la e del final suena fuerte y lleva tilde.' },
                 { id: 'es-fotografias', idioma: 'es', marca: 'fotograf[í]as', frase: 'Mi compañero trajo unas fotografías.', truc: 'Fo, to, gra, FÍ, as: la i suena fuerte y lleva tilde.', catala: { ca: 'fotograf[ie]s', es: 'fotograf[ía]s' } },
-                { id: 'es-cohesion', idioma: 'es', marca: 'co[h]esi[ó]n', frase: 'Falla la cohesión: faltan conectores.', truc: 'Empieza como cohete: co, he. Cohesión rima con unión: une las frases.', catala: { ca: 'cohesió', es: 'cohesió[n]' } },
+                { id: 'es-cohesion', idioma: 'es', marca: 'co[h]esi[ó]n', frase: 'Falla la cohesión: faltan conectores.', truc: 'Empieza como cohete: co, he. Y acaba con s, como en catalán: cohesió.', catala: { ca: 'cohesió', es: 'cohesió[n]' } },
                 { id: 'es-coherencia', idioma: 'es', marca: 'co[h]erencia', frase: 'Falla la coherencia: se va del tema.', truc: 'Empieza como cohete: co, he. Sin tilde.', catala: { ca: 'coher[è]ncia', es: 'coher[e]ncia' } },
                 { id: 'ca-perque', idioma: 'ca', marca: 'perqu[è]', frase: 'No vinc perquè plou.', truc: 'Acaba amb è oberta: perquè.' },
                 { id: 'ca-tambe', idioma: 'ca', marca: 'ta[m]b[é]', frase: 'Jo també vull venir.', truc: 'Abans de b, sempre m. I acaba amb é tancada.' },
@@ -2733,13 +2750,13 @@
                     const x = sesion.fijos[sesion.hechos];
                     if (x.modo === 'llegir') {
                         const n = deRoma(x.r);
-                        return { tipo, modo: x.modo, texto: x.r, clave: `llegir:${x.r}`, esperado: String(n), maxXifres: 4,
-                            preg: 'Quin número és?', solucio: `${x.r} = ${n}`, explica: explicaRoma(n) };
+                        return { tipo, modo: x.modo, texto: x.r, html: htmlRoma(x.r), clave: `llegir:${x.r}`, esperado: String(n), maxXifres: 4,
+                            preg: 'Quin número és? Suma el que val cada lletra.', solucio: `${x.r} = ${n}`, explica: explicaRoma(n) };
                     }
                     if (x.modo === 'binari') {
                         const n = parseInt(x.b, 2);
                         return { tipo, modo: x.modo, texto: x.b, html: htmlBinari(x.b), clave: `binari:${x.b}`, esperado: String(n), maxXifres: 2,
-                            preg: 'En binari. Quin número és?', solucio: `${x.b} en binari = ${n}`, explica: explicaBinari(x.b) };
+                            preg: 'En binari. Suma només els que tenen un 1.', solucio: `${x.b} en binari = ${n}`, explica: explicaBinari(x.b) };
                     }
                     if (x.modo === 'escriure') {
                         const bona = aRoma(x.n);
