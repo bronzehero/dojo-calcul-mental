@@ -1936,7 +1936,7 @@
                     ...shuffle(article).map(([bona, frase, regla]) => ({ modo: 'article', bona, frase, regla })),
                     ...shuffle(de).map(([bona, frase]) => ({ modo: 'de', bona, frase,
                         regla: bona === "d'" ? "Mira la primera lletra, no l'orella: vocal o H → d'." : 'Davant de consonant: de.' })),
-                    ...shuffle([apos, ...altres]).map(([bona, frase, suma, opcions, regla]) => ({ modo: 'contraccio', bona, frase, suma, opcions,
+                    ...shuffle([...apos, ...altres]).map(([bona, frase, suma, opcions, regla]) => ({ modo: 'contraccio', bona, frase, suma, opcions,
                         regla: regla || `${suma} = ${bona}.` }))
                 ];
             }

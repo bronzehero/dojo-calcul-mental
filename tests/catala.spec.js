@@ -19,8 +19,7 @@ async function preparar(page, dia, plan = {}) {
 }
 const actual = page => page.evaluate(() => window.__tema1Actual());
 async function seguent(page, anterior) {
-    // Amb 12 seguides, de vegades surt la celebració llarga: més marge que els 5 s per defecte
-    await expect.poll(async () => JSON.stringify(await actual(page)), { timeout: 15000 }).not.toBe(anterior);
+    await expect.poll(async () => JSON.stringify(await actual(page))).not.toBe(anterior);
     return actual(page);
 }
 const pasos = page => page.locator('#mision-pasos li').allTextContents();
