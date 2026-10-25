@@ -1534,6 +1534,7 @@
                 paraules: { nombre: 'Paraules', icono: '🔤', instr: "Paraules que costen d'escriure. Les noves, primer les mires bé amb el seu truc i, quan te les sàpigues, les tapes i les escrius de memòria. Les que ja has vist, les sents i les escrius de memòria. Si no surt, la tornes a mirar i la tornes a escriure. Al teu ritme.", ejemplo: 'Mires «bien» (B de Bueno) ➜ la tapes ➜ escrius bien', paso: () => 'Paraules' },
                 tema1:   { nombre: 'Tema 1 de mates', icono: '🏛️', instr: "Repàs del tema 1 de mates, per a l'examen: els nombres romans, el binari i què vol dir additiu i posicional. A sobre de cada lletra i de cada xifra hi ha el que val. Al binari, suma només els que tenen un 1. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'XIV ➜ escrius 14', paso: () => 'Tema 1 de mates' },
                 catala:  { nombre: 'Català: apòstrof i contraccions', icono: '✏️', instr: "Repàs per a l'examen de català de demà: l'apòstrof i les contraccions. Veuràs una frase amb un forat i tries la que va bé. Si una no surt, et surt la regla. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Anem ___ teatre (a + el) ➜ al', paso: () => 'Català: apòstrof i contraccions' },
+                tecno:   { nombre: 'Tecno per a l\'examen', icono: '💻', instr: "Repàs de l'examen de tecno del dijous: on és cada botó del Drive, dels Documents, de les Presentacions i del correu. Llegeixes què vols fer i tries com es fa. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Vull que l\'amiga pugui canviar coses ➜ Editor', paso: () => 'Tecno per a l\'examen' },
                 castella: { nombre: 'Castellà per a l\'examen', icono: '💬', instr: "Repàs del control de castellà, com a l'examen: llegeixes un text curt o mires una vinyeta i tries què és. Quina propietat falla, quin tipus de text és, quin pla, quin angle o quina part del còmic. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '«Primero, bate dos huevos…» ➜ Instructivo', paso: () => 'Castellà per a l\'examen' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
@@ -1653,6 +1654,24 @@
                 [4, ['IIII', 'VI']], [9, ['VIIII', 'XI']], [19, ['IXX', 'XVIIII']], [40, ['XXXX', 'LX']], [49, ['IL', 'XXXXVIIII']],
                 [90, ['LXXXX', 'CX']], [38, ['XXXIIX', 'XLII']], [400, ['CCCC', 'DC']], [2026, ['MMXXIV', 'MMXVI']]
             ];
+            // Potències (dosier 1.5): l'exponent d'una sola potència, i vertader o fals amb sumes (la suma no té propietat)
+            const TEMA1_POTENCIES = [
+                ['((2<sup>3</sup>)<sup>2</sup>)<sup>4</sup>', 2, 24, 'Parèntesis dins de parèntesis: es multipliquen tots. 3 · 2 · 4 = 24.'],
+                ['((3<sup>2</sup>)<sup>3</sup>)<sup>2</sup>', 3, 12, 'Parèntesis dins de parèntesis: es multipliquen tots. 2 · 3 · 2 = 12.'],
+                ['((5<sup>4</sup>)<sup>2</sup>)<sup>3</sup>', 5, 24, 'Parèntesis dins de parèntesis: es multipliquen tots. 4 · 2 · 3 = 24.'],
+                ['(4<sup>3</sup>)<sup>5</sup>', 4, 15, 'Parèntesi amb un número a fora: es multiplica. 3 · 5 = 15.'],
+                ['6<sup>2</sup> · 6<sup>4</sup> · 6', 6, 7, 'Punt: se sumen. El 6 sol porta un 1 amagat: 2 + 4 + 1 = 7.'],
+                ['8<sup>9</sup> : 8<sup>3</sup>', 8, 6, 'Dos punts: es resten. 9 − 3 = 6.'],
+                ['7<sup>5</sup> · 7<sup>0</sup> · 7<sup>2</sup>', 7, 7, 'Punt: se sumen. 5 + 0 + 2 = 7.']
+            ];
+            const TEMA1_SUMES = [
+                ['2<sup>3</sup> + 2<sup>4</sup> = 2<sup>7</sup>', 'Fals', '2³ + 2⁴ = 8 + 16 = 24, i 2⁷ = 128. Amb una SUMA no es pot ajuntar: es calcula.'],
+                ['3<sup>2</sup> + 3<sup>3</sup> = 3<sup>5</sup>', 'Fals', '3² + 3³ = 9 + 27 = 36, i 3⁵ = 243. Amb una SUMA no es pot ajuntar: es calcula.'],
+                ['5 + 5<sup>2</sup> = 5<sup>3</sup>', 'Fals', '5 + 5² = 5 + 25 = 30, i 5³ = 125. Amb una SUMA no es pot ajuntar: es calcula.'],
+                ['2<sup>3</sup> · 2<sup>4</sup> = 2<sup>7</sup>', 'Vertader', 'Amb un punt (multiplicar) sí: se sumen els exponents, 3 + 4 = 7.'],
+                ['3<sup>2</sup> · 3<sup>3</sup> = 3<sup>5</sup>', 'Vertader', 'Amb un punt (multiplicar) sí: se sumen els exponents, 2 + 3 = 5.']
+            ];
+            const sensePot = h => h.replace(/<sup>(\d+)<\/sup>/g, (_, e) => [...e].map(d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]).join(''));
             const TEMA1_BINARI = ['101', '110', '1010', '1101', '111', '1001', '1100', '1111'];
             const TEMA1_CONCEPTES = [
                 { clau: 'ADDITIU', preg: 'Un sistema de numeració additiu vol dir…', bona: "Que se sumen els valors dels símbols. L'ordre no importa.",
@@ -1706,13 +1725,15 @@
                 const llocsB = [...b].map((x, i) => 2 ** (b.length - 1 - i)).join(' · ');
                 return `Cada lloc, començant per la dreta, val 1, 2, 4, 8… Aquí: ${llocsB}. Se sumen els llocs on hi ha un 1: ${valors.join(' + ')} = ${parseInt(b, 2)}.`;
             }
-            // Cada día: 3 para leer, 3 para escribir, 2 de binario y 2 de teoría (en este orden: así cambia de tarea pocas veces)
+            // Cada día: 3 para leer, 3 para escribir, 2 de binario, 2 de teoría y 2 de potencias (en este orden: así cambia de tarea pocas veces)
             function itemsTema1() {
                 const llegir = shuffle(TEMA1_LLEGIR).slice(0, 3).map(r => ({ modo: 'llegir', r }));
                 const escriure = shuffle(TEMA1_ESCRIURE).slice(0, 3).map(([n, altres]) => ({ modo: 'escriure', n, altres }));
                 const binari = shuffle(TEMA1_BINARI).slice(0, 2).map(b => ({ modo: 'binari', b }));
                 const teoria = shuffle(TEMA1_CONCEPTES).slice(0, 2).map(c => ({ modo: 'concepte', c }));
-                return [...llegir, ...escriure, ...binari, ...teoria];
+                const potencia = { modo: 'potencia', p: shuffle(TEMA1_POTENCIES)[0] };
+                const suma = { modo: 'suma', p: shuffle(TEMA1_SUMES)[0] };
+                return [...llegir, ...escriure, ...binari, ...teoria, potencia, suma];
             }
             function leerTema1() {
                 try { return JSON.parse(localStorage.getItem('dojo_tema1')) || {}; } catch (e) { return {}; }
@@ -1727,7 +1748,7 @@
             const PROPIETATS = {
                 'Cohesión': 'Son frases sueltas, sin conectores (y, después, luego, porque). Cohesión rima con unión: une las frases.',
                 'Coherencia': 'Se va del tema: empieza hablando de una cosa y acaba hablando de otra.',
-                'Adecuación': 'No habla como toca para quien lo va a leer: a un director o a un alcalde se le habla con respeto.'
+                'Adecuación': 'No habla como toca para quien lo escucha: a un director, a un alcalde o a tu familia, con respeto. Si el problema es CÓMO se habla (maleducado), es la adecuación.'
             };
             const CASTELLA_PROPIETATS = [
                 ['Ayer fui al parque. Hacía sol. Jugué al fútbol. Volví a casa. Cené pronto.', 'Cohesión'],
@@ -1735,7 +1756,9 @@
                 ['Mi perro se llama Rufo y es muy juguetón. Le encanta correr por el parque. Los volcanes expulsan lava cuando entran en erupción.', 'Coherencia'],
                 ['El sábado fuimos a la playa y mi hermana se compró un helado. La Luna gira alrededor de la Tierra.', 'Coherencia'],
                 ['(Un alumno escribe al director del instituto) ¡Ey, tío! Mañana no vengo, que paso de clase.', 'Adecuación'],
-                ['(Una carta al alcalde) Señor alcalde: el parque nuevo mola mazo, ¿vale? Pues eso.', 'Adecuación']
+                ['(Una carta al alcalde) Señor alcalde: el parque nuevo mola mazo, ¿vale? Pues eso.', 'Adecuación'],
+                ['(Una niña a su abuela) Abuela, qué pesada eres. Déjame en paz, que haré lo que me dé la gana.', 'Adecuación'],
+                ['(Un hijo a su madre) Mamá, cállate ya, que no me entero de nada de lo que dices. Pasa de mí.', 'Adecuación']
             ];
             const TIPUS_TEXT = {
                 'Narrativo': 'Cuenta lo que pasó, con personajes, casi siempre en pasado.',
@@ -1831,14 +1854,17 @@
             }
             // La buena y dos más de la misma familia (nunca de la otra: un plano no se confunde con un ángulo)
             const ambAltres = (bona, totes, n = 2) => shuffle([bona, ...shuffle(totes.filter(x => x !== bona)).slice(0, n)]);
-            // Cada día: 2 propiedades, 2 tipos de texto, 2 planos, 1 ángulo y 1 elemento del cómic, en este orden
+            // Cada día: 2 propiedades (una, siempre de adecuación), 2 tipos de texto, 2 planos,
+            // 2 ángulos (uno, siempre el frontal) y 1 elemento del cómic, en este orden
             function itemsCastella() {
                 const planos = shuffle(Object.keys(PLANOS)).slice(0, 2);
+                const adecuacion = shuffle(CASTELLA_PROPIETATS.filter(p => p[1] === 'Adecuación'))[0];
+                const otra = shuffle(CASTELLA_PROPIETATS.filter(p => p[1] !== 'Adecuación'))[0];
                 return [
-                    ...shuffle(CASTELLA_PROPIETATS).slice(0, 2).map(([text, bona]) => ({ modo: 'propiedad', text, bona })),
+                    ...shuffle([adecuacion, otra]).map(([text, bona]) => ({ modo: 'propiedad', text, bona })),
                     ...shuffle(CASTELLA_TIPUS).slice(0, 2).map(([text, bona]) => ({ modo: 'tipo', text, bona })),
                     ...planos.map(bona => ({ modo: 'plano', bona })),
-                    { modo: 'angulo', bona: shuffle(Object.keys(ANGULOS))[0] },
+                    ...shuffle(['Frontal', shuffle(['Picado', 'Contrapicado'])[0]]).map(bona => ({ modo: 'angulo', bona })),
                     { modo: 'elemento', bona: shuffle(Object.keys(ELEMENTOS))[0] }
                 ];
             }
@@ -1900,6 +1926,65 @@
             }
             const catalaPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= CATALA_DES_DE && hoy() <= CATALA_FINS && !leerCatala().pausa;
             const conCatala = m => ({ ...m, bloques: [...m.bloques, { tipo: 'catala' }] });
+
+            // TECNO · l'examen del dijous 29/10 és el «Simulacre» de la profe (12 passos). Del 25 al 28/10, després del castellà.
+            // Què fer i com es fa, a triar entre 3. Sobretot el disseny «Títol i dues columnes» (que no és una taula),
+            // canviar el nom del fitxer, la lletra i la cursiva.
+            const TECNO_DES_DE = '2026-10-25', TECNO_FINS = '2026-10-28';
+            const TECNO_DIBUIXOS = {
+                'Títol i dues columnes': 'Un títol a dalt i dos quadres de text, un al costat de l\'altre. No és una taula: es tria al botó Disseny.',
+                'Diapositiva de títol': 'El títol gran al mig i el subtítol a sota. És la primera diapositiva.',
+                'Títol i cos': 'Un títol a dalt i un sol quadre de text a sota.',
+                'Una taula': 'Una taula és una graella amb cel·les (Insereix → Taula). Les dues columnes del disseny són dos quadres de text, sense ratlles.'
+            };
+            const TECNO_DISSENY = "Disseny = com estan col·locats els quadres d'UNA diapositiva. Tema = els colors i la lletra de TOTA la presentació.";
+            const TECNO_PREGUNTES = [
+                ['disseny', "Vull que una diapositiva tingui un títol i dues columnes. Què toco?", 'El botó Disseny', ['El botó Tema', 'Insereix → Taula'], TECNO_DISSENY],
+                ['disseny', 'Vull canviar els colors i la lletra de tota la presentació. Què toco?', 'El botó Tema', ['El botó Disseny', 'Insereix → Taula'], TECNO_DISSENY],
+                ['lletra', 'La profe demana la lletra «Source Sans Pro». A la llista surten aquestes. Quina tries?', 'Source Sans 3', ['Source Code Pro', 'Arial'],
+                    'La paraula que compta és SANS. Google li ha canviat el nom: Source Sans Pro ara es diu Source Sans 3. Source Code Pro és una altra lletra.'],
+                ['nom', 'La presentació es diu «Presentació sense títol». Com li poses el nom «Prova»?', "Clico el nom, a dalt a l'esquerra, i escric Prova",
+                    ['Escric Prova al títol de la diapositiva', 'Al Drive, Nou → Carpeta'], "El títol de la diapositiva no canvia el nom del fitxer. El nom és a dalt a l'esquerra, on posa «sense títol». Al document, igual."],
+                ['tecla', 'Com poses una paraula en cursiva?', 'Ctrl + I', ['Ctrl + B', 'Ctrl + U'], "I d'itàlica (cursiva). B = negreta. U = subratllat."],
+                ['tecla', 'Com poses una paraula en negreta?', 'Ctrl + B', ['Ctrl + I', 'Ctrl + U'], "B de «bold» (negreta). I = cursiva. U = subratllat."],
+                ['tecla', 'Com subratlles una paraula?', 'Ctrl + U', ['Ctrl + B', 'Ctrl + I'], "U de «underline» (subratllat). B = negreta. I = cursiva."],
+                ['compartir', "Vull que l'amiga pugui canviar coses de la carpeta. Què tries en compartir?", 'Editor', ['Lector', 'Comentador'], 'Mode edició = Editor. Lector només pot mirar.'],
+                ['titol2', 'Com poses «Prova» en format títol 2?', 'Al desplegable «Text normal» → Títol 2', ['Faig la lletra més gran', 'Hi poso negreta'],
+                    'Títol 2 és un estil: es tria al desplegable on posa «Text normal». Fer-la gran a mà no compta.'],
+                ['taula', "La fila de dalt de la taula ha de ser una sola cel·la. Què faig?", 'Selecciono les 2 cel·les → Combina les cel·les', ['Esborro una cel·la', 'Faig una taula nova d\'1 × 2'],
+                    'Seleccionar les dues de dalt → botó dret → Combina les cel·les. El color: botó dret → Propietats de la taula.'],
+                ['correu', 'Al correu, on escric «Prova»?', 'A Assumpte', ['A Per a', 'Al missatge'], "L'assumpte és el títol del correu. A «Per a» va el correu de l'amiga."],
+                ['carpeta', 'Com faig que el document quedi dins la carpeta?', 'Entro a la carpeta i faig + Nou → Documents de Google', ['Faig + Nou a la pàgina principal del Drive', 'El faig des del Gmail'],
+                    "Primer entres a la carpeta (doble clic) i després + Nou. Si el fas fora, no compta."],
+                ['llista', 'A la llista en escala, com baixes un esglaó?', 'Amb el Tab', ['Amb Enter', "Amb l'espai"], 'Tab baixa un esglaó i el símbol (● ○ ■) surt sol: no l\'escriguis a mà.']
+            ];
+            function svgDiapositiva(nom) {
+                const quadre = (x, y, w, h, txt, mida = 18) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#fff" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 4"/>` +
+                    `<text x="${x + w / 2}" y="${y + h / 2 + mida / 3}" font-size="${mida}" text-anchor="middle" fill="#64748b">${txt}</text>`;
+                const linies = (x, y, w) => [0, 1, 2].map(i => `<rect x="${x + 14}" y="${y + 52 + i * 22}" width="${w - 28 - i * 20}" height="7" rx="3" fill="#cbd5e1"/>`).join('');
+                const dins = {
+                    'Títol i dues columnes': quadre(30, 22, 340, 46, 'Títol', 22) + quadre(30, 84, 164, 134, 'Text') + linies(30, 84, 164) + quadre(206, 84, 164, 134, 'Text') + linies(206, 84, 164),
+                    'Diapositiva de títol': quadre(40, 70, 320, 60, 'Títol', 28) + quadre(80, 142, 240, 36, 'Subtítol', 16),
+                    'Títol i cos': quadre(30, 22, 340, 46, 'Títol', 22) + quadre(30, 84, 340, 134, 'Text') + linies(30, 84, 340),
+                    'Una taula': [0, 1].map(r => [0, 1].map(c => `<rect x="${60 + c * 140}" y="${70 + r * 50}" width="140" height="50" fill="#fff" stroke="#1e293b" stroke-width="2"/>`).join('')).join('')
+                }[nom];
+                return `<svg xmlns="http://www.w3.org/2000/svg" class="dibuix-cast" role="img" viewBox="0 0 400 240" aria-label="Diapositiva"><rect width="400" height="240" fill="#f8fafc"/>${dins}</svg>`;
+            }
+            // Cada dia: el dibuix de les dues columnes, el de la taula, Disseny o Tema, la lletra, el nom i 2 més (7)
+            function itemsTecno() {
+                const tria = modo => shuffle(TECNO_PREGUNTES.filter(p => p[0] === modo))[0];
+                const fixes = ['disseny', 'lletra', 'nom'].map(tria);
+                const altres = shuffle(TECNO_PREGUNTES.filter(p => !['disseny', 'lletra', 'nom'].includes(p[0]))).slice(0, 2);
+                return [
+                    ...shuffle(['Títol i dues columnes', 'Una taula']).map(bona => ({ modo: 'dibuix', bona })),
+                    ...[...fixes, ...altres].map(([modo, preg, bona, altres2, explica]) => ({ modo, preg, bona, altres: altres2, explica }))
+                ];
+            }
+            function leerTecno() {
+                try { return JSON.parse(localStorage.getItem('dojo_tecno')) || {}; } catch (e) { return {}; }
+            }
+            const tecnoPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= TECNO_DES_DE && hoy() <= TECNO_FINS && !leerTecno().pausa;
+            const conTecno = m => ({ ...m, bloques: [...m.bloques, { tipo: 'tecno' }] });
 
             // PARAULES · ortografía palabra a palabra, cada día al final del entrenamiento (o del repaso del domingo),
             // DENTRO de la misión: no está complerta hasta acabarlas. Las nuevas: mirar con su truco → tapar → escribir de
@@ -2116,7 +2201,7 @@
             window.__itemsXifresProva = () => itemsXifra();
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
-            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
+            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 SETMANA.forEach(f => {
@@ -2147,6 +2232,14 @@
                 })));
                 // El 25/10 (diumenge, la vigília de l'examen de català), el repàs amb el català després del castellà
                 [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => t.add(fraseMision(ambX(ambP(conCatala(conCastella(conTema1(CONTROL)))))))));
+                // Del 25 al 28/10, el tecno al final (el 25 després del català; el 28, ja sense castellà)
+                [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
+                    t.add(fraseMision(ambX(ambP(conTecno(conCatala(conCastella(conTema1(CONTROL))))))));
+                    [m => conCastella(conTema1(m)), conTema1].forEach(ambT => {
+                        SETMANA.forEach(f => t.add(fraseMision(ambX(ambP(conTecno(ambT(ENTRENAMENT)))), f)));
+                        t.add(fraseMision(ambX(ambP(conTecno(ambT(CONTROL))))));
+                    });
+                }));
                 PARAULES.forEach(w => { t.add(veuDicta(w)); t.add(veuMira(w)); if (w.familia) t.add(veuFamilia(w)); });
                 return [...t];
             };
@@ -2339,6 +2432,7 @@
                 let t = tema1Pendent(m) ? conTema1(m) : m;
                 if (castellaPendent(m)) t = conCastella(t);
                 if (catalaPendent(m)) t = conCatala(t);
+                if (tecnoPendent(m)) t = conTecno(t);
                 return paraulesPendents(m) ? conParaules(t) : t;
             };
 
@@ -2539,6 +2633,8 @@
                     sesion.fijos = itemsCastella();
                 } else if (b.tipo === 'catala') {
                     sesion.fijos = itemsCatala();
+                } else if (b.tipo === 'tecno') {
+                    sesion.fijos = itemsTecno();
                 } else {
                     sesion.fijos = null;
                 }
@@ -2823,6 +2919,16 @@
                             preg: 'Com s\'escriu en nombres romans?', opcions: shuffle([bona, ...x.altres]),
                             solucio: `${x.n} = ${bona}`, explica: explicaRoma(x.n) };
                     }
+                    if (x.modo === 'potencia') {
+                        const [h, base, exp, explica] = x.p;
+                        return { tipo, modo: x.modo, texto: sensePot(h), html: `${h} = ${base}<sup>?</sup>`, clave: `potencia:${sensePot(h)}`, esperado: String(exp), maxXifres: 2,
+                            preg: "En una sola potència. Quin és l'exponent?", solucio: `${sensePot(h)} = ${base}${sensePot(`<sup>${exp}</sup>`)}`, explica };
+                    }
+                    if (x.modo === 'suma') {
+                        const [h, bona, explica] = x.p;
+                        return { tipo, modo: x.modo, texto: sensePot(h), html: h, clave: `suma:${sensePot(h)}`, esperado: bona,
+                            preg: 'Vertader o fals?', opcions: ['Vertader', 'Fals'], solucio: `${bona}: ${sensePot(h)}`, explica };
+                    }
                     const c = x.c;
                     return { tipo, modo: x.modo, texto: c.clau, clave: `concepte:${c.clau}`, esperado: c.bona,
                         preg: c.preg, opcions: shuffle([c.bona, c.altra]), solucio: c.bona, explica: c.explica };
@@ -2840,6 +2946,14 @@
                         opcions: shuffle(Object.keys(ANGULOS)), explica: ANGULOS[x.bona] };
                     return { ...base, texto: '', html: svgElemento(x.bona), clave: `elemento:${x.bona}`, preg: '¿Cómo se llama lo que señala la flecha?',
                         opcions: ambAltres(x.bona, Object.keys(ELEMENTOS)), explica: ELEMENTOS[x.bona] };
+                }
+                if (tipo === 'tecno') {
+                    const x = sesion.fijos[sesion.hechos];
+                    if (x.modo === 'dibuix') return { tipo, modo: x.modo, texto: '', html: svgDiapositiva(x.bona), clave: `dibuix:${x.bona}`, esperado: x.bona,
+                        preg: 'Què és això?', opcions: shuffle([x.bona, ...shuffle(Object.keys(TECNO_DIBUIXOS).filter(k => k !== x.bona)).slice(0, 2)]),
+                        solucio: x.bona, explica: TECNO_DIBUIXOS[x.bona] };
+                    return { tipo, modo: x.modo, texto: x.preg, clave: `${x.modo}:${x.preg.slice(0, 24)}`, esperado: x.bona,
+                        preg: 'Com es fa?', opcions: shuffle([x.bona, ...x.altres]), solucio: x.bona, explica: x.explica };
                 }
                 if (tipo === 'catala') {
                     const x = sesion.fijos[sesion.hechos];
@@ -2873,7 +2987,7 @@
                 teclas = [];
                 oralRespuesta = null;
 
-                const ambPreg = ['tema1', 'castella', 'catala'].includes(item.tipo);
+                const ambPreg = ['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo);
                 const ambOpcions = ambPreg && !!item.opcions;
                 const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo) || (item.tipo === 'tema1' && !ambOpcions);
                 opFactorsEl.innerHTML = item.html || htmlOperacion(item.texto);
@@ -2887,8 +3001,8 @@
                 preg.hidden = !ambPreg;
                 preg.textContent = ambPreg ? item.preg : '';
                 opCardEl.classList.toggle('op-tema1-clau', item.modo === 'concepte');
-                opCardEl.classList.toggle('op-cast-text', ['castella', 'catala'].includes(item.tipo) && !item.html);
-                opCardEl.classList.toggle('op-cast-dibuix', item.tipo === 'castella' && !!item.html);
+                opCardEl.classList.toggle('op-cast-text', ['castella', 'catala', 'tecno'].includes(item.tipo) && !item.html);
+                opCardEl.classList.toggle('op-cast-dibuix', ['castella', 'tecno'].includes(item.tipo) && !!item.html);
                 document.getElementById('tema1-panel').hidden = !ambOpcions;
                 if (ambOpcions) {
                     document.getElementById('tema1-opcions').innerHTML = item.opcions
@@ -2922,7 +3036,7 @@
                 keypad.style.display = numerico ? 'grid' : 'none';
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
-                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala'].includes(item.tipo);
+                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno'].includes(item.tipo);
                 if (item.tipo === 'paraules') pintarParaula();
                 document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
                 document.getElementById('correction-pista').hidden = true;
@@ -3115,7 +3229,7 @@
                 const el = document.getElementById('correction-pista');
                 let txt = '';
                 if (item.tipo === 'pas10' && item.clase === 'nou') txt = trucPas10(item);
-                if (['tema1', 'castella', 'catala'].includes(item.tipo)) txt = item.explica;
+                if (['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo)) txt = item.explica;
                 if (item.objetivo) { txt = `Truc: ${fetSetmana().pista}`; hablar(fetSetmana().diccio); }
                 if (item.contraste) {
                     const s = SETMANA.find(x => (x.a === item.a && x.b === item.b) || (x.a === item.b && x.b === item.a));
@@ -3127,7 +3241,7 @@
 
             // Tema 1 y castellano, elegir: si no es la buena, la solución explicada (como en las demás, se para en la primera que falla)
             function responderTema1(opcio) {
-                if (isEvaluating || !item || !['tema1', 'castella', 'catala'].includes(item.tipo) || !item.opcions) return;
+                if (isEvaluating || !item || !['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo) || !item.opcions) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 const ok = opcio === item.esperado;
@@ -3412,10 +3526,10 @@
             // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
             function noHoSe() {
                 if (item && item.tipo === 'paraules') return evaluarParaula(null);
-                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala'].includes(item.tipo)) return;
+                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno'].includes(item.tipo)) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
-                if (['tema1', 'castella', 'catala'].includes(item.tipo)) {
+                if (['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo)) {
                     registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo });
                     document.getElementById('tema1-panel').hidden = true;
                     mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', item.solucio, 'Millor això que endevinar. Mira-la bé i seguim.', false);

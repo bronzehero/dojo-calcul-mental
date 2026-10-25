@@ -39,6 +39,12 @@ async function simularSupabase(page, opciones = {}) {
             if (!localStorage.getItem('dojo_catala')) localStorage.setItem('dojo_catala', JSON.stringify({ pausa: true }));
         });
     }
+    // Y con el tecno (del 25 al 28/10)
+    if (!opciones.tecno) {
+        await page.addInitScript(() => {
+            if (!localStorage.getItem('dojo_tecno')) localStorage.setItem('dojo_tecno', JSON.stringify({ pausa: true }));
+        });
+    }
     await page.route('**/*.supabase.co/**', async (ruta) => {
         const req = ruta.request();
         const tabla = new URL(req.url()).pathname.split('/rest/v1/')[1] || '';

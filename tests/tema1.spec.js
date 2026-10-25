@@ -53,11 +53,17 @@ test.describe('Tema 1 de mates', () => {
 
         const modes = [];
         let anterior = 'null', falladaLlegir = false, falladaEscriure = false;
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 12; i++) {
             const t = await seguent(page, anterior);
             modes.push(t.modo);
             await expect(page.locator('#tema1-preg')).toBeVisible();
-            if (t.modo === 'binari') {
+            if (['potencia', 'suma'].includes(t.modo)) {
+                // Potències: els exponents, a dalt de debò (sup)
+                await expect(page.locator('#op-factors sup').first()).toBeVisible();
+                if (t.modo === 'suma') expect([...t.opcions]).toEqual(['Vertader', 'Fals']);
+                if (t.modo === 'suma') expect(t.esperado).toBe(t.texto.includes('+') ? 'Fals' : 'Vertader');
+                else expect(Number(t.esperado)).toBeGreaterThan(0);
+            } else if (t.modo === 'binari') {
                 // Cada xifra, amb el valor del seu lloc a sobre (des de la dreta: 1, 2, 4, 8)
                 expect(t.esperado).toBe(String(parseInt(t.texto, 2)));
                 const bits = page.locator('#op-factors .bit');
@@ -115,11 +121,11 @@ test.describe('Tema 1 de mates', () => {
             }
             anterior = JSON.stringify(t);
         }
-        expect(modes).toEqual(['llegir', 'llegir', 'llegir', 'escriure', 'escriure', 'escriure', 'binari', 'binari', 'concepte', 'concepte']);
+        expect(modes).toEqual(['llegir', 'llegir', 'llegir', 'escriure', 'escriure', 'escriure', 'binari', 'binari', 'concepte', 'concepte', 'potencia', 'suma']);
         await expect(page.locator('#summary-titulo')).toHaveText('Missió complerta!');
 
         const dades = envios.filter(e => e.datos.modulo === 'tema1').map(e => e.datos);
-        expect(dades).toHaveLength(10);
+        expect(dades).toHaveLength(12);
         expect(dades.filter(d => !d.correcta).map(d => d.detalle.modo).sort()).toEqual(['escriure', 'llegir']);
         expect(dades.every(d => d.detalle.modo && d.item.startsWith(`${d.detalle.modo}:`))).toBe(true);
     });

@@ -45,9 +45,11 @@ test.describe("Castellà per a l'examen", () => {
         const modes = [];
         let anterior = 'null';
         const fallades = new Set();
-        for (let i = 0; i < 8; i++) {
+        const bones = [];
+        for (let i = 0; i < 9; i++) {
             const t = await seguent(page, anterior);
             modes.push(t.modo);
+            bones.push(t.esperado);
             await expect(page.locator('#tema1-preg')).toBeVisible();
             await expect(page.locator('#keypad')).toBeHidden();
             if (['plano', 'angulo', 'elemento'].includes(t.modo)) await expect(page.locator('#op-factors svg')).toBeVisible();
@@ -69,10 +71,13 @@ test.describe("Castellà per a l'examen", () => {
             }
             anterior = JSON.stringify(t);
         }
-        expect(modes).toEqual(['propiedad', 'propiedad', 'tipo', 'tipo', 'plano', 'plano', 'angulo', 'elemento']);
+        expect(modes).toEqual(['propiedad', 'propiedad', 'tipo', 'tipo', 'plano', 'plano', 'angulo', 'angulo', 'elemento']);
+        // Des del 25/10: sempre una d'adequació i sempre el frontal
+        expect(bones).toContain('Adecuación');
+        expect(bones).toContain('Frontal');
         await expect(page.locator('#summary-titulo')).toHaveText('Missió complerta!');
         const dades = envios.filter(e => e.datos.modulo === 'castella').map(e => e.datos);
-        expect(dades).toHaveLength(8);
+        expect(dades).toHaveLength(9);
         expect(dades.filter(d => !d.correcta).map(d => d.detalle.modo).sort()).toEqual(['plano', 'propiedad']);
     });
 });
