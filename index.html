@@ -1533,7 +1533,7 @@
                 sentir:  { nombre: 'Quin número és?', icono: '👂', instr: "Ara sentiràs un número de dues xifres i en veuràs quatre que s'assemblen molt. Toca el que has sentit. Mira'ls xifra per xifra, sense pressa. El pots tornar a escoltar tantes vegades com vulguis.", ejemplo: 'Sents «trenta-sis» ➜ toques el 36', paso: () => 'Quin número és?' },
                 paraules: { nombre: 'Paraules', icono: '🔤', instr: "Paraules que costen d'escriure. Les noves, primer les mires bé amb el seu truc i, quan te les sàpigues, les tapes i les escrius de memòria. Les que ja has vist, les sents i les escrius de memòria. Si no surt, la tornes a mirar i la tornes a escriure. Al teu ritme.", ejemplo: 'Mires «bien» (B de Bueno) ➜ la tapes ➜ escrius bien', paso: () => 'Paraules' },
                 tema1:   { nombre: 'Tema 1 de mates', icono: '🏛️', instr: "Repàs del tema 1 de mates, per a l'examen: els nombres romans, el binari i què vol dir additiu i posicional. A sobre de cada lletra i de cada xifra hi ha el que val. Al binari, suma només els que tenen un 1. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'XIV ➜ escrius 14', paso: () => 'Tema 1 de mates' },
-                catala:  { nombre: 'Català: apòstrof i contraccions', icono: '✏️', instr: "Repàs per a l'examen de català de demà: l'apòstrof i les contraccions. Veuràs una frase amb un forat i tries la que va bé. Si una no surt, et surt la regla. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Anem ___ teatre (a + el) ➜ al', paso: () => 'Català: apòstrof i contraccions' },
+                catala:  { nombre: 'Català: apòstrof i contraccions', icono: '✏️', instr: "Repàs per a l'examen de català de demà. Agafa el full d'apunts de català i posa'l al costat: el fas servir com a l'examen. A cada frase, mira la paraula de després del forat i busca-la al full. Si una no surt, et dic on mirar i ho tornes a provar. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Anem ___ teatre (a + el) ➜ al', paso: () => 'Català: apòstrof i contraccions' },
                 tecno:   { nombre: 'Tecno per a l\'examen', icono: '💻', instr: "Repàs de l'examen de tecno del dijous: on és cada botó del Drive, dels Documents, de les Presentacions i del correu. Llegeixes què vols fer i tries com es fa. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Vull que l\'amiga pugui canviar coses ➜ Editor', paso: () => 'Tecno per a l\'examen' },
                 castella: { nombre: 'Castellà per a l\'examen', icono: '💬', instr: "Repàs del control de castellà, com a l'examen: llegeixes un text curt o mires una vinyeta i tries què és. Quina propietat falla, quin tipus de text és, quin pla, quin angle o quina part del còmic. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '«Primero, bate dos huevos…» ➜ Instructivo', paso: () => 'Castellà per a l\'examen' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
@@ -1875,69 +1875,69 @@
             const conCastella = m => ({ ...m, bloques: [...m.bloques, { tipo: 'castella' }] });
 
             // CATALÀ · apòstrof i contraccions: examen el dilluns 26/10. Només la vigília, després del castellà.
-            // Una frase amb un forat i tres botons; si falla, la regla. Frases nostres, diferents de les dels fulls de paper.
+            // Es fa amb el full d'apunts de l'examen al costat. Cada frase porta on mirar-ho al full: si falla,
+            // primer li diem on buscar-ho i ho torna a provar; si torna a fallar, la bona i seguim.
             const CATALA_DES_DE = '2026-10-25', CATALA_FINS = '2026-10-25';
-            const REGLA_L = "Mira la primera lletra, no l'orella: vocal o H → l'.";
             const CATALA_ARTICLE = [
-                ["l'", '{} aigua està molt freda.', REGLA_L],
-                ["l'", '{} ordinador no s\'encén.', `${REGLA_L} Amb EL, sempre.`],
-                ["l'", 'Em fa mal {} orella.', REGLA_L],
-                ["l'", 'Dormo a {} habitació del fons.', `${REGLA_L} La H no compta: ha-bi-ta-ci-ó comença amb A.`],
-                ["l'", '{} última classe és de música.', "ÚL-ti-ma: la U és la forta. Llavors, l'."],
-                ['la', '{} imatge és molt bonica.', 'i-MAT-ge: la I no és la forta. Llavors, la.'],
-                ['la', '{} unió fa la força.', 'u-ni-Ó: la U no és la forta. Llavors, la.'],
-                ['la', 'Ja tinc {} invitació per a la festa.', 'in-vi-ta-ci-Ó: la I no és la forta. Llavors, la.'],
-                ['la', 'Dinem a {} una.', 'Excepció: la una (del migdia).'],
-                // Les que en castellà sonen bé amb LA (la estrella, la escalera): en català, vocal o H → l'
-                ["l'", 'Mira {} estrella que brilla.', `${REGLA_L} En castellà «la estrella»; en català, l'estrella.`, 'trampa'],
-                ["l'", 'Pugem per {} escala.', `${REGLA_L} En castellà «la escalera»; en català, l'escala.`, 'trampa'],
-                ["l'", 'Vull {} hamburguesa sense ceba.', `${REGLA_L} La H no sona, però compta: l'hamburguesa.`, 'trampa'],
-                ["l'", '{} herba del jardí és alta.', `${REGLA_L} La H no sona, però compta: l'herba.`, 'trampa'],
-                ["l'", 'Esperem el tren a {} estació.', `${REGLA_L} En castellà «la estación»; en català, l'estació.`, 'trampa'],
-                ['la', 'Avui acabem {} unitat 2.', 'u-ni-TAT: la U no és la forta. Llavors, la.']
+                ["l'", '{} aigua està molt freda.', "EXEMPLES L', a la A: l'aigua."],
+                ["l'", '{} ordinador no s\'encén.', "A dalt, APÒSTROF: EL → L' amb a e i o u h, sempre. O → l'ordinador."],
+                ["l'", 'Em fa mal {} orella.', "EXEMPLES L', a la O: l'orella."],
+                ["l'", 'Dormo a {} habitació del fons.', "A dalt, APÒSTROF: LA → L' amb a e o h, sempre. H → l'habitació."],
+                ["l'", '{} última classe és de música.', "EXEMPLES L', a la U: l'última."],
+                ['la', '{} imatge és molt bonica.', "EXEMPLES L', a la I: la imatge (en lila)."],
+                ['la', '{} unió fa la força.', "A dalt, APÒSTROF: LA amb i u, només si és la forta. u-ni-Ó: la forta és la ó → la unió."],
+                ['la', 'Ja tinc {} invitació per a la festa.', "A dalt, APÒSTROF: LA amb i u, només si és la forta. in-vi-ta-ci-Ó: la forta és la ó → la invitació."],
+                ['la', 'Dinem a {} una.', 'A dalt, APÒSTROF, a les Excepcions: la una.'],
+                // Les que en castellà van amb LA (la estrella, la escalera)
+                ["l'", 'Mira {} estrella que brilla.', "EXEMPLES L', a la E: l'estrella.", 'trampa'],
+                ["l'", 'Pugem per {} escala.', "EXEMPLES L', a la E: l'escala.", 'trampa'],
+                ["l'", 'Vull {} hamburguesa sense ceba.', "EXEMPLES L', a la H: l'hamburguesa.", 'trampa'],
+                ["l'", '{} herba del jardí és alta.', "EXEMPLES L', a la H: l'herba.", 'trampa'],
+                ["l'", 'Esperem el tren a {} estació.', "EXEMPLES L', a la E: l'estació.", 'trampa'],
+                ['la', 'Avui acabem {} unitat 2.', "EXEMPLES L', a la U: la unitat (en lila)."]
             ];
             const CATALA_DE = [
-                ["d'", 'Tinc un llibre {} aventures.'],
-                ["d'", 'Vull un plat {} arròs.'],
-                ["d'", 'Porto unes sabates {} esport.'],
-                ['de', 'Un pastís {} maduixa.'],
-                ['de', 'Una tassa {} cacau.'],
-                ["d'", 'La classe {} educació física.', 'trampa'],
-                ["d'", 'Un abric {} hivern.', 'trampa'],
-                ["d'", 'Un llibre {} història.', 'trampa'],
-                ['de', 'Un gelat {} xocolata.']
+                ["d'", 'Tinc un llibre {} aventures.', "A dalt, APÒSTROF: DE → D' amb a e i o u h, sempre. A → d'aventures."],
+                ["d'", 'Vull un plat {} arròs.', "A dalt, APÒSTROF: DE → D' amb a e i o u h, sempre. A → d'arròs."],
+                ["d'", 'Porto unes sabates {} esport.', "A dalt, APÒSTROF: DE → D' amb a e i o u h, sempre. E → d'esport."],
+                ['de', 'Un pastís {} maduixa.', "A dalt, APÒSTROF: DE → D' només amb a e i o u h. La m no hi és → de maduixa."],
+                ['de', 'Una tassa {} cacau.', "A dalt, APÒSTROF: DE → D' només amb a e i o u h. La c no hi és → de cacau."],
+                ["d'", 'La classe {} educació física.', "EXEMPLES D', a la E: d'educació.", 'trampa'],
+                ["d'", 'Un abric {} hivern.', "EXEMPLES D', a la H: d'hivern.", 'trampa'],
+                ["d'", 'Un llibre {} història.', "EXEMPLES D', a la H: d'història.", 'trampa'],
+                ['de', 'Un gelat {} xocolata.', "A dalt, APÒSTROF: DE → D' només amb a e i o u h. La x no hi és → de xocolata."]
             ];
+            const SENSE_CONTRACCIO = "CONTRACCIONS, a sota: amb vocal o H després, no hi ha contracció →";
             const CATALA_CONTRACCIO = [
                 ['al', 'Anem {} teatre.', 'a + el', ['al', 'a el', 'als']],
                 ['pel', 'Passem {} pont.', 'per + el', ['pel', 'per el', 'pels']],
                 ['als', 'Dona-ho {} nens.', 'a + els', ['als', 'a els', 'al']],
                 ['del', 'La porta {} cotxe és blava.', 'de + el', ['del', 'de el', 'dels']],
-                ['dels', 'Els llibres {} alumnes.', 'de + els', ['dels', 'de els', "de l'"], 'En plural, mai apòstrof: dels alumnes.'],
+                ['dels', 'Els llibres {} alumnes.', 'de + els', ['dels', 'de els', "de l'"], 'CONTRACCIONS: de + els = dels. I en plural, mai apòstrof.'],
                 ['per al', 'Un regal {} pare.', 'per a + el', ['per al', 'per a el', 'pel']],
                 ['can', 'Sopem a {} Pere.', 'ca + en', ['can', 'ca en', 'cal']],
-                ["a l'", 'Vaig {} hospital.', 'a + el', ["a l'", 'al', 'a el'], "Amb apòstrof, no hi ha contracció: a l'hospital."],
-                ["de l'", 'El cotxe {} avi és vermell.', 'de + el', ["de l'", 'del', 'de el'], "Amb apòstrof, no hi ha contracció: de l'avi."],
-                ['de la', 'La casa {} Laia.', 'de + la', ['de la', 'del', "de l'"], 'Amb LA, mai contracció: de la.'],
-                ["a l'", 'Anem {} institut.', 'a + el', ["a l'", 'al', 'a el'], "Amb apòstrof, no hi ha contracció: a l'institut."],
-                ["de l'", 'Sortim {} escola a les cinc.', 'de + la', ["de l'", 'del', 'de la'], "Amb apòstrof, no hi ha contracció: de l'escola."],
-                ['per al', 'Un dibuix {} metge.', 'per a + el', ['per al', 'per els', 'pel'], 'per a + el = per al.']
+                ["a l'", 'Vaig {} hospital.', 'a + el', ["a l'", 'al', 'a el'], `${SENSE_CONTRACCIO} a l'hospital.`],
+                ["de l'", 'El cotxe {} avi és vermell.', 'de + el', ["de l'", 'del', 'de el'], `${SENSE_CONTRACCIO} de l'avi.`],
+                ['de la', 'La casa {} Laia.', 'de + la', ['de la', 'del', "de l'"], 'CONTRACCIONS: de + la no és a les cartes → no hi ha contracció: de la.'],
+                ["a l'", 'Anem {} institut.', 'a + el', ["a l'", 'al', 'a el'], `${SENSE_CONTRACCIO} a l'institut.`],
+                ["de l'", 'Sortim {} escola a les cinc.', 'de + la', ["de l'", 'del', 'de la'], `${SENSE_CONTRACCIO} de l'escola.`],
+                ['per al', 'Un dibuix {} metge.', 'per a + el', ['per al', 'per els', 'pel']]
             ];
             const ambForat = (f, x) => f.replace('{}', x);
             // Cada dia: 5 de l'article (3 de les que en castellà van amb LA), 3 de DE (2 amb d' que en castellà fan «de»)
             // i 4 contraccions (2, segur, amb apòstrof: a l', de l'), en aquest ordre
             function itemsCatala() {
-                const ambApos = CATALA_CONTRACCIO.filter(c => c[4] && c[4].startsWith('Amb apòstrof'));
+                const ambApos = CATALA_CONTRACCIO.filter(c => c[0].includes("'"));
                 const apos = shuffle(ambApos).slice(0, 2);
                 const altres = shuffle(CATALA_CONTRACCIO.filter(c => !apos.includes(c))).slice(0, 2);
                 const article = [...shuffle(CATALA_ARTICLE.filter(a => a[3] === 'trampa')).slice(0, 3),
                     ...shuffle(CATALA_ARTICLE.filter(a => a[3] !== 'trampa')).slice(0, 2)];
-                const de = [...shuffle(CATALA_DE.filter(d => d[2] === 'trampa')).slice(0, 2), shuffle(CATALA_DE.filter(d => d[0] === 'de'))[0]];
+                const de = [...shuffle(CATALA_DE.filter(d => d[3] === 'trampa')).slice(0, 2), shuffle(CATALA_DE.filter(d => d[0] === 'de'))[0]];
                 return [
                     ...shuffle(article).map(([bona, frase, regla]) => ({ modo: 'article', bona, frase, regla })),
-                    ...shuffle(de).map(([bona, frase]) => ({ modo: 'de', bona, frase,
-                        regla: bona === "d'" ? "Mira la primera lletra, no l'orella: vocal o H → d'." : 'Davant de consonant: de.' })),
+                    ...shuffle(de).map(([bona, frase, regla]) => ({ modo: 'de', bona, frase, regla })),
                     ...shuffle([...apos, ...altres]).map(([bona, frase, suma, opcions, regla]) => ({ modo: 'contraccio', bona, frase, suma, opcions,
-                        regla: regla || `${suma} = ${bona}.` }))
+                        regla: regla || `CONTRACCIONS: ${suma} = ${bona}.` }))
                 ];
             }
             function leerCatala() {
@@ -2259,6 +2259,8 @@
                         t.add(fraseMision(ambX(ambP(conTecno(ambT(CONTROL))))));
                     });
                 }));
+                t.add(CATALA_VEU_FULL);
+                t.add(CATALA_VEU_PAPA);
                 PARAULES.forEach(w => { t.add(veuDicta(w)); t.add(veuMira(w)); if (w.familia) t.add(veuFamilia(w)); });
                 return [...t];
             };
@@ -2976,13 +2978,12 @@
                 }
                 if (tipo === 'catala') {
                     const x = sesion.fijos[sesion.hechos];
-                    // Les vocals sempre a la vista, al costat de la pregunta
-                    const preg = { article: "El, la o l'?  ·  A E I O U H → l'", de: "De o d'?  ·  A E I O U H → d'", contraccio: "Com s'escriu?" }[x.modo];
+                    const preg = { article: "El, la o l'?  ·  📄 mira el full", de: "De o d'?  ·  📄 mira el full", contraccio: "Com s'escriu?  ·  📄 mira el full" }[x.modo];
                     const opcions = x.modo === 'article' ? ['el', 'la', "l'"] : x.modo === 'de' ? ['de', "d'"] : shuffle(x.opcions);
                     // Amb apòstrof, la paraula va enganxada: «l'aigua», no «l' aigua»
                     const posada = ambForat(x.frase, x.bona).replace(/' /g, "'");
                     return { tipo, modo: x.modo, texto: ambForat(x.frase, '___') + (x.suma ? ` (${x.suma})` : ''), clave: `${x.modo}:${x.frase.slice(0, 24)}`,
-                        esperado: x.bona, preg, opcions, solucio: posada.charAt(0).toUpperCase() + posada.slice(1), explica: x.regla };
+                        esperado: x.bona, preg, opcions, solucio: posada.charAt(0).toUpperCase() + posada.slice(1), explica: x.regla, intent: 1 };
                 }
                 if (tipo === 'vf') {
                     const [a, b, c] = sesion.fijos[sesion.hechos];
@@ -3259,16 +3260,34 @@
                 el.hidden = !txt;
             }
 
+            // Català: la primera vegada que no surt (o «No ho sé»), on mirar-ho al full i ho torna a provar.
+            // Cada intent es guarda; només l'últim compta com a fet.
+            const CATALA_VEU_FULL = "Busca-ho al full d'apunts i torna-ho a provar.";
+            const CATALA_VEU_PAPA = "Crida el papa, que t'ajudarà a buscar-ho al full.";
+            function catalaAlFull(opcio, ms) {
+                registrar(item, opcio, false, ms, { modo: item.modo, opcions: item.opcions, intent: 1, no_lo_se: opcio === null || undefined });
+                sesion.hechos--;
+                item.intent = 2;
+                if (opcio !== null) playFeedbackSound(false);
+                // Només on mirar (el tros abans dels dos punts), no la resposta
+                opFeedbackEl.innerHTML = `<div id="catala-full" class="correction-pista">📄 Busca-ho al full: ${escaparHtml(item.explica.split(':')[0])}</div>`;
+                hablar(CATALA_VEU_FULL);
+                tInicio = performance.now();
+                isEvaluating = false;
+            }
+
             // Tema 1 y castellano, elegir: si no es la buena, la solución explicada (como en las demás, se para en la primera que falla)
             function responderTema1(opcio) {
                 if (isEvaluating || !item || !['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo) || !item.opcions) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 const ok = opcio === item.esperado;
-                registrar(item, opcio, ok, ms, { modo: item.modo, opcions: item.opcions });
+                if (!ok && item.tipo === 'catala' && item.intent === 1) return catalaAlFull(opcio, ms);
+                registrar(item, opcio, ok, ms, item.tipo === 'catala' ? { modo: item.modo, opcions: item.opcions, intent: item.intent } : { modo: item.modo, opcions: item.opcions });
                 document.getElementById('tema1-panel').hidden = true;
                 if (ok) celebrar();
                 else {
+                    opFeedbackEl.innerHTML = '';
                     mostrarCorreccion('🌸 Gairebé! Fixa-t\'hi bé:', item.solucio, `Tu has triat: ${opcio}`);
                     mostrarPistaCorreccion();
                 }
@@ -3549,6 +3568,17 @@
                 if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno'].includes(item.tipo)) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
+                if (item.tipo === 'catala' && item.intent === 1) return catalaAlFull(null, ms);
+                if (item.tipo === 'catala') {
+                    // Ni amb el full: que vingui el papa a buscar-ho amb ella
+                    registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo, intent: 2 });
+                    document.getElementById('tema1-panel').hidden = true;
+                    opFeedbackEl.innerHTML = '';
+                    mostrarCorreccion('📣 Crida el papa', item.solucio, "Que t'ajudi a buscar-ho al full.", false);
+                    mostrarPistaCorreccion();
+                    hablar(CATALA_VEU_PAPA);
+                    return;
+                }
                 if (['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo)) {
                     registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo });
                     document.getElementById('tema1-panel').hidden = true;

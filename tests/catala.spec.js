@@ -37,20 +37,25 @@ test.describe('Català: apòstrof i contraccions', () => {
         });
     }
 
-    test("article, DE i contraccions: si falla, la frase bona i la regla; es guarda cada resposta", async ({ page }) => {
+    // Amb el full d'apunts al costat: si no surt (o «No ho sé»), on mirar-ho al full i un segon intent;
+    // si tampoc, la bona (i amb «No ho sé» un altre cop, que cridi el papa)
+    test("si no surt, on buscar-ho al full i un altre intent; després la bona o cridar el papa", async ({ page }) => {
         const envios = await preparar(page, '2026-10-25', { extras: [...EXTRES_FETES, { id: 11, fecha: '2026-10-18' }],
             enCurso: { id: 11, bloque: 3, fecha: '2026-10-25' } });
         await expect.poll(async () => (await pasos(page)).at(-1)).toContain('Català: apòstrof');
         await page.click('#btn-start-game');
         await expect(page.locator('#intro-titulo')).toHaveText('Català: apòstrof i contraccions');
+        await expect(page.locator('#intro-texto')).toContainText("full d'apunts");
         await page.click('#btn-intro-vamos');
         const modes = [];
         let anterior = 'null', ambApostrof = 0;
-        const fallades = new Set();
+        const provats = new Set();
+        const malament = t => `#tema1-opcions button:not([data-opcio="${t.esperado}"]) >> nth=0`;
         for (let i = 0; i < 12; i++) {
             const t = await seguent(page, anterior);
             modes.push(t.modo);
             await expect(page.locator('#tema1-preg')).toBeVisible();
+            await expect(page.locator('#tema1-preg')).toContainText('mira el full');
             await expect(page.locator('#keypad')).toBeHidden();
             await expect(page.locator('#op-factors')).toHaveText(t.texto);
             expect(t.texto).toContain('___');
@@ -62,17 +67,38 @@ test.describe('Català: apòstrof i contraccions', () => {
                 if (t.esperado.includes("'")) ambApostrof++;
             }
             expect(t.opcions).toContain(t.esperado);
-            if (!fallades.has(t.modo)) {
-                fallades.add(t.modo);
-                await page.click(`#tema1-opcions button:not([data-opcio="${t.esperado}"]) >> nth=0`);
-                await expect(page.locator('#gentle-correction-box')).toBeVisible();
-                // La frase bona sencera, amb l'apòstrof enganxat a la paraula
-                const bona = await page.locator('#correction-math-text').textContent();
-                expect(bona).not.toContain('___');
-                expect(bona).not.toMatch(/' /);
-                await expect(page.locator('#correction-pista')).toBeVisible();
+            if (!provats.has(t.modo)) {
+                provats.add(t.modo);
+                // 1r intent: malament (al DE, «No ho sé») → on mirar-ho al full; la frase i els botons hi segueixen
+                if (t.modo === 'de') await page.click('#btn-no-ho-se');
+                else await page.click(malament(t));
+                await expect(page.locator('#catala-full')).toBeVisible();
+                await expect(page.locator('#catala-full')).toContainText('Busca-ho al full:');
+                // On mirar, sense la resposta
+                expect((await page.locator('#catala-full').textContent()).split('Busca-ho al full:')[1]).not.toMatch(/[:→]/);
+                await expect(page.locator('#gentle-correction-box')).toBeHidden();
+                await expect(page.locator('#tema1-opcions')).toBeVisible();
+                await expect(page.locator('#btn-no-ho-se')).toBeVisible();
                 expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
-                await page.click('#btn-correction-continue');
+                expect(JSON.parse(JSON.stringify(await actual(page)))).toEqual(t);
+                // 2n intent
+                if (t.modo === 'contraccio') {
+                    await page.click(`#tema1-opcions button[data-opcio="${t.esperado}"]`);
+                } else {
+                    if (t.modo === 'article') await page.click(malament(t));
+                    else await page.click('#btn-no-ho-se');
+                    await expect(page.locator('#gentle-correction-box')).toBeVisible();
+                    await expect(page.locator('#catala-full')).toHaveCount(0);
+                    // La frase bona sencera, amb l'apòstrof enganxat a la paraula
+                    const bona = await page.locator('#correction-math-text').textContent();
+                    expect(bona).not.toContain('___');
+                    expect(bona).not.toMatch(/' /);
+                    await expect(page.locator('#correction-pista')).toBeVisible();
+                    if (t.modo === 'de') await expect(page.locator('#gentle-correction-box')).toContainText('Crida el papa');
+                    else await expect(page.locator('#gentle-correction-box')).not.toContainText('papa');
+                    expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
+                    await page.click('#btn-correction-continue');
+                }
             } else {
                 await page.click(`#tema1-opcions button[data-opcio="${t.esperado}"]`);
             }
@@ -81,7 +107,9 @@ test.describe('Català: apòstrof i contraccions', () => {
         expect(modes).toEqual(['article', 'article', 'article', 'article', 'article', 'de', 'de', 'de', 'contraccio', 'contraccio', 'contraccio', 'contraccio']);
         expect(ambApostrof).toBeGreaterThanOrEqual(2);
         const dades = envios.filter(e => e.datos.modulo === 'catala').map(e => e.datos);
-        expect(dades).toHaveLength(12);
-        expect(dades.filter(d => !d.correcta).map(d => d.detalle.modo).sort()).toEqual(['article', 'contraccio', 'de']);
+        expect(dades).toHaveLength(15);
+        const no = dades.filter(d => !d.correcta).map(d => `${d.detalle.modo} ${d.detalle.intent}${d.detalle.no_lo_se ? ' no ho sé' : ''}`).sort();
+        expect(no).toEqual(['article 1', 'article 2', 'contraccio 1', 'de 1 no ho sé', 'de 2 no ho sé']);
+        expect(dades.find(d => d.correcta && d.detalle.modo === 'contraccio' && d.detalle.intent === 2)).toBeTruthy();
     });
 });
