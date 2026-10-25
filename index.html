@@ -1877,7 +1877,7 @@
             // CATALÀ · apòstrof i contraccions: examen el dilluns 26/10. Només la vigília, després del castellà.
             // Una frase amb un forat i tres botons; si falla, la regla. Frases nostres, diferents de les dels fulls de paper.
             const CATALA_DES_DE = '2026-10-25', CATALA_FINS = '2026-10-25';
-            const REGLA_L = "Davant de vocal o H: l'.";
+            const REGLA_L = "Mira la primera lletra, no l'orella: vocal o H → l'.";
             const CATALA_ARTICLE = [
                 ["l'", '{} aigua està molt freda.', REGLA_L],
                 ["l'", '{} ordinador no s\'encén.', `${REGLA_L} Amb EL, sempre.`],
@@ -1887,14 +1887,25 @@
                 ['la', '{} imatge és molt bonica.', 'i-MAT-ge: la I no és la forta. Llavors, la.'],
                 ['la', '{} unió fa la força.', 'u-ni-Ó: la U no és la forta. Llavors, la.'],
                 ['la', 'Ja tinc {} invitació per a la festa.', 'in-vi-ta-ci-Ó: la I no és la forta. Llavors, la.'],
-                ['la', 'Dinem a {} una.', 'Excepció: la una (del migdia).']
+                ['la', 'Dinem a {} una.', 'Excepció: la una (del migdia).'],
+                // Les que en castellà sonen bé amb LA (la estrella, la escalera): en català, vocal o H → l'
+                ["l'", 'Mira {} estrella que brilla.', `${REGLA_L} En castellà «la estrella»; en català, l'estrella.`, 'trampa'],
+                ["l'", 'Pugem per {} escala.', `${REGLA_L} En castellà «la escalera»; en català, l'escala.`, 'trampa'],
+                ["l'", 'Vull {} hamburguesa sense ceba.', `${REGLA_L} La H no sona, però compta: l'hamburguesa.`, 'trampa'],
+                ["l'", '{} herba del jardí és alta.', `${REGLA_L} La H no sona, però compta: l'herba.`, 'trampa'],
+                ["l'", 'Esperem el tren a {} estació.', `${REGLA_L} En castellà «la estación»; en català, l'estació.`, 'trampa'],
+                ['la', 'Avui acabem {} unitat 2.', 'u-ni-TAT: la U no és la forta. Llavors, la.']
             ];
             const CATALA_DE = [
                 ["d'", 'Tinc un llibre {} aventures.'],
                 ["d'", 'Vull un plat {} arròs.'],
                 ["d'", 'Porto unes sabates {} esport.'],
                 ['de', 'Un pastís {} maduixa.'],
-                ['de', 'Una tassa {} cacau.']
+                ['de', 'Una tassa {} cacau.'],
+                ["d'", 'La classe {} educació física.', 'trampa'],
+                ["d'", 'Un abric {} hivern.', 'trampa'],
+                ["d'", 'Un llibre {} història.', 'trampa'],
+                ['de', 'Un gelat {} xocolata.']
             ];
             const CATALA_CONTRACCIO = [
                 ['al', 'Anem {} teatre.', 'a + el', ['al', 'a el', 'als']],
@@ -1906,17 +1917,25 @@
                 ['can', 'Sopem a {} Pere.', 'ca + en', ['can', 'ca en', 'cal']],
                 ["a l'", 'Vaig {} hospital.', 'a + el', ["a l'", 'al', 'a el'], "Amb apòstrof, no hi ha contracció: a l'hospital."],
                 ["de l'", 'El cotxe {} avi és vermell.', 'de + el', ["de l'", 'del', 'de el'], "Amb apòstrof, no hi ha contracció: de l'avi."],
-                ['de la', 'La casa {} Laia.', 'de + la', ['de la', 'del', "de l'"], 'Amb LA, mai contracció: de la.']
+                ['de la', 'La casa {} Laia.', 'de + la', ['de la', 'del', "de l'"], 'Amb LA, mai contracció: de la.'],
+                ["a l'", 'Anem {} institut.', 'a + el', ["a l'", 'al', 'a el'], "Amb apòstrof, no hi ha contracció: a l'institut."],
+                ["de l'", 'Sortim {} escola a les cinc.', 'de + la', ["de l'", 'del', 'de la'], "Amb apòstrof, no hi ha contracció: de l'escola."],
+                ['per al', 'Un dibuix {} metge.', 'per a + el', ['per al', 'per els', 'pel'], 'per a + el = per al.']
             ];
             const ambForat = (f, x) => f.replace('{}', x);
-            // Cada dia: 4 de l'article, 2 de DE i 4 contraccions (una, segur, amb apòstrof), en aquest ordre
+            // Cada dia: 5 de l'article (3 de les que en castellà van amb LA), 3 de DE (2 amb d' que en castellà fan «de»)
+            // i 4 contraccions (2, segur, amb apòstrof: a l', de l'), en aquest ordre
             function itemsCatala() {
-                const apos = shuffle(CATALA_CONTRACCIO.filter(c => c[4] && c[4].startsWith('Amb apòstrof')))[0];
-                const altres = shuffle(CATALA_CONTRACCIO.filter(c => c !== apos)).slice(0, 3);
+                const ambApos = CATALA_CONTRACCIO.filter(c => c[4] && c[4].startsWith('Amb apòstrof'));
+                const apos = shuffle(ambApos).slice(0, 2);
+                const altres = shuffle(CATALA_CONTRACCIO.filter(c => !apos.includes(c))).slice(0, 2);
+                const article = [...shuffle(CATALA_ARTICLE.filter(a => a[3] === 'trampa')).slice(0, 3),
+                    ...shuffle(CATALA_ARTICLE.filter(a => a[3] !== 'trampa')).slice(0, 2)];
+                const de = [...shuffle(CATALA_DE.filter(d => d[2] === 'trampa')).slice(0, 2), shuffle(CATALA_DE.filter(d => d[0] === 'de'))[0]];
                 return [
-                    ...shuffle(CATALA_ARTICLE).slice(0, 4).map(([bona, frase, regla]) => ({ modo: 'article', bona, frase, regla })),
-                    ...shuffle(CATALA_DE).slice(0, 2).map(([bona, frase]) => ({ modo: 'de', bona, frase,
-                        regla: bona === "d'" ? "Davant de vocal o H: d'." : 'Davant de consonant: de.' })),
+                    ...shuffle(article).map(([bona, frase, regla]) => ({ modo: 'article', bona, frase, regla })),
+                    ...shuffle(de).map(([bona, frase]) => ({ modo: 'de', bona, frase,
+                        regla: bona === "d'" ? "Mira la primera lletra, no l'orella: vocal o H → d'." : 'Davant de consonant: de.' })),
                     ...shuffle([apos, ...altres]).map(([bona, frase, suma, opcions, regla]) => ({ modo: 'contraccio', bona, frase, suma, opcions,
                         regla: regla || `${suma} = ${bona}.` }))
                 ];
@@ -2957,7 +2976,8 @@
                 }
                 if (tipo === 'catala') {
                     const x = sesion.fijos[sesion.hechos];
-                    const preg = { article: "El, la o l'?", de: "De o d'?", contraccio: "Com s'escriu?" }[x.modo];
+                    // Les vocals sempre a la vista, al costat de la pregunta
+                    const preg = { article: "El, la o l'?  ·  A E I O U H → l'", de: "De o d'?  ·  A E I O U H → d'", contraccio: "Com s'escriu?" }[x.modo];
                     const opcions = x.modo === 'article' ? ['el', 'la', "l'"] : x.modo === 'de' ? ['de', "d'"] : shuffle(x.opcions);
                     // Amb apòstrof, la paraula va enganxada: «l'aigua», no «l' aigua»
                     const posada = ambForat(x.frase, x.bona).replace(/' /g, "'");

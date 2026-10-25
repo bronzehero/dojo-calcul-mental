@@ -19,7 +19,8 @@ async function preparar(page, dia, plan = {}) {
 }
 const actual = page => page.evaluate(() => window.__tema1Actual());
 async function seguent(page, anterior) {
-    await expect.poll(async () => JSON.stringify(await actual(page))).not.toBe(anterior);
+    // Amb 12 seguides, de vegades surt la celebració llarga: més marge que els 5 s per defecte
+    await expect.poll(async () => JSON.stringify(await actual(page)), { timeout: 15000 }).not.toBe(anterior);
     return actual(page);
 }
 const pasos = page => page.locator('#mision-pasos li').allTextContents();
@@ -47,7 +48,7 @@ test.describe('Català: apòstrof i contraccions', () => {
         const modes = [];
         let anterior = 'null', ambApostrof = 0;
         const fallades = new Set();
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 12; i++) {
             const t = await seguent(page, anterior);
             modes.push(t.modo);
             await expect(page.locator('#tema1-preg')).toBeVisible();
@@ -78,10 +79,10 @@ test.describe('Català: apòstrof i contraccions', () => {
             }
             anterior = JSON.stringify(t);
         }
-        expect(modes).toEqual(['article', 'article', 'article', 'article', 'de', 'de', 'contraccio', 'contraccio', 'contraccio', 'contraccio']);
-        expect(ambApostrof).toBeGreaterThanOrEqual(1);
+        expect(modes).toEqual(['article', 'article', 'article', 'article', 'article', 'de', 'de', 'de', 'contraccio', 'contraccio', 'contraccio', 'contraccio']);
+        expect(ambApostrof).toBeGreaterThanOrEqual(2);
         const dades = envios.filter(e => e.datos.modulo === 'catala').map(e => e.datos);
-        expect(dades).toHaveLength(10);
+        expect(dades).toHaveLength(12);
         expect(dades.filter(d => !d.correcta).map(d => d.detalle.modo).sort()).toEqual(['article', 'contraccio', 'de']);
     });
 });
