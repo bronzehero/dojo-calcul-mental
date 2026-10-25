@@ -1533,6 +1533,7 @@
                 sentir:  { nombre: 'Quin número és?', icono: '👂', instr: "Ara sentiràs un número de dues xifres i en veuràs quatre que s'assemblen molt. Toca el que has sentit. Mira'ls xifra per xifra, sense pressa. El pots tornar a escoltar tantes vegades com vulguis.", ejemplo: 'Sents «trenta-sis» ➜ toques el 36', paso: () => 'Quin número és?' },
                 paraules: { nombre: 'Paraules', icono: '🔤', instr: "Paraules que costen d'escriure. Les noves, primer les mires bé amb el seu truc i, quan te les sàpigues, les tapes i les escrius de memòria. Les que ja has vist, les sents i les escrius de memòria. Si no surt, la tornes a mirar i la tornes a escriure. Al teu ritme.", ejemplo: 'Mires «bien» (B de Bueno) ➜ la tapes ➜ escrius bien', paso: () => 'Paraules' },
                 tema1:   { nombre: 'Tema 1 de mates', icono: '🏛️', instr: "Repàs del tema 1 de mates, per a l'examen: els nombres romans, el binari i què vol dir additiu i posicional. A sobre de cada lletra i de cada xifra hi ha el que val. Al binari, suma només els que tenen un 1. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'XIV ➜ escrius 14', paso: () => 'Tema 1 de mates' },
+                catala:  { nombre: 'Català: apòstrof i contraccions', icono: '✏️', instr: "Repàs per a l'examen de català de demà: l'apòstrof i les contraccions. Veuràs una frase amb un forat i tries la que va bé. Si una no surt, et surt la regla. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Anem ___ teatre (a + el) ➜ al', paso: () => 'Català: apòstrof i contraccions' },
                 castella: { nombre: 'Castellà per a l\'examen', icono: '💬', instr: "Repàs del control de castellà, com a l'examen: llegeixes un text curt o mires una vinyeta i tries què és. Quina propietat falla, quin tipus de text és, quin pla, quin angle o quina part del còmic. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '«Primero, bate dos huevos…» ➜ Instructivo', paso: () => 'Castellà per a l\'examen' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
@@ -1847,6 +1848,59 @@
             const castellaPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= CASTELLA_DES_DE && hoy() <= CASTELLA_FINS && !leerCastella().pausa;
             const conCastella = m => ({ ...m, bloques: [...m.bloques, { tipo: 'castella' }] });
 
+            // CATALÀ · apòstrof i contraccions: examen el dilluns 26/10. Només la vigília, després del castellà.
+            // Una frase amb un forat i tres botons; si falla, la regla. Frases nostres, diferents de les dels fulls de paper.
+            const CATALA_DES_DE = '2026-10-25', CATALA_FINS = '2026-10-25';
+            const REGLA_L = "Davant de vocal o H: l'.";
+            const CATALA_ARTICLE = [
+                ["l'", '{} aigua està molt freda.', REGLA_L],
+                ["l'", '{} ordinador no s\'encén.', `${REGLA_L} Amb EL, sempre.`],
+                ["l'", 'Em fa mal {} orella.', REGLA_L],
+                ["l'", 'Dormo a {} habitació del fons.', `${REGLA_L} La H no compta: ha-bi-ta-ci-ó comença amb A.`],
+                ["l'", '{} última classe és de música.', "ÚL-ti-ma: la U és la forta. Llavors, l'."],
+                ['la', '{} imatge és molt bonica.', 'i-MAT-ge: la I no és la forta. Llavors, la.'],
+                ['la', '{} unió fa la força.', 'u-ni-Ó: la U no és la forta. Llavors, la.'],
+                ['la', 'Ja tinc {} invitació per a la festa.', 'in-vi-ta-ci-Ó: la I no és la forta. Llavors, la.'],
+                ['la', 'Dinem a {} una.', 'Excepció: la una (del migdia).']
+            ];
+            const CATALA_DE = [
+                ["d'", 'Tinc un llibre {} aventures.'],
+                ["d'", 'Vull un plat {} arròs.'],
+                ["d'", 'Porto unes sabates {} esport.'],
+                ['de', 'Un pastís {} maduixa.'],
+                ['de', 'Una tassa {} cacau.']
+            ];
+            const CATALA_CONTRACCIO = [
+                ['al', 'Anem {} teatre.', 'a + el', ['al', 'a el', 'als']],
+                ['pel', 'Passem {} pont.', 'per + el', ['pel', 'per el', 'pels']],
+                ['als', 'Dona-ho {} nens.', 'a + els', ['als', 'a els', 'al']],
+                ['del', 'La porta {} cotxe és blava.', 'de + el', ['del', 'de el', 'dels']],
+                ['dels', 'Els llibres {} alumnes.', 'de + els', ['dels', 'de els', "de l'"], 'En plural, mai apòstrof: dels alumnes.'],
+                ['per al', 'Un regal {} pare.', 'per a + el', ['per al', 'per a el', 'pel']],
+                ['can', 'Sopem a {} Pere.', 'ca + en', ['can', 'ca en', 'cal']],
+                ["a l'", 'Vaig {} hospital.', 'a + el', ["a l'", 'al', 'a el'], "Amb apòstrof, no hi ha contracció: a l'hospital."],
+                ["de l'", 'El cotxe {} avi és vermell.', 'de + el', ["de l'", 'del', 'de el'], "Amb apòstrof, no hi ha contracció: de l'avi."],
+                ['de la', 'La casa {} Laia.', 'de + la', ['de la', 'del', "de l'"], 'Amb LA, mai contracció: de la.']
+            ];
+            const ambForat = (f, x) => f.replace('{}', x);
+            // Cada dia: 4 de l'article, 2 de DE i 4 contraccions (una, segur, amb apòstrof), en aquest ordre
+            function itemsCatala() {
+                const apos = shuffle(CATALA_CONTRACCIO.filter(c => c[4] && c[4].startsWith('Amb apòstrof')))[0];
+                const altres = shuffle(CATALA_CONTRACCIO.filter(c => c !== apos)).slice(0, 3);
+                return [
+                    ...shuffle(CATALA_ARTICLE).slice(0, 4).map(([bona, frase, regla]) => ({ modo: 'article', bona, frase, regla })),
+                    ...shuffle(CATALA_DE).slice(0, 2).map(([bona, frase]) => ({ modo: 'de', bona, frase,
+                        regla: bona === "d'" ? "Davant de vocal o H: d'." : 'Davant de consonant: de.' })),
+                    ...shuffle([apos, ...altres]).map(([bona, frase, suma, opcions, regla]) => ({ modo: 'contraccio', bona, frase, suma, opcions,
+                        regla: regla || `${suma} = ${bona}.` }))
+                ];
+            }
+            function leerCatala() {
+                try { return JSON.parse(localStorage.getItem('dojo_catala')) || {}; } catch (e) { return {}; }
+            }
+            const catalaPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= CATALA_DES_DE && hoy() <= CATALA_FINS && !leerCatala().pausa;
+            const conCatala = m => ({ ...m, bloques: [...m.bloques, { tipo: 'catala' }] });
+
             // PARAULES · ortografía palabra a palabra, cada día al final del entrenamiento (o del repaso del domingo),
             // DENTRO de la misión: no está complerta hasta acabarlas. Las nuevas: mirar con su truco → tapar → escribir de
             // memoria → comparar y volver a escribir. Las ya vistas: de memoria (el primer intento del día es la medida).
@@ -2062,7 +2116,7 @@
             window.__itemsXifresProva = () => itemsXifra();
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
-            window.__tema1Actual = () => item && ['tema1', 'castella'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
+            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 SETMANA.forEach(f => {
@@ -2091,6 +2145,8 @@
                     SETMANA.forEach(f => t.add(fraseMision(ambX(ambP(ambT(ENTRENAMENT))), f)));
                     t.add(fraseMision(ambX(ambP(ambT(CONTROL)))));
                 })));
+                // El 25/10 (diumenge, la vigília de l'examen de català), el repàs amb el català després del castellà
+                [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => t.add(fraseMision(ambX(ambP(conCatala(conCastella(conTema1(CONTROL)))))))));
                 PARAULES.forEach(w => { t.add(veuDicta(w)); t.add(veuMira(w)); if (w.familia) t.add(veuFamilia(w)); });
                 return [...t];
             };
@@ -2282,6 +2338,7 @@
             const missioDelDia = m => {
                 let t = tema1Pendent(m) ? conTema1(m) : m;
                 if (castellaPendent(m)) t = conCastella(t);
+                if (catalaPendent(m)) t = conCatala(t);
                 return paraulesPendents(m) ? conParaules(t) : t;
             };
 
@@ -2480,6 +2537,8 @@
                     sesion.fijos = itemsTema1();
                 } else if (b.tipo === 'castella') {
                     sesion.fijos = itemsCastella();
+                } else if (b.tipo === 'catala') {
+                    sesion.fijos = itemsCatala();
                 } else {
                     sesion.fijos = null;
                 }
@@ -2782,6 +2841,15 @@
                     return { ...base, texto: '', html: svgElemento(x.bona), clave: `elemento:${x.bona}`, preg: '¿Cómo se llama lo que señala la flecha?',
                         opcions: ambAltres(x.bona, Object.keys(ELEMENTOS)), explica: ELEMENTOS[x.bona] };
                 }
+                if (tipo === 'catala') {
+                    const x = sesion.fijos[sesion.hechos];
+                    const preg = { article: "El, la o l'?", de: "De o d'?", contraccio: "Com s'escriu?" }[x.modo];
+                    const opcions = x.modo === 'article' ? ['el', 'la', "l'"] : x.modo === 'de' ? ['de', "d'"] : shuffle(x.opcions);
+                    // Amb apòstrof, la paraula va enganxada: «l'aigua», no «l' aigua»
+                    const posada = ambForat(x.frase, x.bona).replace(/' /g, "'");
+                    return { tipo, modo: x.modo, texto: ambForat(x.frase, '___') + (x.suma ? ` (${x.suma})` : ''), clave: `${x.modo}:${x.frase.slice(0, 24)}`,
+                        esperado: x.bona, preg, opcions, solucio: posada.charAt(0).toUpperCase() + posada.slice(1), explica: x.regla };
+                }
                 if (tipo === 'vf') {
                     const [a, b, c] = sesion.fijos[sesion.hechos];
                     return { tipo, a, b, c, texto: `${a} × ${b} = ${c}`, clave: `${a}x${b}=${c}`, esperado: c === a * b ? 'V' : 'F' };
@@ -2805,7 +2873,7 @@
                 teclas = [];
                 oralRespuesta = null;
 
-                const ambPreg = ['tema1', 'castella'].includes(item.tipo);
+                const ambPreg = ['tema1', 'castella', 'catala'].includes(item.tipo);
                 const ambOpcions = ambPreg && !!item.opcions;
                 const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo) || (item.tipo === 'tema1' && !ambOpcions);
                 opFactorsEl.innerHTML = item.html || htmlOperacion(item.texto);
@@ -2819,7 +2887,7 @@
                 preg.hidden = !ambPreg;
                 preg.textContent = ambPreg ? item.preg : '';
                 opCardEl.classList.toggle('op-tema1-clau', item.modo === 'concepte');
-                opCardEl.classList.toggle('op-cast-text', item.tipo === 'castella' && !item.html);
+                opCardEl.classList.toggle('op-cast-text', ['castella', 'catala'].includes(item.tipo) && !item.html);
                 opCardEl.classList.toggle('op-cast-dibuix', item.tipo === 'castella' && !!item.html);
                 document.getElementById('tema1-panel').hidden = !ambOpcions;
                 if (ambOpcions) {
@@ -2854,7 +2922,7 @@
                 keypad.style.display = numerico ? 'grid' : 'none';
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
-                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella'].includes(item.tipo);
+                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala'].includes(item.tipo);
                 if (item.tipo === 'paraules') pintarParaula();
                 document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
                 document.getElementById('correction-pista').hidden = true;
@@ -3047,7 +3115,7 @@
                 const el = document.getElementById('correction-pista');
                 let txt = '';
                 if (item.tipo === 'pas10' && item.clase === 'nou') txt = trucPas10(item);
-                if (['tema1', 'castella'].includes(item.tipo)) txt = item.explica;
+                if (['tema1', 'castella', 'catala'].includes(item.tipo)) txt = item.explica;
                 if (item.objetivo) { txt = `Truc: ${fetSetmana().pista}`; hablar(fetSetmana().diccio); }
                 if (item.contraste) {
                     const s = SETMANA.find(x => (x.a === item.a && x.b === item.b) || (x.a === item.b && x.b === item.a));
@@ -3059,7 +3127,7 @@
 
             // Tema 1 y castellano, elegir: si no es la buena, la solución explicada (como en las demás, se para en la primera que falla)
             function responderTema1(opcio) {
-                if (isEvaluating || !item || !['tema1', 'castella'].includes(item.tipo) || !item.opcions) return;
+                if (isEvaluating || !item || !['tema1', 'castella', 'catala'].includes(item.tipo) || !item.opcions) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 const ok = opcio === item.esperado;
@@ -3344,10 +3412,10 @@
             // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
             function noHoSe() {
                 if (item && item.tipo === 'paraules') return evaluarParaula(null);
-                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella'].includes(item.tipo)) return;
+                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala'].includes(item.tipo)) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
-                if (['tema1', 'castella'].includes(item.tipo)) {
+                if (['tema1', 'castella', 'catala'].includes(item.tipo)) {
                     registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo });
                     document.getElementById('tema1-panel').hidden = true;
                     mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', item.solucio, 'Millor això que endevinar. Mira-la bé i seguim.', false);
