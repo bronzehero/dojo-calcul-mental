@@ -28,7 +28,7 @@ test.describe('Català: apòstrof i contraccions', () => {
     for (const [dia, hi] of [['2026-10-24', false], ['2026-10-25', true], ['2026-10-26', false]]) {
         test(`el ${dia}, ${hi ? 'hi és, després del castellà' : 'no hi és'}`, async ({ page }) => {
             await preparar(page, dia);
-            await expect.poll(async () => (await pasos(page)).at(-1)).toContain(hi ? 'Català: apòstrof' : 'Castellà');
+            await expect.poll(async () => (await pasos(page)).at(-1)).toContain(hi ? 'Català: apòstrof' : dia === '2026-10-24' ? 'Castellà' : 'Tema 1');
             const p = await pasos(page);
             if (hi) {
                 await expect(page.locator('#mision-titulo')).toHaveText('Missió de repàs');

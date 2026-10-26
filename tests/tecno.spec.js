@@ -25,7 +25,7 @@ async function seguent(page, anterior) {
 const pasos = page => page.locator('#mision-pasos li').allTextContents();
 
 test.describe("Tecno per a l'examen", () => {
-    for (const [dia, hi, abans] of [['2026-10-24', false], ['2026-10-25', true, 'Català: apòstrof'], ['2026-10-26', true, 'Castellà'],
+    for (const [dia, hi, abans] of [['2026-10-24', false], ['2026-10-25', true, 'Català: apòstrof'], ['2026-10-26', true, 'Tema 1'],
         ['2026-10-28', true, 'Tema 1'], ['2026-10-29', false]]) {
         test(`el ${dia}, ${hi ? `hi és, al final (després de: ${abans})` : 'no hi és'}`, async ({ page }) => {
             await preparar(page, dia);

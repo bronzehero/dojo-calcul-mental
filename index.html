@@ -1741,10 +1741,10 @@
             const tema1Pendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= TEMA1_DES_DE && !leerTema1().pausa;
             const conTema1 = m => ({ ...m, bloques: [...m.bloques, { tipo: 'tema1' }] });
 
-            // CASTELLANO · la recuperación del control de la unidad 1 (28/10): hasta la víspera, un bloque corto después del tema 1.
+            // CASTELLANO · la recuperación del control de la unidad 1: se adelantó al 26/10, así que el último día fue el 25.
             // Como el control: no pide definiciones, da un texto o una viñeta nuevos y hay que decir qué es. Textos cortos, nuestros.
             // Los planos y los ángulos, por separado (como en el examen): plano = cuánto se ve; ángulo = desde dónde mira la cámara.
-            const CASTELLA_DES_DE = '2026-10-23', CASTELLA_FINS = '2026-10-27';
+            const CASTELLA_DES_DE = '2026-10-23', CASTELLA_FINS = '2026-10-25';
             const PROPIETATS = {
                 'Cohesión': 'Son frases sueltas, sin conectores (y, después, luego, porque). Cohesión rima con unión: une las frases.',
                 'Coherencia': 'Se va del tema: empieza hablando de una cosa y acaba hablando de otra.',

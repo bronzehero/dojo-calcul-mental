@@ -25,8 +25,8 @@ async function seguent(page, anterior) {
 const pasos = page => page.locator('#mision-pasos li').allTextContents();
 
 test.describe("Castellà per a l'examen", () => {
-    // Només del 23 al 27/10 (la vigília de l'examen és l'últim dia), després del tema 1 de mates
-    for (const [dia, hi] of [['2026-10-22', false], ['2026-10-23', true], ['2026-10-27', true], ['2026-10-28', false]]) {
+    // Només del 23 al 25/10 (l'examen es va avançar al 26), després del tema 1 de mates; el 25 el comprova catala.spec
+    for (const [dia, hi] of [['2026-10-22', false], ['2026-10-23', true], ['2026-10-24', true], ['2026-10-26', false]]) {
         test(`el ${dia}, ${hi ? 'hi és, després del tema 1' : 'no hi és'}`, async ({ page }) => {
             await preparar(page, dia);
             await expect(page.locator('#mision-titulo')).toHaveText('Entrenament');
