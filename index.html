@@ -1021,6 +1021,8 @@
         .bit small.zero { color: #cbd5e1; text-decoration: line-through; }
         /* Romanos: lo que vale cada letra, encima; las dos que se restan, juntas en una caja con la resta encima */
         .parell { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; border: 3px dashed #c4b5fd; border-radius: 12px; padding: 0.1em 0.15em; }
+        .binari .ima { font-size: 0.75em; margin-bottom: 0.15em; }
+        .binari .mes { align-self: flex-end; color: #7c3aed; font-weight: 700; font-size: 0.7em; padding-bottom: 0.15em; }
         .parell small { font-size: 0.6em; color: #7c3aed; font-weight: 700; margin-bottom: 0.2em; white-space: nowrap; }
         .tema1-btn:active { background: #fce7f3; }
         /* Castellano: el texto corto, a la izquierda y legible; la viñeta, grande */
@@ -1704,22 +1706,103 @@
                 const trossos = llocs(n).map(v => `${aRoma(v)} = ${v}`).join(' · ');
                 const resta = ROMANS.find(([, r]) => r.length === 2 && aRoma(n).includes(r));
                 const regla = resta ? ` Un símbol petit davant d'un de més gran, es resta: ${resta[1]} = ${deRoma(resta[1][1])} − ${deRoma(resta[1][0])} = ${resta[0]}.` : '';
-                return `${trossos}.${regla}`;
+                const suma = llocs(n).length > 1 ? ` En romà els valors se sumen: ${llocs(n).join(' + ')} = ${n}.` : '';
+                return `${trossos}.${regla}${suma}`;
             }
             // A sobre de cada xifra, el que val el seu lloc (des de la dreta: 1, 2, 4, 8): així ho escriu en paper amb papà
             // Sobre un 0, tachado: ese no se suma
             const htmlBinari = b => `<span class="binari">${[...b].map((x, i) => `<span class="bit"><small${x === '0' ? ' class="zero"' : ''}>${2 ** (b.length - 1 - i)}</small>${x}</span>`).join('')}</span>`;
-            // Romanos igual que el binario: lo que vale cada letra encima (CDXC: [500 − 100] [100 − 10]), y ella suma
+            // Romanos igual que el binario: lo que vale cada letra encima (CDXC: [500 − 100] [100 − 10]), y ella suma.
+            // Desde el 29/10, un «+» entre cada letra o pareja: que se vea que los valores se suman, no se ponen uno al lado del otro
             const VALOR_ROMA = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
-            function htmlRoma(r) {
+            function htmlRoma(r, ambImatge = false) {
                 const trossos = [];
+                const ima = ls => ambImatge && [...ls].every(l => ROMANS_IMATGE[l]) ? `<span class="ima">${[...ls].map(l => ROMANS_IMATGE[l]).join('')}</span>` : '';
                 for (let i = 0; i < r.length; i++) {
                     const v = VALOR_ROMA[r[i]], seg = VALOR_ROMA[r[i + 1]];
-                    if (seg > v) { trossos.push(`<span class="parell"><small>${seg} − ${v}</small>${r[i]}${r[i + 1]}</span>`); i++; }
-                    else trossos.push(`<span class="lletra bit"><small>${v}</small>${r[i]}</span>`);
+                    if (seg > v) { trossos.push(`<span class="parell">${ima(r[i] + r[i + 1])}<small>${seg} − ${v}</small>${r[i]}${r[i + 1]}</span>`); i++; }
+                    else trossos.push(`<span class="lletra bit">${ima(r[i])}<small>${v}</small>${r[i]}</span>`);
                 }
-                return `<span class="binari">${trossos.join('')}</span>`;
+                return `<span class="binari">${trossos.join('<span class="mes">+</span>')}</span>`;
             }
+            // ROMANOS PASO A PASO (desde el 29/10). Si repetir no hace avanzar, se cambia el método, no se insiste.
+            // Una escalera que empieza muy fácil, con imagen mental (I un dedo, V una mano, X dos manos):
+            // 1) el ejemplo explicado (con voz; la respuesta está en la explicación), 2) el MISMO ejemplo, ya sin explicación,
+            // 3) dos que cambian un pelín. Si las tres salen a la primera, sube un escalón; ese día prueba también el siguiente,
+            // que solo sale si el primero ha ido bien. Si un escalón no sale en 3 días, se queda «encallat» (para la hoja de papá).
+            const ROMANS_DES_DE = '2026-10-29';
+            const ROMANS_IMATGE = { I: '☝️', V: '✋', X: '🙌' };
+            const ROMANS_ESCALA = [
+                { exemple: 'VI', variacions: ['VII', 'III'],
+                  explica: 'La V és una mà oberta ✋: 5 dits. Cada I és un dit ☝️: 1. VI és la mà i un dit: 5 + 1 = 6.',
+                  veu: 'La ve és una mà oberta: cinc dits. Cada i és un dit. La ve i una i són la mà i un dit: cinc més u, sis.' },
+                { exemple: 'XI', variacions: ['XII', 'XV'],
+                  explica: 'La X són dues V, una cap amunt i una cap avall: dues mans 🙌, 10 dits. XI = 10 + 1 = 11.',
+                  veu: 'La ics són dues ves, una cap amunt i una cap avall: dues mans, deu dits. La ics i una i: deu més u, onze.' },
+                { exemple: 'XVI', variacions: ['XXV', 'XVII'],
+                  explica: 'Dues mans 🙌, una mà ✋ i un dit ☝️: 10 + 5 + 1 = 16. En romà, els valors de les lletres se sumen.',
+                  veu: 'Dues mans, una mà i un dit: deu més cinc més u, setze. En romà, els valors de les lletres se sumen.' },
+                { exemple: 'IV', variacions: ['IX', 'XIV'],
+                  explica: 'Un dit DAVANT de la mà ☝️✋ és un dit que li falta: 5 − 1 = 4. El petit davant del gran, resta.',
+                  veu: 'Un dit davant de la mà és un dit que li falta: cinc menys u, quatre. El petit davant del gran, resta.' },
+                { exemple: 'XXIX', variacions: ['XIX', 'XXIV'],
+                  explica: 'XX = 10 + 10 = 20. IX: el dit davant de les dues mans, resta: 10 − 1 = 9. 20 + 9 = 29.',
+                  veu: 'Dues ics són vint. Una i davant de la ics: el dit davant de les dues mans, resta: deu menys u, nou. Vint més nou, vint-i-nou.' },
+                { exemple: 'LX', variacions: ['LV', 'LXXX'],
+                  explica: 'La L val 50: la meitat de 100. LX = 50 + 10 = 60.',
+                  veu: 'La ela val cinquanta: la meitat de cent. La ela i la ics: cinquanta més deu, seixanta.' },
+                { exemple: 'CX', variacions: ['CL', 'CXV'],
+                  explica: 'La C és de Cent: 100. CX = 100 + 10 = 110.',
+                  veu: 'La ce és de cent: val cent. La ce i la ics: cent més deu, cent deu.' },
+                { exemple: 'XC', variacions: ['XL', 'XCV'],
+                  explica: 'La X DAVANT de la C resta, com el dit davant de la mà: 100 − 10 = 90.',
+                  veu: 'La ics davant de la ce resta, com el dit davant de la mà: cent menys deu, noranta.' },
+                { exemple: 'MD', variacions: ['DC', 'MM'],
+                  explica: 'La M és de Mil: 1000. La D val 500, la meitat. MD = 1000 + 500 = 1500.',
+                  veu: 'La ema és de mil: val mil. La de val cinc-cents, la meitat. La ema i la de: mil més cinc-cents, mil cinc-cents.' },
+                { exemple: 'CD', variacions: ['CM', 'DC'],
+                  explica: 'La C DAVANT de la D resta: 500 − 100 = 400. Darrere, suma: DC = 500 + 100 = 600.',
+                  veu: 'La ce davant de la de resta: cinc-cents menys cent, quatre-cents. Darrere, suma: la de i la ce, sis-cents.' }
+            ];
+            function leerRomans() {
+                try {
+                    const st = JSON.parse(localStorage.getItem('dojo_romans'));
+                    if (st && typeof st === 'object') return { nivell: 0, dies: [], ...st };
+                } catch (e) {}
+                return { nivell: 0, dies: [] };
+            }
+            function guardarRomans(st) {
+                try { localStorage.setItem('dojo_romans', JSON.stringify(st)); } catch (e) {}
+            }
+            // El escalón de hoy (4: ejemplo, el mismo, dos variaciones) y, detrás, el siguiente (solo si el primero sale bien)
+            function itemsRomans() {
+                const n = leerRomans().nivell;
+                if (n >= ROMANS_ESCALA.length) return shuffle(TEMA1_LLEGIR).slice(0, 3).map(r => ({ modo: 'llegir', r }));
+                const grao = (k, segon) => {
+                    const e = ROMANS_ESCALA[k];
+                    return [{ modo: 'roma-exemple', r: e.exemple, nivell: k, segon },
+                        { modo: 'roma', r: e.exemple, nivell: k, pas: 'igual', segon },
+                        ...e.variacions.map(r => ({ modo: 'roma', r, nivell: k, pas: 'variacio', segon }))];
+                };
+                return [...grao(n, false), ...(n + 1 < ROMANS_ESCALA.length ? grao(n + 1, true) : [])];
+            }
+            // Al contestar una del escalón (no el ejemplo): al tercer intento del escalón, ¿sube?
+            function anotarRoma(x, ok) {
+                if (enPrueba()) return;
+                sesion.romans = sesion.romans || {};
+                const r = sesion.romans[x.nivell] = sesion.romans[x.nivell] || [];
+                r.push(ok);
+                if (r.length < 3) return;
+                const st = leerRomans(), be = r.every(Boolean);
+                st.dies.push({ dia: hoy(), nivell: x.nivell, be });
+                if (be && st.nivell === x.nivell) st.nivell = x.nivell + 1;
+                const fallats = st.dies.filter(d => d.nivell === st.nivell && !d.be).map(d => d.dia);
+                st.encallat = new Set(fallats).size >= 3 ? st.nivell : null;
+                guardarRomans(st);
+                guardarEvento({ modulo: 'romans', item: 'estado', detalle: st });
+            }
+            // El segundo escalón del día se salta si el primero no ha salido entero a la primera
+            const saltarRoma = x => x && x.segon && (sesion.romans && (sesion.romans[x.nivell - 1] || []).some(ok => !ok));
             function explicaBinari(b) {
                 const valors = [...b].map((x, i) => (x === '1' ? 2 ** (b.length - 1 - i) : 0)).filter(Boolean);
                 const llocsB = [...b].map((x, i) => 2 ** (b.length - 1 - i)).join(' · ');
@@ -1727,6 +1810,12 @@
             }
             // Cada día: 3 para leer, 3 para escribir, 2 de binario, 2 de teoría y 2 de potencias (en este orden: así cambia de tarea pocas veces)
             function itemsTema1() {
+                // Desde el 29/10 los romanos van por la escalera (y no se eligen: escribir en romanos, después, en papel con papá)
+                if (hoy() >= ROMANS_DES_DE) {
+                    const binari = shuffle(TEMA1_BINARI).slice(0, 2).map(b => ({ modo: 'binari', b }));
+                    const teoria = shuffle(TEMA1_CONCEPTES).slice(0, 2).map(c => ({ modo: 'concepte', c }));
+                    return [...itemsRomans(), ...binari, ...teoria, { modo: 'potencia', p: shuffle(TEMA1_POTENCIES)[0] }, { modo: 'suma', p: shuffle(TEMA1_SUMES)[0] }];
+                }
                 const llegir = shuffle(TEMA1_LLEGIR).slice(0, 3).map(r => ({ modo: 'llegir', r }));
                 const escriure = shuffle(TEMA1_ESCRIURE).slice(0, 3).map(([n, altres]) => ({ modo: 'escriure', n, altres }));
                 const binari = shuffle(TEMA1_BINARI).slice(0, 2).map(b => ({ modo: 'binari', b }));
@@ -2041,6 +2130,12 @@
             ].map(w => ({ ...w, paraula: w.marca.replace(/[\[\]]/g, '') }));
             const PARAULES_DES_DE = '2026-10-18';
             const PARAULES_DIES_DOMINADA = 3, PARAULES_REPAS_CADA = 7;
+            // El control de castellano fue el 26/10: desde el 29/10 de castellano solo quedan coherencia y cohesión,
+            // para medir si funciona un método nuevo
+            const PARAULES_ES_FINS = '2026-10-28', PARAULES_ES_QUEDEN = ['es-coherencia', 'es-cohesion'];
+            const paraulaActiva = (w, d) => w.idioma !== 'es' || d <= PARAULES_ES_FINS || PARAULES_ES_QUEDEN.includes(w.id);
+            // Días con la misión corta (29/10: examen de tecno y vóley): solo las que ya ha visto, ninguna nueva
+            const PARAULES_SENSE_NOVES = ['2026-10-29'];
             const NOM_IDIOMA = { es: 'castellà', ca: 'català' };
             // Lo que dice la voz. Las de castellano llevan «[es] » delante: otra voz (y el iPad, en castellano si no hay MP3)
             const ambIdioma = (w, t) => (w.idioma === 'es' ? '[es] ' : '') + t;
@@ -2216,6 +2311,8 @@
             // Per a les proves: la paraula del dictat que hi ha a la pantalla (no es mostra enlloc)
             window.__sinDudar = sinDudar;
             window.__dictatActual = () => item && item.tipo === 'dictat' ? item.paraula : null;
+            window.__itemsRomans = () => itemsRomans();
+            window.__itemsParaules = () => itemsParaules().map(x => ({ id: x.w.id, fase: x.fase }));
             window.__paraulaActual = () => item && item.tipo === 'paraules' ? { id: item.w.id, paraula: item.paraula, fase: item.fase, etapa: item.etapa } : null;
             window.__itemsXifresProva = () => itemsXifra();
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
@@ -2223,6 +2320,7 @@
             window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
+                ROMANS_ESCALA.forEach(e => t.add(e.veu));
                 SETMANA.forEach(f => {
                     t.add(f.diccio);
                     t.add(infoSetmana(f, false).voz);
@@ -2426,11 +2524,12 @@
             function itemsParaules() {
                 const st = leerParaules(), d = hoy();
                 const e = w => st.w[w.id];
-                const vistes = PARAULES.filter(w => e(w) && e(w).intro < d);
+                const actives = PARAULES.filter(w => paraulaActiva(w, d));
+                const vistes = actives.filter(w => e(w) && e(w).intro < d);
                 const pendents = vistes.filter(w => !e(w).dominada).slice(0, 8);
                 const repas = vistes.filter(w => e(w).dominada && diesEntre(e(w).ultima, d) >= PARAULES_REPAS_CADA).slice(0, 2);
-                const quantes = pendents.length >= 8 ? 0 : pendents.length >= 5 ? 2 : 4;
-                const noves = PARAULES.filter(w => !e(w) || e(w).intro === d).slice(0, quantes);
+                const quantes = PARAULES_SENSE_NOVES.includes(d) || pendents.length >= 8 ? 0 : pendents.length >= 5 ? 2 : 4;
+                const noves = actives.filter(w => !e(w) || e(w).intro === d).slice(0, quantes);
                 const recorda = shuffle([...pendents, ...repas]);
                 let final = shuffle(noves);
                 for (let i = 0; i < 20 && noves.length > 1 && final[0] === noves[noves.length - 1]; i++) final = shuffle(noves);
@@ -2929,6 +3028,13 @@
                         return { tipo, modo: x.modo, texto: x.r, html: htmlRoma(x.r), clave: `llegir:${x.r}`, esperado: String(n), maxXifres: 4,
                             preg: 'Quin número és? Suma el que val cada lletra.', solucio: `${x.r} = ${n}`, explica: explicaRoma(n) };
                     }
+                    if (x.modo === 'roma-exemple' || x.modo === 'roma') {
+                        const n = deRoma(x.r), e = ROMANS_ESCALA[x.nivell], exemple = x.modo === 'roma-exemple';
+                        return { tipo, modo: x.modo, texto: x.r, html: htmlRoma(x.r, exemple || x.pas === 'igual'), clave: `${x.modo}:${x.r}`, esperado: String(n), maxXifres: 4,
+                            nivell: x.nivell, pas: exemple ? 'exemple' : x.pas, veu: exemple ? e.veu : null, fix: x,
+                            preg: exemple ? `${e.explica} Escriu-ho tu:` : 'Quin número és? Suma el que val cada lletra.',
+                            solucio: `${x.r} = ${n}`, explica: e.explica };
+                    }
                     if (x.modo === 'binari') {
                         const n = parseInt(x.b, 2);
                         return { tipo, modo: x.modo, texto: x.b, html: htmlBinari(x.b), clave: `binari:${x.b}`, esperado: String(n), maxXifres: 2,
@@ -2994,6 +3100,7 @@
             }
 
             function siguienteItem() {
+                if (bloqueActual().tipo === 'tema1') while (sesion.hechos < sesion.total && saltarRoma(sesion.fijos[sesion.hechos])) sesion.hechos++;
                 if (sesion.hechos >= sesion.total) {
                     if (['grafia', 'dictat'].includes(bloqueActual().tipo)) mostrarRepas();
                     else {
@@ -3021,6 +3128,7 @@
                 const preg = document.getElementById('tema1-preg');
                 preg.hidden = !ambPreg;
                 preg.textContent = ambPreg ? item.preg : '';
+                if (item.tipo === 'tema1' && item.veu) hablar(item.veu);
                 opCardEl.classList.toggle('op-tema1-clau', item.modo === 'concepte');
                 opCardEl.classList.toggle('op-cast-text', ['castella', 'catala', 'tecno'].includes(item.tipo) && !item.html);
                 opCardEl.classList.toggle('op-cast-dibuix', ['castella', 'tecno'].includes(item.tipo) && !!item.html);
@@ -3218,6 +3326,8 @@
                 const extra = {};
                 if (girada) extra.girada = true;
                 if (item.tipo === 'tema1') extra.modo = item.modo;
+                if (item.nivell !== undefined) { extra.nivell = item.nivell; extra.pas = item.pas; }
+                if (item.tipo === 'tema1' && item.modo === 'roma') anotarRoma(item.fix, ok);
                 if (item.tipo === 'pas10') {
                     extra.clase = item.clase;
                     if (item.clase === 'nou') { extra.nivel = leerFase1().pas10.nivel; extra.ayuda = item.ayuda; extra.pista = item.pista; }
@@ -3580,7 +3690,8 @@
                     return;
                 }
                 if (['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo)) {
-                    registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo });
+                    registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo, ...(item.nivell !== undefined ? { nivell: item.nivell, pas: item.pas } : {}) });
+                    if (item.tipo === 'tema1' && item.modo === 'roma') anotarRoma(item.fix, false);
                     document.getElementById('tema1-panel').hidden = true;
                     mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', item.solucio, 'Millor això que endevinar. Mira-la bé i seguim.', false);
                     mostrarPistaCorreccion();

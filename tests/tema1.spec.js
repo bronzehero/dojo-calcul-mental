@@ -80,8 +80,11 @@ test.describe('Tema 1 de mates', () => {
                     if (v[t.texto[j + 1]] > v[t.texto[j]]) { trossos.push([`${v[t.texto[j + 1]]} − ${v[t.texto[j]]}`, t.texto.slice(j, j + 2)]); j++; }
                     else trossos.push([String(v[t.texto[j]]), t.texto[j]]);
                 }
-                const caixes = page.locator('#op-factors .binari > span');
+                const caixes = page.locator('#op-factors .binari > span:not(.mes)');
                 await expect(caixes.locator('small')).toHaveText(trossos.map(([e]) => e));
+                // Entre cada lletra (o parella), un «+»: en romà els valors se sumen
+                await expect(page.locator('#op-factors .binari > .mes')).toHaveCount(trossos.length - 1);
+                if (trossos.length > 1) await expect(page.locator('#op-factors .binari > .mes').first()).toHaveText('+');
                 for (let j = 0; j < trossos.length; j++) expect((await caixes.nth(j).textContent()).slice(trossos[j][0].length)).toBe(trossos[j][1]);
             } else {
                 await expect(page.locator('#op-factors')).toHaveText(t.texto);
@@ -114,6 +117,9 @@ test.describe('Tema 1 de mates', () => {
                 await expect(page.locator('#gentle-correction-box')).toBeVisible();
                 await expect(page.locator('#correction-math-text')).toHaveText(`${t.texto} = ${t.esperado}`);
                 await expect(page.locator('#correction-pista')).toBeVisible();
+                // La solució diu que se sumen, amb la suma dels llocs (XIV: 10 + 4 = 14)
+                const n = Number(t.esperado), llocs = [1000, 100, 10, 1].map(q => Math.floor(n / q) % 10 * q).filter(Boolean);
+                if (llocs.length > 1) await expect(page.locator('#correction-pista')).toContainText(`En romà els valors se sumen: ${llocs.join(' + ')} = ${n}.`);
                 expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
                 await page.click('#btn-correction-continue');
             } else {

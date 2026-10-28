@@ -261,6 +261,35 @@ test.describe('Paraules', () => {
         expect(d.detalle.no_lo_se).toBe(true);
     });
 
+    test('des del 29/10, de castellà només coherencia i cohesión; el 29/10 cap de nova, el 30/10 noves però només en català', async ({ page }) => {
+        const vista = { intro: '2026-10-22', dies: [], racha: 0, dominada: null, ultima: '2026-10-28' };
+        const paraules = {
+            fet: '2026-10-28',
+            w: {
+                'es-coherencia': vista, 'es-cohesion': vista, 'es-hicimos': vista, 'es-busque': vista, 'es-fotografias': vista,
+                'ca-perque': { ...vista, intro: '2026-10-27' }, 'ca-tambe': { ...vista, intro: '2026-10-27' }
+            }
+        };
+        const items = async (dia) => {
+            const pg = await page.context().newPage();
+            await preparar(pg, dia, { paraules });
+            const llista = await pg.evaluate(() => window.__itemsParaules ? window.__itemsParaules() : null);
+            await pg.close();
+            return llista;
+        };
+        const dijous = await items('2026-10-29');
+        expect(dijous.map(x => x.fase).every(f => f === 'recorda')).toBe(true);
+        expect(dijous.map(x => x.id).sort()).toEqual(['ca-perque', 'ca-tambe', 'es-coherencia', 'es-cohesion']);
+        const divendres = await items('2026-10-30');
+        expect(divendres.filter(x => x.fase === 'recorda').map(x => x.id).sort()).toEqual(['ca-perque', 'ca-tambe', 'es-coherencia', 'es-cohesion']);
+        const noves = divendres.filter(x => x.fase === 'nova').map(x => x.id);
+        expect(noves).toHaveLength(4);
+        expect(noves.every(id => id.startsWith('ca-'))).toBe(true);
+        // El 28/10 i abans, igual que sempre: hi són totes les de castellà
+        const dimecres = await items('2026-10-28');
+        expect(dimecres.filter(x => x.fase === 'recorda').map(x => x.id)).toContain('es-hicimos');
+    });
+
     test('en pausa (o abans del 18/10) no surten', async ({ page }) => {
         await preparar(page, '2026-10-19', { paraules: { pausa: true, w: {} } });
         await expect(page.locator('#mision-pasos li')).not.toContainText(['🔤 Paraules']);
