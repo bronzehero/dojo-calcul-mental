@@ -1530,6 +1530,7 @@
                 grafia:  { nombre: 'Examen de català', icono: '📝', instr: '', ejemplo: '', paso: () => 'Lletres' },
                 pas10:   { nombre: 'Passar pel 10', icono: '🔟', instr: "Restes que passen pel 10. Truc: primer salta fins al 10, després fins al número gran, i suma els dos salts. Compte: també hi ha sumes, barrejades amb les restes. Mira bé el signe abans de contestar. Pots comptar amb els dits i dir-ho fluixet: ajuda molt. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ de 8 a 10, 2 · de 10 a 13, 3 · en total, 5', paso: () => 'Passar pel 10' },
                 control: { nombre: 'Missió de repàs', icono: '🧭', instr: "Una barreja de restes, sumes i multiplicacions, sense ajudes. Mira bé el signe de cada una abans de contestar. Pots comptar amb els dits i dir-ho fluixet: ajuda molt. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ escrius 5', paso: () => 'Restes, sumes i multiplicacions' },
+                accent:  { nombre: 'Accents en castellà', icono: '🎧', instr: "Paraules en castellà. Sentiràs la paraula, una frase i la paraula una altra vegada. Escriu-la amb els accents que calguin. Si alguna no surt, la llegiràs fluixet tal com l'has escrita i l'arreglaràs.", ejemplo: 'Sents «mesa. La mesa es grande. mesa.» ➜ escrius mesa', paso: () => 'Accents en castellà' },
                 dictat:  { nombre: 'Dictat', icono: '✍️', instr: "Sentiràs una paraula, després una frase amb aquesta paraula, i la paraula una altra vegada. Escriu només la paraula, com creguis que s'escriu. La pots tornar a escoltar tants cops com vulguis. Si no la saps, no passa res: al final del dictat veuràs com s'escriuen.", ejemplo: 'Sents «casa. La meva casa és gran. casa.» ➜ escrius casa', paso: () => 'Dictat' },
                 xifra:   { nombre: 'Quin està ben escrit?', icono: '🔍', instr: "Ara, una prova curta i diferent: no hi ha comptes. Sentiràs un número i en veuràs dos. Un està ben escrit. L'altre està girat, com si el veiessis en un mirall, o és un altre número. Toca el que està ben escrit. Mira'ls bé, sense pressa. Si dubtes, tria el que et sembli: no passa res.", ejemplo: 'Sents «Toca el tres» ➜ toques el 3 ben escrit', paso: () => 'Quin està ben escrit?' },
                 sentir:  { nombre: 'Quin número és?', icono: '👂', instr: "Ara sentiràs un número de dues xifres i en veuràs quatre que s'assemblen molt. Toca el que has sentit. Mira'ls xifra per xifra, sense pressa. El pots tornar a escoltar tantes vegades com vulguis.", ejemplo: 'Sents «trenta-sis» ➜ toques el 36', paso: () => 'Quin número és?' },
@@ -1616,6 +1617,34 @@
             const DICTAT_DES_DE = '2026-10-16'; // surt sol a partir d'aquest dia, fins que el faci
             const veuDictat = ([paraula, frase]) => `${paraula}. ${frase} ${paraula}.`;
             const paraulesBloc = bloc => DICTAT_PARAULES.slice(bloc * DICTAT_PER_BLOC, (bloc + 1) * DICTAT_PER_BLOC);
+
+            // ACCENTS EN CASTELLÀ (prova del 29/10 al 5/11): ¿se acuerda de que las que acaban en -ón llevan acento
+            // (corazón, camión, canción), sin ponerlo en las que no lo llevan? Dictado sin ver la palabra antes, en castellano.
+            // Cada día 8 en -ón (siempre las 3 primeras y 5 más) mezcladas con 4 sin acento
+            // (llanas en -en y plurales en -ones). El primer intento es el que mide. Si no sale: leerla flojito tal como la ha
+            // escrito, la que lleva acento más fuerte y más larga, y arreglarla; si tampoco, la buena con la regla.
+            const ACCENT_DES_DE = '2026-10-29', ACCENT_FINS = '2026-11-05';
+            const ACCENT_ON_SEMPRE = [['información', 'Busco información en internet.'], ['asociación', 'Es una asociación de vecinos.'], ['cohesión', 'El texto tiene cohesión.']];
+            const ACCENT_ON = [['introducción', 'Lee la introducción del texto.'], ['conclusión', 'Escribe una conclusión.'], ['excursión', 'Mañana vamos de excursión.'],
+                ['canción', 'Me gusta esta canción.'], ['opinión', 'Di tu opinión.'], ['explicación', 'La profe da una explicación.'],
+                ['atención', 'Presta atención en clase.'], ['televisión', 'Miro la televisión.'], ['situación', 'Es una situación difícil.']];
+            const ACCENT_NO = [['examen', 'Mañana tengo examen.'], ['resumen', 'Haz un resumen del tema.'], ['imagen', 'Mira esta imagen.'],
+                ['joven', 'Mi prima es muy joven.'], ['canciones', 'Me gustan estas canciones.'], ['opiniones', 'Hay muchas opiniones.']];
+            const veuAccent = ([paraula, frase]) => `[es] ${paraula}. ${frase} ${paraula}.`;
+            const ACCENT_LLEGEIX = "Llegeix-la fluixet, tal com l'has escrita, lletra per lletra. La que porta accent, més forta i més llarga. I arregla-la.";
+            function itemsAccent() {
+                const on = [...ACCENT_ON_SEMPRE, ...shuffle(ACCENT_ON).slice(0, 5)];
+                return shuffle([...on, ...shuffle(ACCENT_NO).slice(0, 4)]).map(([paraula, frase]) => ({ paraula, frase }));
+            }
+            const accentBe = (it, r) => it.ambAccent ? r.endsWith('ón') : !/[áéíóú]/.test(r);
+            function reglaAccent(it, r) {
+                if (accentBe(it, r)) return "L'accent està bé: mira les lletres.";
+                if (it.ambAccent) return 'Acaba en -ón: porta accent a la ó, com corazón, camión, canción.';
+                if (it.paraula.endsWith('ones')) return 'Acaba en -ones: sense accent (canción → canciones).';
+                return 'Acaba en -en, no en -ón: sense accent.';
+            }
+            const accentPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= ACCENT_DES_DE && hoy() <= ACCENT_FINS;
+            const conAccent = m => ({ ...m, bloques: [...m.bloques, { tipo: 'accent' }] });
 
             // Xifres: ¿reconoce las cifras en espejo o giradas (6/9, 2/5) y los números de dos cifras que se le parecen?
             // Sin corrección ni nada en pantalla de aciertos: se apunta qué toca y cuánto tarda (si duda).
@@ -2312,6 +2341,8 @@
             window.__sinDudar = sinDudar;
             window.__dictatActual = () => item && item.tipo === 'dictat' ? item.paraula : null;
             window.__itemsRomans = () => itemsRomans();
+            window.__accentActual = () => item && item.tipo === 'accent' ? { paraula: item.paraula, intent: item.intent, ambAccent: item.ambAccent } : null;
+            window.__itemsAccent = () => itemsAccent();
             window.__itemsParaules = () => itemsParaules().map(x => ({ id: x.w.id, fase: x.fase }));
             window.__paraulaActual = () => item && item.tipo === 'paraules' ? { id: item.w.id, paraula: item.paraula, fase: item.fase, etapa: item.etapa } : null;
             window.__itemsXifresProva = () => itemsXifra();
@@ -2321,6 +2352,8 @@
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 ROMANS_ESCALA.forEach(e => t.add(e.veu));
+                [...ACCENT_ON_SEMPRE, ...ACCENT_ON, ...ACCENT_NO].forEach(x => t.add(veuAccent(x)));
+                t.add(ACCENT_LLEGEIX);
                 SETMANA.forEach(f => {
                     t.add(f.diccio);
                     t.add(infoSetmana(f, false).voz);
@@ -2356,6 +2389,11 @@
                         SETMANA.forEach(f => t.add(fraseMision(ambX(ambP(conTecno(ambT(ENTRENAMENT)))), f)));
                         t.add(fraseMision(ambX(ambP(conTecno(ambT(CONTROL))))));
                     });
+                }));
+                // Del 29/10 al 5/11, els accents després del tema 1 (amb o sense paraules, amb o sense xifres)
+                [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
+                    SETMANA.forEach(f => t.add(fraseMision(ambX(ambP(conAccent(conTema1(ENTRENAMENT)))), f)));
+                    t.add(fraseMision(ambX(ambP(conAccent(conTema1(CONTROL))))));
                 }));
                 t.add(CATALA_VEU_FULL);
                 t.add(CATALA_VEU_PAPA);
@@ -2553,6 +2591,7 @@
                 if (castellaPendent(m)) t = conCastella(t);
                 if (catalaPendent(m)) t = conCatala(t);
                 if (tecnoPendent(m)) t = conTecno(t);
+                if (accentPendent(m)) t = conAccent(t);
                 return paraulesPendents(m) ? conParaules(t) : t;
             };
 
@@ -2749,6 +2788,8 @@
                     sesion.fijos = itemsParaules();
                 } else if (b.tipo === 'tema1') {
                     sesion.fijos = itemsTema1();
+                } else if (b.tipo === 'accent') {
+                    sesion.fijos = itemsAccent();
                 } else if (b.tipo === 'castella') {
                     sesion.fijos = itemsCastella();
                 } else if (b.tipo === 'catala') {
@@ -2768,7 +2809,7 @@
                     document.getElementById('grafia-panel').classList.add(`bloc-${e.color}`);
                     document.getElementById('grafia-botones').innerHTML = e.opciones.map(o => `<button class="grafia-btn" data-lletra="${o}">${o}</button>`).join('');
                 }
-                screens.game.classList.toggle('dictat', ['dictat', 'paraules'].includes(b.tipo));
+                screens.game.classList.toggle('dictat', ['dictat', 'paraules', 'accent'].includes(b.tipo));
                 showScreen('game');
                 siguienteItem();
             }
@@ -2950,6 +2991,11 @@
 
             function crearItem() {
                 const tipo = bloqueActual().tipo;
+                if (tipo === 'accent') {
+                    const x = sesion.fijos[sesion.hechos];
+                    return { tipo, paraula: x.paraula, frase: x.frase, texto: x.paraula, clave: `accent:${x.paraula}`, esperado: x.paraula,
+                        ambAccent: x.paraula.endsWith('ón'), intent: 1, escoltat: 0 };
+                }
                 if (tipo === 'teclear') {
                     const n = Math.random() < 0.2 ? 1 + Math.floor(Math.random() * 9) : 10 + Math.floor(Math.random() * 90);
                     return { tipo, texto: String(n), clave: String(n), esperado: String(n) };
@@ -3121,7 +3167,7 @@
                 opFactorsEl.innerHTML = item.html || htmlOperacion(item.texto);
                 marcarCanviDeSigne();
                 opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
-                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir', 'paraules'].includes(item.tipo) || ambOpcions;
+                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir', 'paraules', 'accent'].includes(item.tipo) || ambOpcions;
                 opAnswerEl.hidden = !numerico;
                 opCardEl.classList.toggle('op-largo', item.tipo === 'vf' || item.tipo === 'tema1');
                 // Tema 1 y castellano: la pregunta, pequeña, arriba; lo que hay que mirar (el número, la palabra clave, el texto, la viñeta), grande
@@ -3140,7 +3186,7 @@
                 opCardEl.classList.toggle('op-frase', item.tipo === 'grafia');
                 if (item.tipo === 'grafia') opFactorsEl.innerHTML = htmlFrase(item);
                 document.getElementById('grafia-panel').hidden = item.tipo !== 'grafia';
-                document.getElementById('dictat-panel').hidden = item.tipo !== 'dictat';
+                document.getElementById('dictat-panel').hidden = !['dictat', 'accent'].includes(item.tipo);
                 document.getElementById('paraules-panel').hidden = true;
                 const ambXifres = ['xifra', 'sentir'].includes(item.tipo);
                 document.getElementById('xifres-panel').hidden = !ambXifres;
@@ -3152,6 +3198,11 @@
                     op.classList.toggle('quatre', item.opcions.length === 4);
                     op.innerHTML = item.opcions.map(o => `<button class="xifra-btn" data-xifra="${escaparHtml(o.codi)}">${o.html}</button>`).join('');
                     hablar(item.veu);
+                }
+                if (item.tipo === 'accent') {
+                    opFactorsEl.textContent = '🎧 castellà';
+                    pintarDictat();
+                    hablar(veuAccent([item.paraula, item.frase]));
                 }
                 if (item.tipo === 'dictat') {
                     opFactorsEl.textContent = `🎧 ${sesion.hechos + 1}`;
@@ -3513,11 +3564,11 @@
 
             function teclaDictat(k) {
                 if (isEvaluating || !item) return;
-                const escrivint = item.tipo === 'dictat' || (item.tipo === 'paraules' && ['escriu', 'familia'].includes(item.etapa));
+                const escrivint = ['dictat', 'accent'].includes(item.tipo) || (item.tipo === 'paraules' && ['escriu', 'familia'].includes(item.etapa));
                 if (!escrivint) return;
                 teclas.push([Math.round(performance.now() - tInicio), k]);
                 if (k === 'back') currentInput = currentInput.slice(0, -1);
-                else if (k === 'enter') return item.tipo === 'paraules' ? evaluarParaula(currentInput.trim()) : evaluarDictat();
+                else if (k === 'enter') return item.tipo === 'paraules' ? evaluarParaula(currentInput.trim()) : item.tipo === 'accent' ? evaluarAccent() : evaluarDictat();
                 else if (k === ' ') { if (currentInput && !currentInput.endsWith(' ')) currentInput += ' '; }
                 else if (currentInput.length < 24) currentInput += k;
                 pintarDictat();
@@ -3532,6 +3583,34 @@
                 registrar(item, resposta, resposta === item.esperado, ms, { bloc: bloqueActual().bloc, escoltat: item.escoltat });
                 callarVeu();
                 setTimeout(siguienteItem, 350);
+            }
+
+            // Accents: el primer intento mide; si no sale, la lee tal como la ha escrito y la arregla; si tampoco, la buena y la regla
+            function evaluarAccent() {
+                const resposta = currentInput.trim();
+                if (isEvaluating || !resposta) return;
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                const ok = resposta === item.esperado;
+                registrar(item, resposta, ok, ms, { intent: item.intent, amb_accent: item.ambAccent, accent_ok: accentBe(item, resposta), escoltat: item.escoltat });
+                callarVeu();
+                if (ok) return celebrar();
+                if (item.intent === 1) {
+                    sesion.hechos--;
+                    item.intent = 2;
+                    opFeedbackEl.innerHTML = `<div id="accent-llegeix" class="correction-pista">🔍 ${escaparHtml(ACCENT_LLEGEIX)}</div>`;
+                    hablar(ACCENT_LLEGEIX);
+                    teclas = [];
+                    tInicio = performance.now();
+                    isEvaluating = false;
+                    return;
+                }
+                document.getElementById('dictat-panel').hidden = true;
+                opFeedbackEl.innerHTML = '';
+                mostrarCorreccion('🌸 Gairebé! Fixa-t\'hi:', item.esperado, `Tu has posat: ${resposta}`, false);
+                const pista = document.getElementById('correction-pista');
+                pista.textContent = reglaAccent(item, resposta);
+                pista.hidden = false;
             }
 
             // PARAULES: mirar (las nuevas) → escribir de memoria → si no sale, mirarla otra vez y volver a escribirla (hasta 3 veces)
@@ -4857,9 +4936,9 @@
                 if (btn && btn.dataset.tecla) teclaDictat(btn.dataset.tecla);
             });
             document.getElementById('btn-escoltar-dictat').addEventListener('click', () => {
-                if (!item || !['dictat', 'paraules'].includes(item.tipo) || isEvaluating) return;
+                if (!item || !['dictat', 'paraules', 'accent'].includes(item.tipo) || isEvaluating) return;
                 item.escoltat++;
-                hablar(item.tipo !== 'paraules' ? veuDictat([item.paraula, item.frase]) : item.etapa === 'familia' ? veuFamilia(item.w) : veuDicta(item.w));
+                hablar(item.tipo === 'accent' ? veuAccent([item.paraula, item.frase]) : item.tipo !== 'paraules' ? veuDictat([item.paraula, item.frase]) : item.etapa === 'familia' ? veuFamilia(item.w) : veuDicta(item.w));
             });
             document.getElementById('btn-paraula-seguir').addEventListener('click', seguirParaula);
             document.getElementById('btn-escoltar-paraula').addEventListener('click', () => {
