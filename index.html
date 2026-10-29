@@ -1016,6 +1016,11 @@
         /* Binari: el valor de cada lloc (8 · 4 · 2 · 1) a sobre de cada xifra, com ho fa en paper */
         .binari { display: inline-flex; gap: 0.3em; align-items: flex-end; }
         .bit { display: inline-flex; flex-direction: column; align-items: center; line-height: 1; }
+        /* Arrels: el número fet quadrat (com les rajoles del dosier); l'arrel és el costat */
+        .arrel-q { display: inline-flex; align-items: center; gap: 0.4em; }
+        .quadrat { display: inline-grid; grid-template-columns: repeat(var(--n), 1fr); gap: 2px; width: 2.4em; }
+        .quadrat i { display: block; aspect-ratio: 1; background: #c4b5fd; border-radius: 2px; }
+        .quadrat i.costat { background: #7c3aed; }
         .bit small { font-size: 0.6em; color: #7c3aed; font-weight: 700; margin-bottom: 0.2em; }
         /* El valor sobre un 0 no se suma: tachado y en gris, como cuando lo tacha en el papel (24/10: sumaba todos, 1001 → 15) */
         .bit small.zero { color: #cbd5e1; text-decoration: line-through; }
@@ -1711,6 +1716,14 @@
             ];
             const sensePot = h => h.replace(/<sup>(\d+)<\/sup>/g, (_, e) => [...e].map(d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]).join(''));
             const TEMA1_BINARI = ['101', '110', '1010', '1101', '111', '1001', '1100', '1111'];
+            // Arrels (dosier 1.7; des del 30/10): dues cada dia, la primera amb el quadrat dibuixat i el costat marcat, la segona sense
+            const ARRELS_DES_DE = '2026-10-30';
+            const TEMA1_ARRELS = [2, 3, 4, 5, 6, 7, 8, 9, 10];
+            function htmlArrel(n, ambQuadrat) {
+                if (!ambQuadrat) return `√${n * n}`;
+                const cel = [...Array(n * n)].map((_, i) => `<i${i >= n * (n - 1) ? ' class="costat"' : ''}></i>`).join('');
+                return `<span class="arrel-q">√${n * n}<span class="quadrat" style="--n:${n}">${cel}</span></span>`;
+            }
             const TEMA1_CONCEPTES = [
                 { clau: 'ADDITIU', preg: 'Un sistema de numeració additiu vol dir…', bona: "Que se sumen els valors dels símbols. L'ordre no importa.",
                   altra: 'Que el valor de cada xifra depèn del lloc on és.', explica: "Com els egipcis: si canvies l'ordre dels dibuixos, és el mateix número." },
@@ -1850,7 +1863,10 @@
                 if (hoy() >= ROMANS_DES_DE) {
                     const binari = shuffle(TEMA1_BINARI).slice(0, 2).map(b => ({ modo: 'binari', b }));
                     const teoria = shuffle(TEMA1_CONCEPTES).slice(0, 2).map(c => ({ modo: 'concepte', c }));
-                    return [...itemsRomans(), ...binari, ...teoria, { modo: 'potencia', p: shuffle(TEMA1_POTENCIES)[0] }, { modo: 'suma', p: shuffle(TEMA1_SUMES)[0] }];
+                    const potencia = { modo: 'potencia', p: shuffle(TEMA1_POTENCIES)[0] }, suma = { modo: 'suma', p: shuffle(TEMA1_SUMES)[0] };
+                    if (hoy() < ARRELS_DES_DE) return [...itemsRomans(), ...binari, ...teoria, potencia, suma];
+                    const [a, b] = shuffle(TEMA1_ARRELS);
+                    return [...itemsRomans(), ...binari, teoria[0], { modo: 'arrel', n: a, quadrat: true }, { modo: 'arrel', n: b }, potencia, suma];
                 }
                 const llegir = shuffle(TEMA1_LLEGIR).slice(0, 3).map(r => ({ modo: 'llegir', r }));
                 const escriure = shuffle(TEMA1_ESCRIURE).slice(0, 3).map(([n, altres]) => ({ modo: 'escriure', n, altres }));
@@ -2348,6 +2364,7 @@
             window.__sinDudar = sinDudar;
             window.__dictatActual = () => item && item.tipo === 'dictat' ? item.paraula : null;
             window.__itemsRomans = () => itemsRomans();
+            window.__itemsTema1 = () => itemsTema1();
             window.__accentActual = () => item && item.tipo === 'accent' ? { paraula: item.paraula, intent: item.intent, ambAccent: item.ambAccent } : null;
             window.__itemsAccent = () => itemsAccent();
             window.__itemsParaules = () => itemsParaules().map(x => ({ id: x.w.id, fase: x.fase }));
@@ -3099,6 +3116,13 @@
                             preg: 'Com s\'escriu en nombres romans?', opcions: shuffle([bona, ...x.altres]),
                             solucio: `${x.n} = ${bona}`, explica: explicaRoma(x.n) };
                     }
+                    if (x.modo === 'arrel') {
+                        const q = x.n * x.n;
+                        return { tipo, modo: x.modo, texto: `√${q}`, html: htmlArrel(x.n, x.quadrat), clave: `arrel:${q}`, esperado: String(x.n), maxXifres: 2,
+                            quadrat: !!x.quadrat,
+                            preg: `Arrel quadrada: quin número, multiplicat per ell mateix, dona ${q}?${x.quadrat ? ' És el costat del quadrat.' : ''}`,
+                            solucio: `√${q} = ${x.n}`, explica: `${x.n} · ${x.n} = ${q}. L'arrel quadrada és el costat del quadrat: ${q} quadradets fan un quadrat de ${x.n} de costat.` };
+                    }
                     if (x.modo === 'potencia') {
                         const [h, base, exp, explica] = x.p;
                         return { tipo, modo: x.modo, texto: sensePot(h), html: `${h} = ${base}<sup>?</sup>`, clave: `potencia:${sensePot(h)}`, esperado: String(exp), maxXifres: 2,
@@ -3385,6 +3409,7 @@
                 if (girada) extra.girada = true;
                 if (item.tipo === 'tema1') extra.modo = item.modo;
                 if (item.nivell !== undefined) { extra.nivell = item.nivell; extra.pas = item.pas; }
+                if (item.modo === 'arrel') extra.quadrat = item.quadrat;
                 if (item.tipo === 'tema1' && item.modo === 'roma') anotarRoma(item.fix, ok);
                 if (item.tipo === 'pas10') {
                     extra.clase = item.clase;

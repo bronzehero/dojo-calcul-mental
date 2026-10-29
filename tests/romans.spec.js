@@ -122,3 +122,41 @@ test.describe('Romans pas a pas', () => {
         expect(escala[10].map(x => x.modo)).toEqual(['llegir', 'llegir', 'llegir']);
     });
 });
+
+test.describe('Arrels (des del 30/10)', () => {
+    test("el 30/10, dues: la primera amb el quadrat i el costat marcat, la segona sense; es guarden", async ({ page }) => {
+        const envios = await preparar(page, '2026-10-30');
+        expect((await page.evaluate(() => window.__itemsTema1())).map(x => x.modo)).toEqual(expect.arrayContaining(['arrel', 'arrel']));
+        let { seguent: t } = await contestarRomans(page);
+        const vistes = [];
+        while (t && t.modo !== 'potencia') {
+            if (t.modo === 'arrel') {
+                const n = Number(t.esperado), q = Number(t.texto.slice(1));
+                expect(n * n).toBe(q);
+                const primera = vistes.length === 0;
+                await expect(page.locator('#op-factors .quadrat i')).toHaveCount(primera ? q : 0);
+                if (primera) await expect(page.locator('#op-factors .quadrat i.costat')).toHaveCount(n);
+                await expect(page.locator('#tema1-preg')).toContainText(`dona ${q}`);
+                vistes.push(n);
+                if (vistes.length === 1) await teclear(page, n);
+                else {
+                    await teclear(page, n + 1);
+                    await expect(page.locator('#correction-pista')).toContainText(`${n} · ${n} = ${q}`);
+                    expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
+                    await page.click('#btn-correction-continue');
+                }
+            } else if (t.opcions) await page.click(`#tema1-opcions [data-opcio="${t.esperado}"]`);
+            else await teclear(page, t.esperado);
+            t = await seguent(page, JSON.stringify(t));
+        }
+        expect(vistes).toHaveLength(2);
+        expect(vistes[0]).not.toBe(vistes[1]);
+        const dades = envios.filter(e => e.datos.modulo === 'tema1' && e.datos.detalle.modo === 'arrel').map(e => [e.datos.correcta, e.datos.detalle.quadrat]);
+        expect(dades).toEqual([[true, true], [false, false]]);
+    });
+
+    test("el 29/10, encara no", async ({ page }) => {
+        await preparar(page, '2026-10-29');
+        expect((await page.evaluate(() => window.__itemsTema1())).map(x => x.modo)).not.toContain('arrel');
+    });
+});
