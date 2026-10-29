@@ -45,6 +45,12 @@ async function simularSupabase(page, opciones = {}) {
             if (!localStorage.getItem('dojo_tecno')) localStorage.setItem('dojo_tecno', JSON.stringify({ pausa: true }));
         });
     }
+    // Y con los acentos en castellano (del 29/10 al 5/11)
+    if (!opciones.accent) {
+        await page.addInitScript(() => {
+            if (!localStorage.getItem('dojo_accent')) localStorage.setItem('dojo_accent', JSON.stringify({ pausa: true }));
+        });
+    }
     await page.route('**/*.supabase.co/**', async (ruta) => {
         const req = ruta.request();
         const tabla = new URL(req.url()).pathname.split('/rest/v1/')[1] || '';

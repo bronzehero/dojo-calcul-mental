@@ -8,7 +8,7 @@ const PLAN_ACABAT = [1, 2, 3, 4, 5, 6].map(id => ({ id, fecha: '2026-01-01' })).
 const EXTRES_FETES = [{ id: 102, fecha: '2026-10-16' }, { id: 103, fecha: '2026-10-17' }];
 
 async function preparar(page, dia, plan = {}) {
-    const { envios } = await simularSupabase(page, { tema1: true, paraules: true });
+    const { envios } = await simularSupabase(page, { tema1: true, paraules: true, accent: true });
     await page.clock.setFixedTime(new Date(`${dia}T17:00:00`));
     await page.addInitScript(p => {
         if (sessionStorage.getItem('plan-preparado')) return;

@@ -1647,7 +1647,10 @@
                 if (it.paraula.endsWith('ones')) return 'Acaba en -ones: sense accent (canción → canciones).';
                 return 'Acaba en -en, no en -ón: sense accent.';
             }
-            const accentPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= ACCENT_DES_DE && hoy() <= ACCENT_FINS;
+            function leerAccent() {
+                try { return JSON.parse(localStorage.getItem('dojo_accent')) || {}; } catch (e) { return {}; }
+            }
+            const accentPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= ACCENT_DES_DE && hoy() <= ACCENT_FINS && !leerAccent().pausa;
             const conAccent = m => ({ ...m, bloques: [...m.bloques, { tipo: 'accent' }] });
 
             // Xifres: ¿reconoce las cifras en espejo o giradas (6/9, 2/5) y los números de dos cifras que se le parecen?
