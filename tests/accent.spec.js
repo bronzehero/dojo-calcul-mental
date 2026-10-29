@@ -71,6 +71,7 @@ test.describe('Accents en castellà', () => {
         await escriure(page, dolenta);
         await page.click('#btn-dictat-fet');
         await expect(page.locator('#accent-llegeix')).toContainText('tal com l\'has escrita');
+        await expect(page.locator('#accent-llegeix')).toContainText("Si acaba en -on, l'accent va a sobre de la o: -ón.");
         await expect(page.locator('#dictat-escrit')).toHaveText(dolenta);
         expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
         for (let i = 0; i < dolenta.length; i++) await page.click('#teclat-lletres [data-tecla="back"]');
@@ -94,5 +95,28 @@ test.describe('Accents en castellà', () => {
             [1, true, true], [1, false, false], [2, true, true], [1, false, false], [2, false, false]
         ]);
         expect(dades.every(d => typeof d.detalle.amb_accent === 'boolean')).toBe(true);
+    });
+
+    test("si l'accent és a la i (-íon), la regla diu que va a la o", async ({ page }) => {
+        await preparar(page, '2026-10-29', { enCurso: { id: 10, bloque: 3, fecha: '2026-10-29' } });
+        await page.click('#btn-start-game');
+        await page.click('#btn-intro-vamos');
+        let a = await seguent(page, 'null');
+        while (!a.ambAccent) {
+            await escriure(page, a.paraula);
+            await page.click('#btn-dictat-fet');
+            a = await seguent(page, JSON.stringify(a));
+        }
+        const dolenta = a.paraula.replace(/ión$/, 'íon').replace(/([^i])ón$/, '$1on');
+        for (let i = 0; i < 2; i++) {
+            await escriure(page, dolenta);
+            await page.click('#btn-dictat-fet');
+            if (i === 0) {
+                await expect(page.locator('#accent-llegeix')).toBeVisible();
+                for (let j = 0; j < dolenta.length; j++) await page.click('#teclat-lletres [data-tecla="back"]');
+            }
+        }
+        await expect(page.locator('#gentle-correction-box')).toBeVisible();
+        await expect(page.locator('#correction-pista')).toHaveText(dolenta.includes('í') ? "Acaba en -ón: l'accent va a sobre de la o, no de la i: -ón." : /Acaba en -ón: porta accent/);
     });
 });

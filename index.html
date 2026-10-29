@@ -1632,6 +1632,9 @@
                 ['joven', 'Mi prima es muy joven.'], ['canciones', 'Me gustan estas canciones.'], ['opiniones', 'Hay muchas opiniones.']];
             const veuAccent = ([paraula, frase]) => `[es] ${paraula}. ${frase} ${paraula}.`;
             const ACCENT_LLEGEIX = "Llegeix-la fluixet, tal com l'has escrita, lletra per lletra. La que porta accent, més forta i més llarga. I arregla-la.";
+            // Des del 30/10: al 2n intent posaven l'accent a la i (-íon); la pista diu també on va (sense dir si en porta)
+            const ACCENT_ON_O = 'Si acaba en -on, l\'accent va a sobre de la o: -ón.';
+            const ACCENT_LLEGEIX_VEU = `${ACCENT_LLEGEIX} Si acaba en on, l'accent va a sobre de la o.`;
             function itemsAccent() {
                 const on = [...ACCENT_ON_SEMPRE, ...shuffle(ACCENT_ON).slice(0, 5)];
                 return shuffle([...on, ...shuffle(ACCENT_NO).slice(0, 4)]).map(([paraula, frase]) => ({ paraula, frase }));
@@ -1639,6 +1642,7 @@
             const accentBe = (it, r) => it.ambAccent ? r.endsWith('ón') : !/[áéíóú]/.test(r);
             function reglaAccent(it, r) {
                 if (accentBe(it, r)) return "L'accent està bé: mira les lletres.";
+                if (it.ambAccent && /[áéíú]/.test(r)) return "Acaba en -ón: l'accent va a sobre de la o, no de la " + r.match(/[áéíú]/)[0].normalize('NFD')[0] + ': -ón.';
                 if (it.ambAccent) return 'Acaba en -ón: porta accent a la ó, com corazón, camión, canción.';
                 if (it.paraula.endsWith('ones')) return 'Acaba en -ones: sense accent (canción → canciones).';
                 return 'Acaba en -en, no en -ón: sense accent.';
@@ -2353,7 +2357,7 @@
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 ROMANS_ESCALA.forEach(e => t.add(e.veu));
                 [...ACCENT_ON_SEMPRE, ...ACCENT_ON, ...ACCENT_NO].forEach(x => t.add(veuAccent(x)));
-                t.add(ACCENT_LLEGEIX);
+                t.add(ACCENT_LLEGEIX_VEU);
                 SETMANA.forEach(f => {
                     t.add(f.diccio);
                     t.add(infoSetmana(f, false).voz);
@@ -3598,8 +3602,8 @@
                 if (item.intent === 1) {
                     sesion.hechos--;
                     item.intent = 2;
-                    opFeedbackEl.innerHTML = `<div id="accent-llegeix" class="correction-pista">🔍 ${escaparHtml(ACCENT_LLEGEIX)}</div>`;
-                    hablar(ACCENT_LLEGEIX);
+                    opFeedbackEl.innerHTML = `<div id="accent-llegeix" class="correction-pista">🔍 ${escaparHtml(ACCENT_LLEGEIX)}<br>👒 ${escaparHtml(ACCENT_ON_O)}</div>`;
+                    hablar(ACCENT_LLEGEIX_VEU);
                     teclas = [];
                     tInicio = performance.now();
                     isEvaluating = false;
