@@ -1514,6 +1514,11 @@
                 { ayuda: 'pista', restan: [9, 8, 7, 6] },
                 { ayuda: 'cap', restan: [9, 8, 7, 6, 5] }
             ];
+            // Del 27 al 30/10, casi todas las nuevas con «No ho sé» en 2 s: cree que tiene que salirle de cabeza.
+            // Con los dedos y en voz baja no fallaba (17/10): se le recuerda en cada nueva y, si dice «No ho sé»,
+            // lo vuelve a probar así. Si le sale al segundo intento, está bien, pero para subir de nivel no cuenta.
+            const PAS10_DITS = 'Compta-ho amb els dits, en veu baixa.';
+            const PAS10_DITS_REPROVA = 'Prova-ho amb els dits, comptant fluixet. Al teu ritme.';
             // 4 nuevas entre 6 que ya sabe (las piezas del truco: hacer 10, 10 + n, 10 − n)
             const PAS10_ORDEN = ['c', 'n', 'c', 'c', 'n', 'c', 'n', 'c', 'c', 'n'];
 
@@ -2378,6 +2383,8 @@
                 ROMANS_ESCALA.forEach(e => t.add(e.veu));
                 [...ACCENT_ON_SEMPRE, ...ACCENT_ON, ...ACCENT_NO].forEach(x => t.add(veuAccent(x)));
                 t.add(ACCENT_LLEGEIX_VEU);
+                t.add(PAS10_DITS);
+                t.add(PAS10_DITS_REPROVA);
                 SETMANA.forEach(f => {
                     t.add(f.diccio);
                     t.add(infoSetmana(f, false).voz);
@@ -3206,6 +3213,11 @@
                 preg.hidden = !ambPreg;
                 preg.textContent = ambPreg ? item.preg : '';
                 if (item.tipo === 'tema1' && item.veu) hablar(item.veu);
+                if (item.tipo === 'pas10' && item.clase === 'nou') {
+                    preg.hidden = false;
+                    preg.textContent = `🖐️ ${PAS10_DITS}`;
+                    hablar(PAS10_DITS);
+                }
                 opCardEl.classList.toggle('op-tema1-clau', item.modo === 'concepte');
                 opCardEl.classList.toggle('op-cast-text', ['castella', 'catala', 'tecno'].includes(item.tipo) && !item.html);
                 opCardEl.classList.toggle('op-cast-dibuix', ['castella', 'tecno'].includes(item.tipo) && !!item.html);
@@ -3414,10 +3426,11 @@
                 if (item.tipo === 'pas10') {
                     extra.clase = item.clase;
                     if (item.clase === 'nou') { extra.nivel = leerFase1().pas10.nivel; extra.ayuda = item.ayuda; extra.pista = item.pista; }
+                    if (item.reprova) { extra.intent = 2; extra.dits = true; }
                     if (item.resPasos) extra.pasos = item.resPasos;
                     // Con pasos, la resta solo cuenta como bien si también los saltos están bien
                     // (14/10: el total le salía con «de 8 a 10, 1», y subió de nivel sin saber ese salto)
-                    if (item.clase === 'nou') sesion.pas10.push(ok && (item.resPasos || []).every(x => x.ok));
+                    if (item.clase === 'nou') sesion.pas10.push(ok && !item.reprova && (item.resPasos || []).every(x => x.ok));
                 }
                 if (item.objetivo !== undefined) {
                     extra.setmana = `${fetSetmana().a}x${fetSetmana().b}`;
@@ -3783,6 +3796,20 @@
                 setTimeout(siguienteItem, 350);
             }
 
+            // Passar pel 10, la primera vez que dice «No ho sé» en una nueva: que lo pruebe con los dedos, sin la respuesta
+            function pas10AmbElsDits(ms) {
+                registrar(item, null, false, ms, { no_lo_se: true, clase: item.clase, nivel: leerFase1().pas10.nivel, ayuda: item.ayuda, pista: item.pista, intent: 1 });
+                sesion.hechos--;
+                item.reprova = true;
+                currentInput = '';
+                teclas = [];
+                updateInputDisplay();
+                opFeedbackEl.innerHTML = `<div id="pas10-dits" class="correction-pista">🖐️ ${escaparHtml(PAS10_DITS_REPROVA)}</div>`;
+                hablar(PAS10_DITS_REPROVA);
+                tInicio = performance.now();
+                isEvaluating = false;
+            }
+
             // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
             function noHoSe() {
                 if (item && item.tipo === 'paraules') return evaluarParaula(null);
@@ -3815,7 +3842,9 @@
                     setTimeout(siguienteItem, 200);
                     return;
                 }
+                if (item.tipo === 'pas10' && item.clase === 'nou' && !item.reprova) return pas10AmbElsDits(ms);
                 const extra = { no_lo_se: true };
+                if (item.tipo === 'pas10' && item.reprova) { extra.intent = 2; extra.dits = true; }
                 if (item.tipo === 'pas10') {
                     extra.clase = item.clase;
                     if (item.clase === 'nou') { extra.nivel = leerFase1().pas10.nivel; extra.ayuda = item.ayuda; extra.pista = item.pista; sesion.pas10.push(false); }

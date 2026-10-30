@@ -31,6 +31,10 @@ async function contestarEntrenamiento(page, opciones = {}) {
         if ((m = pregunta.match(/^De (\d+) a 10\?$/))) { await teclear(page, 10 - parseInt(m[1], 10)); continue; }
         if ((m = pregunta.match(/^De 10 a (\d+)\?$/))) { await teclear(page, parseInt(m[1], 10) - 10); continue; }
         vistos.push(texto);
+        if (opciones.nouAmbDits && (await page.isVisible('#btn-pista'))) {
+            await page.click('#btn-no-ho-se');
+            await expect(page.locator('#pas10-dits')).toBeVisible();
+        }
         if (opciones.signes) opciones.signes.push(await page.$eval('#op-factors', el => {
             const sg = el.querySelector('.signe');
             return sg ? { signe: sg.textContent, clase: sg.className } : null;
@@ -334,6 +338,61 @@ test.describe('Fase 1 · misión entera', () => {
         const e = envios.find(x => x.datos.detalle && x.datos.detalle.pista === true);
         expect(e.datos.detalle.nivel).toBe(4);
         expect(e.datos.detalle.pasos).toBeUndefined();
+    });
+
+    test('restas nuevas: se recuerda contar con los dedos y, al primer «No ho sé», se vuelve a probar así', async ({ page }) => {
+        const { envios } = await simularSupabase(page);
+        await empezarEnMision(page, 7);
+        await prepararFase1(page, { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 5, buenos: [] } });
+        await page.goto(URL_APP);
+        await empezar(page);
+        let texto = await page.textContent('#op-factors');
+        while (!(await page.isVisible('#btn-pista'))) {
+            await expect(page.locator('#tema1-preg')).toBeHidden();
+            await teclear(page, respuestaCorrecta(texto));
+            await page.waitForTimeout(850);
+            texto = await page.textContent('#op-factors');
+        }
+        await expect(page.locator('#tema1-preg')).toHaveText(/amb els dits, en veu baixa/);
+        await page.click('#btn-no-ho-se');
+        await expect(page.locator('#pas10-dits')).toContainText('Prova-ho amb els dits');
+        await expect(page.locator('#gentle-correction-box')).toBeHidden();
+        await expect(page.locator('#op-factors')).toHaveText(texto);
+        await teclear(page, respuestaCorrecta(texto));
+        await expect.poll(() => envios.filter(e => e.datos.modulo === 'pas10' && e.datos.detalle.clase === 'nou').length).toBe(2);
+        const [primer, segon] = envios.filter(e => e.datos.modulo === 'pas10' && e.datos.detalle.clase === 'nou');
+        expect(primer.datos.detalle).toMatchObject({ no_lo_se: true, intent: 1 });
+        expect(segon.datos.correcta).toBe(true);
+        expect(segon.datos.detalle).toMatchObject({ intent: 2, dits: true });
+        expect(await page.evaluate(() => window.__textosVeu())).toEqual(expect.arrayContaining([
+            'Compta-ho amb els dits, en veu baixa.', 'Prova-ho amb els dits, comptant fluixet. Al teu ritme.']));
+    });
+
+    test('restas nuevas: si tampoco sale con los dedos, la respuesta; bien al segundo intento no cuenta para subir', async ({ page }) => {
+        await simularSupabase(page);
+        await empezarEnMision(page, 7);
+        await prepararFase1(page, { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 5, buenos: ['2026-10-02'] } });
+        await page.goto(URL_APP);
+        await empezar(page);
+        let texto = await page.textContent('#op-factors');
+        while (!(await page.isVisible('#btn-pista'))) {
+            await teclear(page, respuestaCorrecta(texto));
+            await page.waitForTimeout(850);
+            texto = await page.textContent('#op-factors');
+        }
+        await page.click('#btn-no-ho-se');
+        await expect(page.locator('#pas10-dits')).toBeVisible();
+        await page.click('#btn-no-ho-se');
+        await expect(page.locator('#gentle-correction-box')).toBeVisible();
+        await expect(page.locator('#correction-math-text')).toHaveText(`${texto} = ${respuestaCorrecta(texto)}`);
+        await page.click('#btn-correction-continue');
+        // Las otras tres nuevas, bien con los dedos al segundo intento
+        await contestarEntrenamiento(page, { nouAmbDits: true });
+        await page.click('#btn-intro-vamos');
+        await contestarEntrenamiento(page);
+        const f = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_fase1')));
+        expect(f.pas10.nivel).toBe(5);
+        expect(f.pas10.buenos).toEqual([]);
     });
 
     test('nivel con los pasos sin recta: pregunta los saltos, los enseña en fila y, si falla un salto, el día no cuenta', async ({ page }) => {
