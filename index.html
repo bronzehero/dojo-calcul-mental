@@ -1007,6 +1007,12 @@
         .xifra-btn .glif { display: inline-block; }
         .xifra-btn .glif.mirall { transform: scaleX(-1); }
         /* Tema 1 de mates: la pregunta petita a sobre, el número o la paraula clau en gran, i les opcions una sota l'altra */
+        .par-btn { font: inherit; color: inherit; background: #f5f3ff; border: 3px solid #e9dcff; border-radius: 12px; padding: 0 0.18em; margin: 0 0.06em; cursor: pointer; line-height: 1.1; }
+        .par-btn.par-marca { background: #fce7f3; border-color: #e0115f; color: #e0115f; cursor: default; }
+        .par-gran { font-size: 7rem; line-height: 1; }
+        .pot-espai { letter-spacing: 0.12em; word-spacing: 0.25em; }
+        .par-a { color: #2563eb; font-weight: 900; }
+        .par-b { color: #e0115f; font-weight: 900; }
         .tema1-preg { font-size: 1.25rem; font-weight: 700; color: #6b21a8; margin-bottom: 6px; }
         .op-tema1-clau .operation-text { font-size: 2.2rem; letter-spacing: 0.04em; }
         .tema1-opcions { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 14px; }
@@ -1514,9 +1520,8 @@
                 { ayuda: 'pista', restan: [9, 8, 7, 6] },
                 { ayuda: 'cap', restan: [9, 8, 7, 6, 5] }
             ];
-            // Del 27 al 30/10, casi todas las nuevas con «No ho sé» en 2 s: cree que tiene que salirle de cabeza.
-            // Con los dedos y en voz baja no fallaba (17/10): se le recuerda en cada nueva y, si dice «No ho sé»,
-            // lo vuelve a probar así. Si le sale al segundo intento, está bien, pero para subir de nivel no cuenta.
+            // Desde el 30/10: contar con los dedos y en voz baja se recuerda en cada nueva y, al primer «No ho sé»,
+            // se vuelve a probar así en vez de ver la respuesta. Bien al segundo intento no cuenta para subir de nivel.
             const PAS10_DITS = 'Compta-ho amb els dits, en veu baixa.';
             const PAS10_DITS_REPROVA = 'Prova-ho amb els dits, comptant fluixet. Al teu ritme.';
             // 4 nuevas entre 6 que ya sabe (las piezas del truco: hacer 10, 10 + n, 10 − n)
@@ -1542,6 +1547,7 @@
                 control: { nombre: 'Missió de repàs', icono: '🧭', instr: "Una barreja de restes, sumes i multiplicacions, sense ajudes. Mira bé el signe de cada una abans de contestar. Pots comptar amb els dits i dir-ho fluixet: ajuda molt. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '13 − 8 ➜ escrius 5', paso: () => 'Restes, sumes i multiplicacions' },
                 accent:  { nombre: 'Accents en castellà', icono: '🎧', instr: "Paraules en castellà. Sentiràs la paraula, una frase i la paraula una altra vegada. Escriu-la amb els accents que calguin. Si alguna no surt, la llegiràs fluixet tal com l'has escrita i l'arreglaràs.", ejemplo: 'Sents «mesa. La mesa es grande. mesa.» ➜ escrius mesa', paso: () => 'Accents en castellà' },
                 dictat:  { nombre: 'Dictat', icono: '✍️', instr: "Sentiràs una paraula, després una frase amb aquesta paraula, i la paraula una altra vegada. Escriu només la paraula, com creguis que s'escriu. La pots tornar a escoltar tants cops com vulguis. Si no la saps, no passa res: al final del dictat veuràs com s'escriuen.", ejemplo: 'Sents «casa. La meva casa és gran. casa.» ➜ escrius casa', paso: () => 'Dictat' },
+                parens:  { nombre: 'Els parèntesis', icono: '🧩', instr: "Ara, una prova curta de parèntesis. No hi ha correcció: és per saber com els veus millor. Hi ha preguntes de diferents tipus. Mira-ho amb calma, al teu ritme. Si no ho saps, prem «No ho sé»: no passa res.", ejemplo: 'Mira-ho bé, sense pressa 🌸', paso: () => 'Els parèntesis' },
                 xifra:   { nombre: 'Quin està ben escrit?', icono: '🔍', instr: "Ara, una prova curta i diferent: no hi ha comptes. Sentiràs un número i en veuràs dos. Un està ben escrit. L'altre està girat, com si el veiessis en un mirall, o és un altre número. Toca el que està ben escrit. Mira'ls bé, sense pressa. Si dubtes, tria el que et sembli: no passa res.", ejemplo: 'Sents «Toca el tres» ➜ toques el 3 ben escrit', paso: () => 'Quin està ben escrit?' },
                 sentir:  { nombre: 'Quin número és?', icono: '👂', instr: "Ara sentiràs un número de dues xifres i en veuràs quatre que s'assemblen molt. Toca el que has sentit. Mira'ls xifra per xifra, sense pressa. El pots tornar a escoltar tantes vegades com vulguis.", ejemplo: 'Sents «trenta-sis» ➜ toques el 36', paso: () => 'Quin número és?' },
                 paraules: { nombre: 'Paraules', icono: '🔤', instr: "Paraules que costen d'escriure. Les noves, primer les mires bé amb el seu truc i, quan te les sàpigues, les tapes i les escrius de memòria. Les que ja has vist, les sents i les escrius de memòria. Si no surt, la tornes a mirar i la tornes a escriure. Al teu ritme.", ejemplo: 'Mires «bien» (B de Bueno) ➜ la tapes ➜ escrius bien', paso: () => 'Paraules' },
@@ -1691,6 +1697,60 @@
             // empieza la de les xifres, hasta que la haga una vez. No sustituye nada ni retrasa el plan.
             // Papá también la puede poner sola otro día desde la Zona Papá.
             const XIFRES_DES_DE = '2026-10-17';
+
+            // PARÈNTESIS · prova del 31/10 al 2/11, AFEGIDA al final de la missió (com les xifres), un cop al dia.
+            // Per saber què fa difícils els parèntesis dins de parèntesis: 1) s'amunteguen (crowding), 2) ( i ) són la mateixa
+            // forma girada, 3) no es veuen com a parelles que volen dir «això primer», 4) massa passos alhora.
+            // La mateixa potència de tres maneres (com sempre, amb espai, amb cada parella d'un color), obre o tanca,
+            // toca la parella, què es fa primer i a trossos.
+            // Sense correcció ni res de si està bé (és per mesurar); el repàs, després, amb el que li funcioni.
+            const PARENTESIS = { id: 104, titulo: 'Els parèntesis', bloques: [{ tipo: 'parens' }] };
+            const PARENS_DES_DE = '2026-10-31', PARENS_FINS = '2026-11-02';
+            const PARENS_POT = [[2, 3, 2, 4], [3, 2, 3, 2], [5, 4, 2, 3], [4, 2, 3, 5], [6, 3, 2, 2], [7, 2, 4, 3], [9, 5, 2, 2], [8, 2, 2, 5]];
+            // Parella: l'expressió i quin parèntesi va de color (comptant només els parèntesis, d'esquerra a dreta); les parelles
+            const PARENS_PARELLA = [
+                { t: '((3²)³)²', marca: 1, pars: [[0, 3], [1, 2]] },
+                { t: '((5⁴)²)³', marca: 3, pars: [[0, 3], [1, 2]] },
+                { t: '2 · (8 − (3 + 1))', marca: 3, pars: [[0, 3], [1, 2]] }
+            ];
+            const PARENS_PRIMER = [
+                { t: '2 · (8 − 3)', bona: '8 − 3', altra: '2 · 8' },
+                { t: '((2³)²)⁴', bona: '(2³)²', altra: '(…)⁴' }
+            ];
+            const PARENS_PREG = {
+                pot: "En una sola potència. Quin és l'exponent?",
+                obre: 'Aquest parèntesi, obre o tanca?',
+                parella: 'Toca el parèntesi que fa parella amb el de color.',
+                primer: 'Què fas primer?',
+                passos: "A trossos: primer el parèntesi de dins. Quin és l'exponent?"
+            };
+            const supN = n => [...String(n)].map(d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]).join('');
+            function htmlPotParens([b, e1, e2, e3], format) {
+                const sup = n => `<sup>${n}</sup>`;
+                if (format === 'espai') return `<span class="pot-espai">( ( ${b}${sup(e1)} )${sup(e2)} )${sup(e3)}</span> = ${b}<sup>?</sup>`;
+                if (format === 'colors') return `<span class="par-a">(</span><span class="par-b">(</span>${b}${sup(e1)}<span class="par-b">)${sup(e2)}</span><span class="par-a">)${sup(e3)}</span> = ${b}<sup>?</sup>`;
+                return `((${b}${sup(e1)})${sup(e2)})${sup(e3)} = ${b}<sup>?</sup>`;
+            }
+            function htmlParella(x) {
+                let k = -1;
+                return [...x.t].map(ch => {
+                    if (ch !== '(' && ch !== ')') return escaparHtml(ch);
+                    k++;
+                    return `<button class="par-btn${k === x.marca ? ' par-marca' : ''}" data-par="${k}"${k === x.marca ? ' disabled' : ''}>${ch}</button>`;
+                }).join('');
+            }
+            function itemsParens() {
+                const formats = shuffle(['normal', 'normal', 'espai', 'espai', 'colors', 'colors']);
+                const pot = shuffle(PARENS_POT).slice(0, 6).map((p, i) => ({ modo: 'pot', p, format: formats[i] }));
+                const obre = shuffle(['(', ')', '(', ')']).map(c => ({ modo: 'obre', c }));
+                const parella = shuffle(PARENS_PARELLA).map(x => ({ modo: 'parella', x }));
+                const primer = PARENS_PRIMER.map(x => ({ modo: 'primer', x }));
+                const passos = [{ modo: 'passos', p: [3, 2, 2, 3], pas: 1 }, { modo: 'passos', p: [3, 2, 2, 3], pas: 2 }];
+                return [...pot, ...obre, ...parella, ...primer, ...passos];
+            }
+            const parensPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= PARENS_DES_DE && hoy() <= PARENS_FINS &&
+                !(leerPlan().extras || []).some(x => x.id === PARENTESIS.id && x.fecha === hoy());
+            const ambParens = m => ({ ...m, bloques: [...m.bloques, ...PARENTESIS.bloques] });
 
             // TEMA 1 DE MATES · el examen del tema 1 (dossier SA1) entra entero: cada día, en el entrenamiento y en el repaso,
             // un bloque corto antes de las palabras. Leer y escribir números romanos, binario → número y la teoría de la pág. 11
@@ -2207,7 +2267,8 @@
                 { id: 101, titulo: "Simulacre: examen de català", bloques: EXAMEN_CATALA.map((_, i) => ({ tipo: 'grafia', bloc: i })) },
                 CONTROL,
                 DICTAT,
-                XIFRES
+                XIFRES,
+                PARENTESIS
             ];
 
             // Oral con papá: atascadas, lentas y controles rápidos (según datos a 29/09/2026)
@@ -2375,6 +2436,8 @@
             window.__itemsParaules = () => itemsParaules().map(x => ({ id: x.w.id, fase: x.fase }));
             window.__paraulaActual = () => item && item.tipo === 'paraules' ? { id: item.w.id, paraula: item.paraula, fase: item.fase, etapa: item.etapa } : null;
             window.__itemsXifresProva = () => itemsXifra();
+            window.__htmlPotParens = htmlPotParens;
+            window.__parensActual = () => item && item.tipo === 'parens' ? { n: item.idx, modo: item.modo, esperado: item.esperado, format: item.format || null, opcions: item.opcions || null } : null;
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
             window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
@@ -2384,6 +2447,12 @@
                 [...ACCENT_ON_SEMPRE, ...ACCENT_ON, ...ACCENT_NO].forEach(x => t.add(veuAccent(x)));
                 t.add(ACCENT_LLEGEIX_VEU);
                 t.add(PAS10_DITS);
+                Object.values(PARENS_PREG).forEach(x => t.add(x));
+                // Del 31/10 al 2/11, els parèntesis al final (amb o sense accents i paraules)
+                [m => m, conParaules].forEach(ambP => [conTema1, m => conAccent(conTema1(m))].forEach(ambT => {
+                    SETMANA.forEach(f => t.add(fraseMision(ambParens(ambP(ambT(ENTRENAMENT))), f)));
+                    t.add(fraseMision(ambParens(ambP(ambT(CONTROL)))));
+                }));
                 t.add(PAS10_DITS_REPROVA);
                 SETMANA.forEach(f => {
                     t.add(f.diccio);
@@ -2631,10 +2700,13 @@
                 return [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= XIFRES_DES_DE &&
                     !(leerPlan().extras || []).some(x => x.id === XIFRES.id);
             }
-            // Lo que se enseña y se lee en el inicio: la misión y, si tocan, les xifres al final
+            // La prova que va encadenada al final de la misión, si toca: les xifres (un cop) o els parèntesis (31/10-2/11)
+            const provaEncadenada = m => xifresPendents(m) ? XIFRES : parensPendent(m) ? PARENTESIS : null;
+            // Lo que se enseña y se lee en el inicio: la misión y, si toca, la prova del final
             function misionMostrada() {
                 const m = missioDelDia(misionActual());
-                return xifresPendents(m) ? { ...m, bloques: [...m.bloques, ...XIFRES.bloques] } : m;
+                const e = provaEncadenada(m);
+                return e ? { ...m, bloques: [...m.bloques, ...e.bloques] } : m;
             }
 
             // Estado de la fase 1 (solo en el iPad; una copia va a eventos al acabar cada misión)
@@ -2811,6 +2883,9 @@
                     sesion.fijos = itemsControl();
                 } else if (b.tipo === 'dictat') {
                     sesion.fijos = paraulesBloc(b.bloc);
+                } else if (b.tipo === 'parens') {
+                    sesion.fijos = itemsParens();
+                    sesion.parensModo = null;
                 } else if (b.tipo === 'xifra') {
                     sesion.fijos = itemsXifra();
                 } else if (b.tipo === 'sentir') {
@@ -2882,9 +2957,10 @@
                 guardarPlan(p);
                 guardarEvento({ modulo: 'mision', item: String(sesion.mision.id), detalle: { titulo: sesion.mision.titulo } });
                 if (sesion.mision.id === ENTRENAMENT.id) actualizarFase1();
-                if (xifresPendents(sesion.mision)) {
-                    // La misión del día ya está guardada; ahora, sin pasar por el resumen, les xifres
-                    sesion = { mision: XIFRES, iBloque: bloqueGuardado(XIFRES), hechos: 0, total: 0, fijos: null, encadenada: true };
+                const enc = provaEncadenada(sesion.mision);
+                if (enc) {
+                    // La misión del día ya está guardada; ahora, sin pasar por el resumen, la prova (les xifres o els parèntesis)
+                    sesion = { mision: enc, iBloque: bloqueGuardado(enc), hechos: 0, total: 0, fijos: null, encadenada: true };
                     mostrarIntroBloque();
                     return;
                 }
@@ -3022,6 +3098,24 @@
 
             function crearItem() {
                 const tipo = bloqueActual().tipo;
+                if (tipo === 'parens') {
+                    const x = sesion.fijos[sesion.hechos];
+                    const base = { tipo, modo: x.modo, preg: PARENS_PREG[x.modo], idx: sesion.hechos };
+                    if (x.modo === 'pot') {
+                        const [b, e1, e2, e3] = x.p;
+                        const texto = `((${b}${supN(e1)})${supN(e2)})${supN(e3)}`;
+                        return { ...base, format: x.format, texto, html: htmlPotParens(x.p, x.format), clave: `pot-${x.format}:${texto}`, esperado: String(e1 * e2 * e3), maxXifres: 2 };
+                    }
+                    if (x.modo === 'obre') return { ...base, texto: x.c, html: `<span class="par-gran">${x.c}</span>`, clave: `obre:${x.c}`, esperado: x.c === '(' ? 'Obre' : 'Tanca', opcions: ['Obre', 'Tanca'] };
+                    if (x.modo === 'parella') {
+                        const [par] = x.x.pars.filter(pp => pp.includes(x.x.marca));
+                        return { ...base, texto: x.x.t, html: htmlParella(x.x), clave: `parella:${x.x.t}:${x.x.marca}`, esperado: String(par[0] === x.x.marca ? par[1] : par[0]) };
+                    }
+                    if (x.modo === 'primer') return { ...base, texto: x.x.t, clave: `primer:${x.x.t}`, esperado: x.x.bona, opcions: shuffle([x.x.bona, x.x.altra]) };
+                    const [b, e1, e2, e3] = x.p;
+                    if (x.pas === 1) return { ...base, pas: 1, texto: `(${b}${supN(e1)})${supN(e2)}`, html: `(${b}<sup>${e1}</sup>)<sup>${e2}</sup> = ${b}<sup>?</sup>`, clave: `passos1:${b}${e1}${e2}${e3}`, esperado: String(e1 * e2), maxXifres: 2 };
+                    return { ...base, pas: 2, texto: `(${b}${supN(e1 * e2)})${supN(e3)}`, html: `(${b}<sup>${e1 * e2}</sup>)<sup>${e3}</sup> = ${b}<sup>?</sup>`, clave: `passos2:${b}${e1}${e2}${e3}`, esperado: String(e1 * e2 * e3), maxXifres: 2 };
+                }
                 if (tipo === 'accent') {
                     const x = sesion.fijos[sesion.hechos];
                     return { tipo, paraula: x.paraula, frase: x.frase, texto: x.paraula, clave: `accent:${x.paraula}`, esperado: x.paraula,
@@ -3199,20 +3293,23 @@
                 teclas = [];
                 oralRespuesta = null;
 
-                const ambPreg = ['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo);
+                const ambPreg = ['tema1', 'castella', 'catala', 'tecno', 'parens'].includes(item.tipo);
                 const ambOpcions = ambPreg && !!item.opcions;
-                const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo) || (item.tipo === 'tema1' && !ambOpcions);
+                const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo) || (item.tipo === 'tema1' && !ambOpcions) ||
+                    (item.tipo === 'parens' && !!item.maxXifres);
                 opFactorsEl.innerHTML = item.html || htmlOperacion(item.texto);
                 marcarCanviDeSigne();
                 opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
-                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir', 'paraules', 'accent'].includes(item.tipo) || ambOpcions;
+                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir', 'paraules', 'accent'].includes(item.tipo) || ambOpcions || (item.tipo === 'parens' && !item.maxXifres);
                 opAnswerEl.hidden = !numerico;
-                opCardEl.classList.toggle('op-largo', item.tipo === 'vf' || item.tipo === 'tema1');
+                opCardEl.classList.toggle('op-largo', item.tipo === 'vf' || item.tipo === 'tema1' || (item.tipo === 'parens' && item.modo !== 'obre'));
                 // Tema 1 y castellano: la pregunta, pequeña, arriba; lo que hay que mirar (el número, la palabra clave, el texto, la viñeta), grande
                 const preg = document.getElementById('tema1-preg');
                 preg.hidden = !ambPreg;
                 preg.textContent = ambPreg ? item.preg : '';
                 if (item.tipo === 'tema1' && item.veu) hablar(item.veu);
+                // Parèntesis: la pregunta en veu quan canvia el tipus (no a cada una)
+                if (item.tipo === 'parens' && sesion.parensModo !== item.modo) { sesion.parensModo = item.modo; hablar(item.preg); }
                 if (item.tipo === 'pas10' && item.clase === 'nou') {
                     preg.hidden = false;
                     preg.textContent = `🖐️ ${PAS10_DITS}`;
@@ -3259,7 +3356,7 @@
                 keypad.style.display = numerico ? 'grid' : 'none';
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
-                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno'].includes(item.tipo);
+                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'parens'].includes(item.tipo);
                 if (item.tipo === 'paraules') pintarParaula();
                 document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
                 document.getElementById('correction-pista').hidden = true;
@@ -3402,6 +3499,7 @@
 
             function evaluarNumerico() {
                 if (isEvaluating || currentInput === '') return;
+                if (item.tipo === 'parens') return responderParens(currentInput);
                 // Recta guiada: los dos primeros saltos no cuentan como respuesta; si se equivoca, ve el bueno y sigue
                 if (item.pasos && item.paso < item.pasos.length - 1) {
                     const paso = item.pasos[item.paso];
@@ -3484,6 +3582,7 @@
 
             // Tema 1 y castellano, elegir: si no es la buena, la solución explicada (como en las demás, se para en la primera que falla)
             function responderTema1(opcio) {
+                if (item && item.tipo === 'parens') return responderParens(opcio);
                 if (isEvaluating || !item || !['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo) || !item.opcions) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
@@ -3796,6 +3895,22 @@
                 setTimeout(siguienteItem, 350);
             }
 
+            // Parèntesis: es guarda i es passa a la següent, sense dir si està bé (com les xifres)
+            function responderParens(resposta) {
+                if (isEvaluating || !item || item.tipo !== 'parens') return;
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                const extra = { modo: item.modo };
+                if (item.format) extra.format = item.format;
+                if (item.pas) extra.pas = item.pas;
+                if (item.opcions) extra.opcions = item.opcions;
+                if (resposta === null) extra.no_lo_se = true;
+                registrar(item, resposta, resposta === item.esperado, ms, extra);
+                callarVeu();
+                opFeedbackEl.innerHTML = '<div class="celebrate-text">D\'acord 🌸</div>';
+                setTimeout(siguienteItem, 450);
+            }
+
             // Passar pel 10, la primera vez que dice «No ho sé» en una nueva: que lo pruebe con los dedos, sin la respuesta
             function pas10AmbElsDits(ms) {
                 registrar(item, null, false, ms, { no_lo_se: true, clase: item.clase, nivel: leerFase1().pas10.nivel, ayuda: item.ayuda, pista: item.pista, intent: 1 });
@@ -3813,6 +3928,7 @@
             // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
             function noHoSe() {
                 if (item && item.tipo === 'paraules') return evaluarParaula(null);
+                if (item && item.tipo === 'parens') return responderParens(null);
                 if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno'].includes(item.tipo)) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
@@ -4960,6 +5076,10 @@
             document.getElementById('tema1-opcions').addEventListener('click', (e) => {
                 const btn = e.target.closest('button');
                 if (btn && btn.dataset.opcio) responderTema1(btn.dataset.opcio);
+            });
+            opFactorsEl.addEventListener('click', (e) => {
+                const btn = e.target.closest('.par-btn');
+                if (btn && !btn.disabled && item && item.modo === 'parella') responderParens(btn.dataset.par);
             });
             document.getElementById('xifres-opcions').addEventListener('click', (e) => {
                 const btn = e.target.closest('button');
