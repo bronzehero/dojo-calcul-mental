@@ -45,6 +45,29 @@ test.describe('Tema 1 de mates', () => {
         });
     }
 
+    // Des de l'1/11: abans de començar, la xuleta dels romans en paper, feta per ella (sense donar-li les lletres) i mirada pel papa
+    test('la presentació demana la xuleta en paper i que la miri el papa', async ({ page }) => {
+        await preparar(page, '2026-10-22', { enCurso: { id: 10, bloque: 2, fecha: '2026-10-22' } });
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toHaveText('Tema 1 de mates');
+        const text = await page.locator('#intro-texto').textContent();
+        expect(text).toMatch(/full.*xuleta dels romans/);
+        expect(text).toMatch(/de 5 en 5/);
+        expect(text).toMatch(/ensenya-la al papa/);
+        // Que se la construya ella: la xuleta no es dona feta
+        expect(text).not.toMatch(/\b(IV|IX|XL|XC|CD|CM)\b/);
+        await expect(page.locator('#btn-intro-vamos')).toHaveText('El papa ha mirat la xuleta ➜');
+        await page.click('#btn-intro-vamos');
+        await expect(page.locator('#tema1-preg')).toBeVisible();
+    });
+
+    test('els altres blocs continuen amb «Som-hi!»', async ({ page }) => {
+        await preparar(page, '2026-10-22', { enCurso: { id: 10, bloque: 1, fecha: '2026-10-22' } });
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).not.toHaveText('Tema 1 de mates');
+        await expect(page.locator('#btn-intro-vamos')).toHaveText('Som-hi! ➜');
+    });
+
     test('romans, binari i teoria: si falla, la solució explicada; es guarda cada resposta', async ({ page }) => {
         const envios = await preparar(page, '2026-10-22', { enCurso: { id: 10, bloque: 2, fecha: '2026-10-22' } });
         await page.click('#btn-start-game');
