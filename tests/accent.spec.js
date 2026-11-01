@@ -88,6 +88,8 @@ test.describe('Accents en castellà', () => {
         await expect(page.locator('#gentle-correction-box')).toBeVisible();
         await expect(page.locator('#correction-math-text')).toHaveText(a.paraula);
         await expect(page.locator('#correction-pista')).toContainText(a.ambAccent ? 'Acaba en -ón: porta accent' : 'sense accent');
+        // Les paraules en -ón que va triar ella per recordar-ho (1/11)
+        if (a.ambAccent) await expect(page.locator('#correction-pista')).toContainText('jamón, salchichón i mamón');
         expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
 
         const dades = envios.filter(e => e.datos.modulo === 'accent').map(e => e.datos);

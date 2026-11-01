@@ -1661,7 +1661,8 @@
             function reglaAccent(it, r) {
                 if (accentBe(it, r)) return "L'accent està bé: mira les lletres.";
                 if (it.ambAccent && /[áéíú]/.test(r)) return "Acaba en -ón: l'accent va a sobre de la o, no de la " + r.match(/[áéíú]/)[0].normalize('NFD')[0] + ': -ón.';
-                if (it.ambAccent) return 'Acaba en -ón: porta accent a la ó, com corazón, camión, canción.';
+                // Desde el 1/11, las palabras en -ón que eligió ella para acordarse (la que más le gusta, mamón)
+                if (it.ambAccent) return 'Acaba en -ón: porta accent a la ó, com jamón, salchichón i mamón.';
                 if (it.paraula.endsWith('ones')) return 'Acaba en -ones: sense accent (canción → canciones).';
                 return 'Acaba en -en, no en -ón: sense accent.';
             }
