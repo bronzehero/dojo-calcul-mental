@@ -8,6 +8,9 @@ const hoy = () => new Date().toLocaleDateString('sv-SE');
 
 /** Deja el estado de la fase 1 en el iPad antes de cargar la página. */
 async function prepararFase1(page, estado) {
+    // Por defecto, estados ya con el método de contar hacia delante (1/11); la migración tiene su prueba
+    if (estado.pas10 && !('metode' in estado.pas10)) estado = { ...estado, pas10: { ...estado.pas10, metode: 'endavant' } };
+    else if (estado.pas10 && estado.pas10.metode === null) { estado = { ...estado, pas10: { ...estado.pas10 } }; delete estado.pas10.metode; }
     await page.addInitScript(e => {
         if (sessionStorage.getItem('fase1-preparada')) return;
         sessionStorage.setItem('fase1-preparada', '1');
@@ -54,6 +57,7 @@ async function empezar(page) {
 
 test.describe('Fase 1 · Entrenament', () => {
     test('después del plan, la misión es el entrenamiento con sus dos partes', async ({ page }) => {
+        await page.clock.setFixedTime(new Date('2026-10-20T17:00:00'));   // fuera de la prueba de paréntesis (31/10-2/11)
         await simularSupabase(page);
         await empezarEnMision(page, 7);
         await page.goto(URL_APP);
@@ -62,36 +66,42 @@ test.describe('Fase 1 · Entrenament', () => {
         expect(await page.locator('#screen-home').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
     });
 
-    test('la primera resta nueva sale con la recta y los saltos en blanco', async ({ page }) => {
-        await simularSupabase(page);
+    test('la primera resta nueva sale con la recta para contar hacia delante (un salto por número, sin números)', async ({ page }) => {
+        const { envios } = await simularSupabase(page);
         await empezarEnMision(page, 7);
         await page.goto(URL_APP);
         await page.click('#btn-start-game');
         await expect(page.locator('#intro-titulo')).toHaveText('Passar pel 10');
         // Contar con los dedos y en voz baja está permitido (con eso no falla: papá, 17/10)
         await expect(page.locator('#intro-texto')).toContainText('Pots comptar amb els dits i dir-ho fluixet');
+        // Contar hacia delante desde el pequeño, con el puño cerrado (papá, 1/11); nada de los dos saltos
+        await expect(page.locator('#intro-texto')).toContainText('comença pel número petit, amb el puny tancat');
+        await expect(page.locator('#intro-texto')).not.toContainText('dos salts');
+        await expect(page.locator('#intro-ejemplo')).toHaveText('13 − 9 ➜ 9 amb el puny tancat · 10, 11, 12, 13 · 4 dits: 4');
         await page.click('#btn-intro-vamos');
 
-        // Primera resta nueva: la recta con los saltos en blanco y la primera pregunta
         while (!(await page.isVisible('#pas10-panel'))) {
             await teclear(page, respuestaCorrecta(await page.textContent('#op-factors')));
             await page.waitForTimeout(850);
         }
-        await expect(page.locator('#pas10-pregunta')).toHaveText(/^De 9 a 10\?$/);
-        await expect(page.locator('#pas10-recta text')).toContainText(['10', '?']);
-        expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
-
-        // Cada salto se escribe al lado de su pregunta, no detrás de «17 − 9 =» (papá, 12/10: lo confundía)
-        await expect(page.locator('#op-factors')).toHaveText('De 9 a 10');
-        await expect(page.locator('#op-igual')).toHaveText('➜');
-        await teclear(page, 1);
-        const a = parseInt((await page.textContent('#pas10-pregunta')).match(/^De 10 a (\d+)\?$/)[1], 10);
-        await expect(page.locator('#op-factors')).toHaveText(`De 10 a ${a}`);
-        await expect(page.locator('#op-igual')).toHaveText('➜');
-        await teclear(page, a - 10);
-        await expect(page.locator('#pas10-pregunta')).toHaveText('Quant has saltat en total?');
-        await expect(page.locator('#op-factors')).toHaveText(`${a} − 9`);
+        const texto = await page.textContent('#op-factors');
+        const [a, b] = texto.split('−').map(x => parseInt(x, 10));
+        expect(b).toBe(9);
+        // La resta entera a la vista, sin preguntas de saltos
         await expect(page.locator('#op-igual')).toHaveText('=');
+        await expect(page.locator('#pas10-pregunta')).toHaveText('');
+        // Todos los números del 9 al grande, el puño en el 9 y un arco por número
+        const nums = []; for (let k = b; k <= a; k++) nums.push(String(k));
+        expect((await page.locator('#pas10-recta text').allTextContents()).filter(t => t !== '✊')).toEqual(nums);
+        await expect(page.locator('#pas10-recta text', { hasText: '✊' })).toHaveCount(1);
+        await expect(page.locator('#pas10-recta path')).toHaveCount(a - b);
+        expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
+        await teclear(page, a - b);
+        await expect.poll(() => envios.filter(e => e.datos.modulo === 'pas10' && e.datos.detalle.clase === 'nou').length).toBe(1);
+        const e = envios.find(x => x.datos.modulo === 'pas10' && x.datos.detalle.clase === 'nou');
+        expect(e.datos.correcta).toBe(true);
+        expect(e.datos.detalle).toMatchObject({ ayuda: 'recta', metode: 'endavant', nivel: 1 });
+        await page.waitForTimeout(850);
 
         const vistosA = await contestarEntrenamiento(page);
         expect(vistosA.length).toBeGreaterThanOrEqual(8);
@@ -125,9 +135,8 @@ test.describe('Fase 1 · misión entera', () => {
         expect(nuevas).toHaveLength(4);
         for (const e of nuevas) {
             expect(e.datos.item).toMatch(/^1\d-9$/);
-            expect(e.datos.detalle.pasos).toHaveLength(2);
-            expect(e.datos.detalle.pasos.every(x => x.ok)).toBe(true);
-            expect(e.datos.detalle.nivel).toBe(1);
+            expect(e.datos.detalle).toMatchObject({ nivel: 1, ayuda: 'recta', metode: 'endavant' });
+            expect(e.datos.detalle.pasos).toBeUndefined();
         }
         const multis = envios.filter(e => e.tabla === 'registros');
         expect(multis).toHaveLength(12);
@@ -331,8 +340,9 @@ test.describe('Fase 1 · misión entera', () => {
         await expect(page.locator('#pas10-panel')).toBeVisible();
         await expect(page.locator('#btn-pista')).toBeHidden();
         const [a, b] = texto.split('−').map(x => parseInt(x, 10));
-        await expect(page.locator('#pas10-recta')).toContainText(String(10 - b));
-        await expect(page.locator('#pas10-recta')).toContainText(String(a - 10));
+        await expect(page.locator('#pas10-recta path')).toHaveCount(a - b);
+        await expect(page.locator('#pas10-recta')).toContainText(String(b));
+        await expect(page.locator('#pas10-recta')).toContainText(String(a));
         await teclear(page, a - b);
         await expect.poll(() => envios.filter(e => e.datos.modulo === 'pas10' && e.datos.detalle.pista === true).length).toBe(1);
         const e = envios.find(x => x.datos.detalle && x.datos.detalle.pista === true);
@@ -365,7 +375,7 @@ test.describe('Fase 1 · misión entera', () => {
         expect(segon.datos.correcta).toBe(true);
         expect(segon.datos.detalle).toMatchObject({ intent: 2, dits: true });
         expect(await page.evaluate(() => window.__textosVeu())).toEqual(expect.arrayContaining([
-            'Compta-ho amb els dits, en veu baixa.', 'Prova-ho amb els dits, comptant fluixet. Al teu ritme.']));
+            'Compta endavant amb els dits, en veu baixa.', 'Prova-ho amb els dits: el petit amb el puny tancat, i compta fins al gran. Al teu ritme.']));
     });
 
     test('restas nuevas: si tampoco sale con los dedos, la respuesta; bien al segundo intento no cuenta para subir', async ({ page }) => {
@@ -395,57 +405,41 @@ test.describe('Fase 1 · misión entera', () => {
         expect(f.pas10.buenos).toEqual([]);
     });
 
-    test('nivel con los pasos sin recta: pregunta los saltos, los enseña en fila y, si falla un salto, el día no cuenta', async ({ page }) => {
-        const { envios } = await simularSupabase(page);
-        await page.clock.setFixedTime(new Date('2026-10-19T17:00:00'));
+    test('método nuevo (1/11): un estado de antes vuelve a la recta (nivel 2 como mucho) y empieza de cero los días buenos', async ({ page }) => {
+        await simularSupabase(page);
         await empezarEnMision(page, 7);
-        await prepararFase1(page, { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 3, buenos: ['2026-10-17'] } });
+        await prepararFase1(page, { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 5, buenos: ['2026-10-30'], metode: null } });
+        await page.goto(URL_APP);
+        await page.click('#btn-open-papa');
+        await expect(page.locator('#papa-pas10')).toHaveText('nivel 2 de 6');
+        await page.click('#btn-close-papa').catch(() => {});
         await page.goto(URL_APP);
         await empezar(page);
         while (!(await page.isVisible('#pas10-panel'))) {
+            await expect(page.locator('#btn-pista')).toBeHidden();
             await teclear(page, respuestaCorrecta(await page.textContent('#op-factors')));
             await page.waitForTimeout(850);
         }
-        // Sin la recta dibujada; las mismas preguntas
-        await expect(page.locator('#pas10-recta')).toBeHidden();
-        await expect(page.locator('#pas10-salts')).toBeHidden();
-        const b = parseInt((await page.textContent('#pas10-pregunta')).match(/^De (\d+) a 10\?$/)[1], 10);
+        const [, b] = (await page.textContent('#op-factors')).split('−').map(x => parseInt(x, 10));
         expect([8, 9]).toContain(b);
-        // Se equivoca en el primer salto (como el 14/10: «de 8 a 10, 1»): ve el bueno en rosa
-        await teclear(page, 10 - b + 1);
-        await expect(page.locator('#pas10-salts')).toHaveText(`Primer salt: ${10 - b}`);
-        await expect(page.locator('#pas10-salts .mal')).toHaveText(String(10 - b));
-        const a = parseInt((await page.textContent('#pas10-pregunta')).match(/^De 10 a (\d+)\?$/)[1], 10);
-        await teclear(page, a - 10);
-        await expect(page.locator('#pas10-salts')).toHaveText(`Salts: ${10 - b} + ${a - 10}`);
-        await expect(page.locator('#pas10-pregunta')).toHaveText('Quant has saltat en total?');
-        await expect(page.locator('#op-factors')).toHaveText(`${a} − ${b}`);
-        await teclear(page, a - b);
-        await expect.poll(() => envios.filter(e => e.datos.modulo === 'pas10' && e.datos.detalle.clase === 'nou').length).toBe(1);
-        const e = envios.find(x => x.datos.modulo === 'pas10' && x.datos.detalle.clase === 'nou');
-        expect(e.datos.correcta).toBe(true);
-        expect(e.datos.detalle.ayuda).toBe('passos');
-        expect(e.datos.detalle.nivel).toBe(3);
-        expect(e.datos.detalle.pasos).toEqual([{ r: String(10 - b + 1), ok: false }, { r: String(a - 10), ok: true }]);
-
-        // Las otras tres, con los primeros saltos mal también: el total bien no basta, no es día bueno
-        await page.waitForTimeout(850);
-        while (await page.isVisible('#screen-game')) {
-            const pregunta = (await page.isVisible('#pas10-panel')) ? (await page.textContent('#pas10-pregunta')) : '';
-            let m;
-            if ((m = pregunta.match(/^De (\d+) a 10\?$/))) { await teclear(page, 10 - parseInt(m[1], 10) + 1); continue; }
-            if ((m = pregunta.match(/^De 10 a (\d+)\?$/))) { await teclear(page, parseInt(m[1], 10) - 10); continue; }
-            await teclear(page, respuestaCorrecta(await page.textContent('#op-factors')));
-            await page.waitForTimeout(850);
-        }
+        await contestarEntrenamiento(page);
         await page.click('#btn-intro-vamos');
         await contestarEntrenamiento(page);
         const f = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_fase1')));
-        expect(f.pas10.nivel).toBe(3);
-        expect(f.pas10.buenos).toEqual([]);
+        expect(f.pas10).toMatchObject({ nivel: 2, metode: 'endavant' });
+        expect(f.pas10.buenos).toEqual([hoy()]);
     });
 
-    test('si falla una resta nueva, la corrección explica los dos saltos', async ({ page }) => {
+    test('un estado con nivel 1 de antes se queda en el 1', async ({ page }) => {
+        await simularSupabase(page);
+        await empezarEnMision(page, 7);
+        await prepararFase1(page, { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 1, buenos: [], metode: null } });
+        await page.goto(URL_APP);
+        await page.click('#btn-open-papa');
+        await expect(page.locator('#papa-pas10')).toHaveText('nivel 1 de 6');
+    });
+
+    test('si falla una resta nueva, la corrección explica cómo contar hacia delante', async ({ page }) => {
         await simularSupabase(page);
         await empezarEnMision(page, 7);
         await prepararFase1(page, { setmana: { idx: 0, dias: [], dominadas: [] }, pas10: { nivel: 6, buenos: [] } });
@@ -459,7 +453,9 @@ test.describe('Fase 1 · misión entera', () => {
         }
         const [a, b] = texto.split('−').map(x => parseInt(x, 10));
         await teclear(page, a - b + 1);
-        await expect(page.locator('#correction-pista')).toHaveText(`De ${b} a 10, ${10 - b}. De 10 a ${a}, ${a - 10}. En total, ${a - b}.`);
+        const nums = []; for (let k = b + 1; k <= a; k++) nums.push(k);
+        const n = a - b;
+        await expect(page.locator('#correction-pista')).toHaveText(`${b} amb el puny tancat (no compta). Compta: ${nums.join(', ')}. ${n} ${n === 1 ? 'dit' : 'dits'}: ${n}.`);
     });
 
     test('en modo prueba no cambia nada del entrenamiento', async ({ page }) => {
