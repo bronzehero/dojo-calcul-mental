@@ -171,4 +171,57 @@ test.describe('Tema 1 de mates', () => {
         await expect.poll(() => envios.filter(e => e.datos.modulo === 'tema1').length).toBe(1);
         expect(envios.find(e => e.datos.modulo === 'tema1').datos.detalle).toMatchObject({ no_lo_se: true, modo: 'llegir' });
     });
+    // Setmana de l'examen (2-6/11, llista de la profe de l'1/11): sense romans ni binari ni xuleta; les 4 preguntes de teoria
+    // en l'ordre de l'examen, dues sèries (la figura 4 i una de lluny), una arrel, una potència i dues de «drecera o no»
+    test('setmana de l\'examen: teoria, sèries i dreceres; sense romans ni xuleta', async ({ page }) => {
+        const envios = await preparar(page, '2026-11-03', { enCurso: { id: 10, bloque: 2, fecha: '2026-11-03' } });
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toHaveText('Tema 1 de mates');
+        const text = await page.locator('#intro-texto').textContent();
+        expect(text).not.toMatch(/xuleta|romans|binari/);
+        expect(text).toMatch(/quatre preguntes/);
+        await expect(page.locator('#btn-intro-vamos')).toHaveText('Som-hi! ➜');
+        await page.click('#btn-intro-vamos');
+
+        const vistos = [];
+        let anterior = 'null', fallada = false;
+        for (let i = 0; i < 10; i++) {
+            const t = await seguent(page, anterior);
+            vistos.push(t);
+            await expect(page.locator('#tema1-preg')).toBeVisible();
+            if (t.modo === 'serie') {
+                // Les tres primeres figures, amb les boles i quantes en té cada una
+                await expect(page.locator('#op-factors .serie .fig')).toHaveCount(3);
+                const [a, b] = (await page.locator('#op-factors .serie small').allTextContents()).map(x => Number(x.split(': ')[1]));
+                const n = Number(t.texto.match(/FIG (\d+)/)[1]);
+                expect(Number(t.esperado)).toBe(a + (b - a) * (n - 1));
+                expect(await page.locator('#op-factors .serie .boles').first().textContent()).toHaveLength(a);
+                if (!fallada) {
+                    fallada = true;
+                    await teclear(page, Number(t.esperado) + 1);
+                    await expect(page.locator('#gentle-correction-box')).toBeVisible();
+                    await expect(page.locator('#correction-pista')).toContainText(String(t.esperado));
+                    expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
+                    await page.click('#btn-correction-continue');
+                } else await teclear(page, t.esperado);
+            } else if (t.opcions) await page.click(`#tema1-opcions button[data-opcio="${t.esperado}"]`);
+            else await teclear(page, t.esperado);
+            anterior = JSON.stringify(t);
+        }
+        expect(vistos.map(t => t.modo)).toEqual(['concepte', 'concepte', 'concepte', 'concepte', 'serie', 'serie', 'arrel', 'potencia', 'suma', 'suma']);
+        expect(vistos.slice(0, 4).map(t => t.texto)).toEqual(['SISTEMA DE NUMERACIÓ', 'POSICIONAL', 'ADDITIU', 'EL NOSTRE']);
+        expect(vistos[4].texto).toMatch(/^FIG 4 /);
+        expect(vistos[5].texto).toMatch(/^FIG (10|20) /);
+        await expect(page.locator('#summary-titulo')).toHaveText('Missió complerta!');
+        const dades = envios.filter(e => e.datos.modulo === 'tema1').map(e => e.datos);
+        expect(dades).toHaveLength(10);
+        expect(dades.filter(d => !d.correcta).map(d => d.detalle.modo)).toEqual(['serie']);
+    });
+
+    // El 7/11, passat l'examen, torna el de sempre (romans amb la xuleta)
+    test('el 7/11 torna la xuleta dels romans', async ({ page }) => {
+        await preparar(page, '2026-11-07', { enCurso: { id: 10, bloque: 2, fecha: '2026-11-07' } });
+        await page.click('#btn-start-game');
+        await expect(page.locator('#btn-intro-vamos')).toHaveText('El papa ha mirat la xuleta ➜');
+    });
 });

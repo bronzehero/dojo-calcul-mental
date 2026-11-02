@@ -1036,6 +1036,11 @@
         .binari .mes { align-self: flex-end; color: #7c3aed; font-weight: 700; font-size: 0.7em; padding-bottom: 0.15em; }
         .parell small { font-size: 0.6em; color: #7c3aed; font-weight: 700; margin-bottom: 0.2em; white-space: nowrap; }
         .tema1-btn:active { background: #fce7f3; }
+        /* Sèries (setmana de l'examen): les tres primeres figures, amb les boles i quantes en té cada una */
+        .serie { display: inline-flex; gap: 0.9em; align-items: flex-end; justify-content: center; flex-wrap: wrap; }
+        .serie .fig { display: inline-flex; flex-direction: column; align-items: center; }
+        .serie .boles { color: #f59e0b; font-size: 0.55em; max-width: 6.5em; line-height: 1.05; word-break: break-all; text-align: center; }
+        .serie small { font-size: 0.4em; color: #6b21a8; font-weight: 700; margin-top: 0.3em; }
         /* Castellano: el texto corto, a la izquierda y legible; la viñeta, grande */
         .op-cast-text .operation-text { font-size: 1.45rem; font-weight: 600; line-height: 1.55; text-align: left; letter-spacing: 0.02em; }
         .op-cast-dibuix .operation-text { width: 100%; }
@@ -1793,18 +1798,61 @@
                 return `<span class="arrel-q">√${n * n}<span class="quadrat" style="--n:${n}">${cel}</span></span>`;
             }
             const TEMA1_CONCEPTES = [
-                { clau: 'ADDITIU', preg: 'Un sistema de numeració additiu vol dir…', bona: "Que se sumen els valors dels símbols. L'ordre no importa.",
+                { clau: 'ADDITIU', preg: 'Un sistema de numeració additiu vol dir…', bona: "Que el número és la suma dels valors dels símbols. El lloc on són no importa.",
                   altra: 'Que el valor de cada xifra depèn del lloc on és.', explica: "Com els egipcis: si canvies l'ordre dels dibuixos, és el mateix número." },
                 { clau: 'POSICIONAL', preg: 'Un sistema de numeració posicional vol dir…', bona: 'Que el valor de cada xifra depèn del lloc on és.',
-                  altra: "Que se sumen els valors dels símbols. L'ordre no importa.", explica: '12 i 21 no són el mateix: el 2 val 2 o val 20, segons el lloc on és.' },
-                { clau: 'EL NOSTRE', preg: 'El nostre sistema de numeració és…', bona: 'Posicional i decimal: de 10 en 10, amb les xifres del 0 al 9.',
+                  altra: "Que el número és la suma dels valors dels símbols. El lloc on són no importa.", explica: '54 i 45 no són el mateix: el 5 val 50 o val 5, segons el lloc on és.' },
+                { clau: 'EL NOSTRE', preg: 'El nostre sistema de numeració és…', bona: 'Posicional i decimal (de base 10): de 10 en 10, amb les xifres del 0 al 9.',
                   altra: 'Additiu, com el dels egipcis.', explica: 'Comptem de 10 en 10, i el lloc de cada xifra canvia el que val: unitats, desenes, centenes…' },
-                { clau: 'SISTEMA DE NUMERACIÓ', preg: 'Un sistema de numeració és…', bona: "Una manera d'escriure els números amb símbols.",
+                { clau: 'SISTEMA DE NUMERACIÓ', preg: 'Un sistema de numeració és…', bona: 'Un conjunt de símbols que serveixen per comptar i escriure els números.',
                   altra: 'Una manera de fer sumes i restes.', explica: 'Els egipcis, els babilonis, els romans i nosaltres escrivim els números amb símbols diferents.' },
                 { clau: 'ELS EGIPCIS', preg: 'El sistema de numeració dels egipcis és…', bona: 'Additiu', altra: 'Posicional',
                   explica: "Se sumen els dibuixos (10 + 10 + 1 = 21), i l'ordre no importa." },
                 { clau: 'ELS BABILONIS', preg: 'El sistema de numeració dels babilonis és…', bona: 'Posicional, de 60 en 60', altra: 'Additiu, sense llocs',
                   explica: "Si hi ha un espai, el símbol de l'esquerra val 60 vegades més." }
+            ];
+            // EXAMEN DEL VIE 6/11 · la profe va penjar l'1/11 què entra («Indicacions per l'examen de divendres»): les 4 preguntes
+            // de teoria dels sistemes de numeració, combinades, problemes, distributiva i factor comú, potències i «dreceres»
+            // (també quan NO es pot) i sèries de figures. Romans i binari no surten com a exercici: del 2/11 al 6/11 es queden fora
+            // (i la xuleta en paper també) i entren cada dia les 4 preguntes de teoria, en l'ordre de l'examen, sèries i dreceres.
+            // Números diferents dels del model de la profe: que no s'aprengui les respostes.
+            const EXAMEN_MATES_DES_DE = '2026-11-02', EXAMEN_MATES_FINS = '2026-11-06';
+            const setmanaExamenMates = () => hoy() >= EXAMEN_MATES_DES_DE && hoy() <= EXAMEN_MATES_FINS;
+            const TEMA1_TEORIA_EXAMEN = ['SISTEMA DE NUMERACIÓ', 'POSICIONAL', 'ADDITIU', 'EL NOSTRE'];
+            const TEMA1_EXAMEN_INFO = {
+                instr: "Repàs per a l'examen de mates de divendres, amb el que la profe ha dit que entra. Primer, les quatre preguntes dels sistemes de numeració, com a l'examen. Després, sèries de figures, una arrel i potències: quan es pot fer drecera i quan no. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».",
+                ejemplo: 'FIG 1: 3 · FIG 2: 5 · FIG 3: 7 ➜ i la FIG 4?', boto: null
+            };
+            // Sèries: [boles de la figura 1, quantes se'n sumen a cada figura]
+            const TEMA1_SERIES = [[3, 2], [4, 3], [1, 2], [2, 3], [5, 2], [1, 4]];
+            function htmlSerie(a, d) {
+                return `<span class="serie">${[0, 1, 2].map(i => `<span class="fig"><span class="boles">${'●'.repeat(a + d * i)}</span><small>FIG ${i + 1}: ${a + d * i}</small></span>`).join('')}</span>`;
+            }
+            // Potències com les de l'examen (una sola potència): l'exponent
+            const TEMA1_POT_EXAMEN = [
+                ['3 · 3<sup>4</sup>', 3, 5, 'Punt: se sumen. El 3 sol porta un 1 amagat: 1 + 4 = 5.'],
+                ['5<sup>9</sup> : 5<sup>3</sup>', 5, 6, 'Dos punts: es resten. 9 − 3 = 6.'],
+                ['(2<sup>4</sup>)<sup>3</sup>', 2, 12, 'Parèntesi amb un número a fora: es multiplica. 4 · 3 = 12.'],
+                ['4<sup>3</sup> · 4<sup>2</sup> · 4<sup>4</sup>', 4, 9, 'Punt: se sumen. 3 + 2 + 4 = 9.'],
+                ['(5<sup>2</sup>)<sup>4</sup> · 5<sup>3</sup>', 5, 11, 'Primer el parèntesi: 2 · 4 = 8. Després el punt: 8 + 3 = 11.'],
+                ['7<sup>3</sup> · 7<sup>8</sup> : 7<sup>4</sup>', 7, 7, "Primer el punt: 3 + 8 = 11. Després els dos punts: 11 − 4 = 7. A l'examen pot sortir amb una ratlla de fracció: és el mateix que dividir."]
+            ];
+            // Quan NO hi ha drecera (suma, o bases diferents) i els casos especials (elevat a 0, a 1, l'1 i el 0)
+            const TEMA1_SENSE_DRECERA = [
+                ['2<sup>4</sup> + 2<sup>2</sup> = 2<sup>6</sup>', 'Fals', 'Amb una SUMA no hi ha drecera: es calcula. 16 + 4 = 20.'],
+                ['3<sup>2</sup> + 3<sup>3</sup> = 3<sup>5</sup>', 'Fals', 'Amb una SUMA no hi ha drecera: es calcula. 9 + 27 = 36.'],
+                ['3<sup>2</sup> · 2<sup>3</sup> = 6<sup>5</sup>', 'Fals', 'Les bases són diferents (3 i 2): no hi ha drecera. Es calcula: 9 · 8 = 72.'],
+                ['5<sup>2</sup> · 3<sup>4</sup> = 15<sup>6</sup>', 'Fals', 'Les bases són diferents (5 i 3): no hi ha drecera. Es calcula: 25 · 81.'],
+                ['4<sup>2</sup> · 4<sup>5</sup> = 4<sup>7</sup>', 'Vertader', 'La mateixa base i un punt: sí que hi ha drecera, se sumen els exponents. 2 + 5 = 7.']
+            ];
+            const TEMA1_ESPECIALS = [
+                ['9<sup>0</sup> = 0', 'Fals', 'Qualsevol número elevat a 0 dona 1: 9⁰ = 1.'],
+                ['9<sup>0</sup> = 1', 'Vertader', 'Qualsevol número elevat a 0 dona 1.'],
+                ['1<sup>40</sup> = 40', 'Fals', '1 · 1 · 1… sempre dona 1: 1⁴⁰ = 1.'],
+                ['1<sup>40</sup> = 1', 'Vertader', '1 · 1 · 1… sempre dona 1.'],
+                ['0<sup>5</sup> = 0', 'Vertader', '0 · 0 · 0 · 0 · 0 = 0.'],
+                ['25<sup>1</sup> = 1', 'Fals', 'Elevat a 1 és el mateix número: 25¹ = 25.'],
+                ['(2<sup>3</sup>)<sup>4</sup> = 2<sup>7</sup>', 'Fals', 'Potència de potència: els exponents es multipliquen, 3 · 4 = 12. No se sumen.']
             ];
             const ROMANS = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
             function aRoma(n) {
@@ -1927,6 +1975,14 @@
             }
             // Cada día: 3 para leer, 3 para escribir, 2 de binario, 2 de teoría y 2 de potencias (en este orden: así cambia de tarea pocas veces)
             function itemsTema1() {
+                // Setmana de l'examen (2-6/11): sense romans ni binari; la teoria sencera, sèries, una arrel i potències
+                if (setmanaExamenMates()) {
+                    const teoria = TEMA1_TEORIA_EXAMEN.map(k => ({ modo: 'concepte', c: TEMA1_CONCEPTES.find(c => c.clau === k) }));
+                    const [s1, s2] = shuffle(TEMA1_SERIES);
+                    return [...teoria, { modo: 'serie', a: s1[0], d: s1[1], n: 4 }, { modo: 'serie', a: s2[0], d: s2[1], n: shuffle([10, 20])[0] },
+                        { modo: 'arrel', n: shuffle(TEMA1_ARRELS)[0] }, { modo: 'potencia', p: shuffle(TEMA1_POT_EXAMEN)[0] },
+                        { modo: 'suma', p: shuffle(TEMA1_SENSE_DRECERA)[0] }, { modo: 'suma', p: shuffle(TEMA1_ESPECIALS)[0] }];
+                }
                 // Desde el 29/10 los romanos van por la escalera (y no se eligen: escribir en romanos, después, en papel con papá)
                 if (hoy() >= ROMANS_DES_DE) {
                     const binari = shuffle(TEMA1_BINARI).slice(0, 2).map(b => ({ modo: 'binari', b }));
@@ -2447,6 +2503,7 @@
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 ROMANS_ESCALA.forEach(e => t.add(e.veu));
+                t.add(TEMA1_EXAMEN_INFO.instr);
                 [...ACCENT_ON_SEMPRE, ...ACCENT_ON, ...ACCENT_NO].forEach(x => t.add(veuAccent(x)));
                 t.add(ACCENT_LLEGEIX_VEU);
                 t.add(PAS10_DITS);
@@ -2756,6 +2813,7 @@
             function infoBloque(b) {
                 if (b.tipo === 'setmana') return infoSetmana(fetSetmana());
                 if (b.tipo === 'dictat') return { ...TIPOS.dictat, nombre: `Dictat · part ${b.bloc + 1} de ${DICTAT.bloques.length}`, paso: () => `Dictat, part ${b.bloc + 1}` };
+                if (b.tipo === 'tema1' && setmanaExamenMates()) return { ...TIPOS.tema1, ...TEMA1_EXAMEN_INFO };
                 if (b.tipo !== 'grafia') return TIPOS[b.tipo];
                 // Igual que l'enunciat de l'examen; el color només ajuda a trobar-ho al full
                 const e = EXAMEN_CATALA[b.bloc];
@@ -3220,6 +3278,13 @@
                             quadrat: !!x.quadrat,
                             preg: `Arrel quadrada: quin número, multiplicat per ell mateix, dona ${q}?${x.quadrat ? ' És el costat del quadrat.' : ''}`,
                             solucio: `√${q} = ${x.n}`, explica: `${x.n} · ${x.n} = ${q}. L'arrel quadrada és el costat del quadrat: ${q} quadradets fan un quadrat de ${x.n} de costat.` };
+                    }
+                    if (x.modo === 'serie') {
+                        const { a, d, n } = x, r = a + d * (n - 1);
+                        return { tipo, modo: x.modo, texto: `FIG ${n} (${a}, +${d})`, html: htmlSerie(a, d), clave: `serie:${a}+${d}:${n}`, esperado: String(r), maxXifres: 3,
+                            preg: `Quantes boles té la figura ${n}?`, solucio: `Figura ${n} = ${r} boles`,
+                            explica: n === 4 ? `Cada figura en té ${d} més que l'anterior: ${a}, ${a + d}, ${a + 2 * d}… i la 4, ${a + 2 * d} + ${d} = ${r}.`
+                                : `La figura 1 en té ${a}, i cada figura en suma ${d}. De la 1 a la ${n} hi ha ${n - 1} salts: ${a} + ${d} · ${n - 1} = ${a} + ${d * (n - 1)} = ${r}.` };
                     }
                     if (x.modo === 'potencia') {
                         const [h, base, exp, explica] = x.p;
