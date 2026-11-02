@@ -1015,6 +1015,11 @@
         .par-b { color: #e0115f; font-weight: 900; }
         .tema1-preg { font-size: 1.25rem; font-weight: 700; color: #6b21a8; margin-bottom: 6px; }
         .op-tema1-clau .operation-text { font-size: 2.2rem; letter-spacing: 0.04em; }
+        .tema1-buit { display: block; font-size: 1.5rem; letter-spacing: normal; line-height: 1.45; margin-top: 10px; color: #1e293b; }
+        .tema1-buit u { text-decoration-thickness: 3px; text-underline-offset: 4px; color: #e0115f; }
+        .frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; }
+        .frac > span:first-child { border-bottom: 4px solid currentColor; padding: 0 0.2em; }
+        .frac > span:last-child { padding: 0 0.2em; }
         .tema1-opcions { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 14px; }
         .tema1-btn { min-height: 76px; padding: 12px 18px; border: 4px solid #e9dcff; border-radius: 20px; background: #fff; cursor: pointer;
             font-family: var(--font-main); font-size: 1.35rem; font-weight: 700; line-height: 1.35; color: #1e293b; text-align: left; box-shadow: 0 6px 16px var(--c-shadow); }
@@ -1799,13 +1804,17 @@
             }
             const TEMA1_CONCEPTES = [
                 { clau: 'ADDITIU', preg: 'Un sistema de numeració additiu vol dir…', bona: "Que el número és la suma dels valors dels símbols. El lloc on són no importa.",
-                  altra: 'Que el valor de cada xifra depèn del lloc on és.', explica: "Com els egipcis: si canvies l'ordre dels dibuixos, és el mateix número." },
+                  altra: 'Que el valor de cada xifra depèn del lloc on és.', explica: "Com els egipcis: si canvies l'ordre dels dibuixos, és el mateix número.",
+                  buit: ["El valor del número s'obté ___ el valor de cada símbol. La posició no importa.", 'sumant', ['multiplicant', 'restant']] },
                 { clau: 'POSICIONAL', preg: 'Un sistema de numeració posicional vol dir…', bona: 'Que el valor de cada xifra depèn del lloc on és.',
-                  altra: "Que el número és la suma dels valors dels símbols. El lloc on són no importa.", explica: '54 i 45 no són el mateix: el 5 val 50 o val 5, segons el lloc on és.' },
+                  altra: "Que el número és la suma dels valors dels símbols. El lloc on són no importa.", explica: '54 i 45 no són el mateix: el 5 val 50 o val 5, segons el lloc on és.',
+                  buit: ['El valor de cada símbol depèn de la ___ on és. (54 no és 45)', 'posició', ['suma', 'mida']] },
                 { clau: 'EL NOSTRE', preg: 'El nostre sistema de numeració és…', bona: 'Posicional i decimal (de base 10): de 10 en 10, amb les xifres del 0 al 9.',
-                  altra: 'Additiu, com el dels egipcis.', explica: 'Comptem de 10 en 10, i el lloc de cada xifra canvia el que val: unitats, desenes, centenes…' },
+                  altra: 'Additiu, com el dels egipcis.', explica: 'Comptem de 10 en 10, i el lloc de cada xifra canvia el que val: unitats, desenes, centenes…',
+                  buit: ['El nostre sistema de numeració és ___.', 'posicional i decimal (base 10)', ['additiu i decimal (base 10)', 'posicional i de base 60']] },
                 { clau: 'SISTEMA DE NUMERACIÓ', preg: 'Un sistema de numeració és…', bona: 'Un conjunt de símbols que serveixen per comptar i escriure els números.',
-                  altra: 'Una manera de fer sumes i restes.', explica: 'Els egipcis, els babilonis, els romans i nosaltres escrivim els números amb símbols diferents.' },
+                  altra: 'Una manera de fer sumes i restes.', explica: 'Els egipcis, els babilonis, els romans i nosaltres escrivim els números amb símbols diferents.',
+                  buit: ['Un conjunt de ___ que serveixen per comptar.', 'símbols', ['números', 'sumes']] },
                 { clau: 'ELS EGIPCIS', preg: 'El sistema de numeració dels egipcis és…', bona: 'Additiu', altra: 'Posicional',
                   explica: "Se sumen els dibuixos (10 + 10 + 1 = 21), i l'ordre no importa." },
                 { clau: 'ELS BABILONIS', preg: 'El sistema de numeració dels babilonis és…', bona: 'Posicional, de 60 en 60', altra: 'Additiu, sense llocs',
@@ -1823,8 +1832,9 @@
                 instr: "Repàs per a l'examen de mates de divendres, amb el que la profe ha dit que entra. Primer, les quatre preguntes dels sistemes de numeració, com a l'examen. Després, sèries de figures, una arrel i potències: quan es pot fer drecera i quan no. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».",
                 ejemplo: 'FIG 1: 3 · FIG 2: 5 · FIG 3: 7 ➜ i la FIG 4?', boto: null
             };
-            // Sèries: [boles de la figura 1, quantes se'n sumen a cada figura]
-            const TEMA1_SERIES = [[3, 2], [4, 3], [1, 2], [2, 3], [5, 2], [1, 4]];
+            // Sèries: [boles de la figura 1, quantes se'n sumen a cada figura]. Com les de la profe i el dosier: la figura 1 en té més
+            // de les que se sumen. Mètode de casa (2/11): la taula del número que se suma (d · n) i el que hi falta, mirant la figura 1.
+            const TEMA1_SERIES = [[4, 3], [5, 2], [6, 4], [7, 3], [6, 5], [4, 2]];
             function htmlSerie(a, d) {
                 return `<span class="serie">${[0, 1, 2].map(i => `<span class="fig"><span class="boles">${'●'.repeat(a + d * i)}</span><small>FIG ${i + 1}: ${a + d * i}</small></span>`).join('')}</span>`;
             }
@@ -1837,13 +1847,21 @@
                 ['(5<sup>2</sup>)<sup>4</sup> · 5<sup>3</sup>', 5, 11, 'Primer el parèntesi: 2 · 4 = 8. Després el punt: 8 + 3 = 11.'],
                 ['7<sup>3</sup> · 7<sup>8</sup> : 7<sup>4</sup>', 7, 7, "Primer el punt: 3 + 8 = 11. Després els dos punts: 11 − 4 = 7. A l'examen pot sortir amb una ratlla de fracció: és el mateix que dividir."]
             ];
+            const fraccio = (dalt, baix) => `<span class="frac"><span>${dalt}</span><span>${baix}</span></span>`;
+            const TEMA1_POT_FRACCIO = [
+                [fraccio('5<sup>3</sup> · 5<sup>8</sup>', '5<sup>4</sup>'), 5, 7, 'La ratlla vol dir DIVIDIR. A dalt, punt: se sumen, 3 + 8 = 11. Després la ratlla: es resten, 11 − 4 = 7.', '5³ · 5⁸ / 5⁴'],
+                [fraccio('3<sup>4</sup> · 3<sup>9</sup>', '3<sup>6</sup>'), 3, 7, 'La ratlla vol dir DIVIDIR. A dalt, punt: se sumen, 4 + 9 = 13. Després la ratlla: es resten, 13 − 6 = 7.', '3⁴ · 3⁹ / 3⁶'],
+                [fraccio('2<sup>7</sup>', '2<sup>3</sup>'), 2, 4, 'La ratlla vol dir DIVIDIR: es resten, 7 − 3 = 4.', '2⁷ / 2³'],
+                [fraccio('4<sup>2</sup> · 4<sup>9</sup>', '4<sup>5</sup>'), 4, 6, 'La ratlla vol dir DIVIDIR. A dalt, punt: se sumen, 2 + 9 = 11. Després la ratlla: es resten, 11 − 5 = 6.', '4² · 4⁹ / 4⁵']
+            ];
             // Quan NO hi ha drecera (suma, o bases diferents) i els casos especials (elevat a 0, a 1, l'1 i el 0)
             const TEMA1_SENSE_DRECERA = [
                 ['2<sup>4</sup> + 2<sup>2</sup> = 2<sup>6</sup>', 'Fals', 'Amb una SUMA no hi ha drecera: es calcula. 16 + 4 = 20.'],
                 ['3<sup>2</sup> + 3<sup>3</sup> = 3<sup>5</sup>', 'Fals', 'Amb una SUMA no hi ha drecera: es calcula. 9 + 27 = 36.'],
                 ['3<sup>2</sup> · 2<sup>3</sup> = 6<sup>5</sup>', 'Fals', 'Les bases són diferents (3 i 2): no hi ha drecera. Es calcula: 9 · 8 = 72.'],
                 ['5<sup>2</sup> · 3<sup>4</sup> = 15<sup>6</sup>', 'Fals', 'Les bases són diferents (5 i 3): no hi ha drecera. Es calcula: 25 · 81.'],
-                ['4<sup>2</sup> · 4<sup>5</sup> = 4<sup>7</sup>', 'Vertader', 'La mateixa base i un punt: sí que hi ha drecera, se sumen els exponents. 2 + 5 = 7.']
+                ['4<sup>2</sup> · 4<sup>5</sup> = 4<sup>7</sup>', 'Vertader', 'La mateixa base i un punt: sí que hi ha drecera, se sumen els exponents. 2 + 5 = 7.'],
+                ['2<sup>3</sup> · 5<sup>2</sup> = 10', 'Fals', 'Les bases són diferents (2 i 5): no hi ha drecera. Es calcula cada potència: 8 · 25 = 200.']
             ];
             const TEMA1_ESPECIALS = [
                 ['9<sup>0</sup> = 0', 'Fals', 'Qualsevol número elevat a 0 dona 1: 9⁰ = 1.'],
@@ -1978,9 +1996,12 @@
                 // Setmana de l'examen (2-6/11): sense romans ni binari; la teoria sencera, sèries, una arrel i potències
                 if (setmanaExamenMates()) {
                     const teoria = TEMA1_TEORIA_EXAMEN.map(k => ({ modo: 'concepte', c: TEMA1_CONCEPTES.find(c => c.clau === k) }));
+                    // Sèries com a l'examen: la figura 4; i d'una altra sèrie, primer quant hi falta a la taula i després una figura de lluny.
+                    // Aquesta setmana, en lloc de l'arrel, una potència amb ratlla de fracció (com a l'examen)
                     const [s1, s2] = shuffle(TEMA1_SERIES);
-                    return [...teoria, { modo: 'serie', a: s1[0], d: s1[1], n: 4 }, { modo: 'serie', a: s2[0], d: s2[1], n: shuffle([10, 20])[0] },
-                        { modo: 'arrel', n: shuffle(TEMA1_ARRELS)[0] }, { modo: 'potencia', p: shuffle(TEMA1_POT_EXAMEN)[0] },
+                    return [...teoria.map(t => ({ ...t, buit: true })), { modo: 'serie', a: s1[0], d: s1[1], n: 4 },
+                        { modo: 'serie-falta', a: s2[0], d: s2[1] }, { modo: 'serie', a: s2[0], d: s2[1], n: shuffle([10, 20, 100])[0] },
+                        { modo: 'potencia', p: shuffle(TEMA1_POT_FRACCIO)[0] }, { modo: 'potencia', p: shuffle(TEMA1_POT_EXAMEN)[0] },
                         { modo: 'suma', p: shuffle(TEMA1_SENSE_DRECERA)[0] }, { modo: 'suma', p: shuffle(TEMA1_ESPECIALS)[0] }];
                 }
                 // Desde el 29/10 los romanos van por la escalera (y no se eligen: escribir en romanos, después, en papel con papá)
@@ -3279,17 +3300,24 @@
                             preg: `Arrel quadrada: quin número, multiplicat per ell mateix, dona ${q}?${x.quadrat ? ' És el costat del quadrat.' : ''}`,
                             solucio: `√${q} = ${x.n}`, explica: `${x.n} · ${x.n} = ${q}. L'arrel quadrada és el costat del quadrat: ${q} quadradets fan un quadrat de ${x.n} de costat.` };
                     }
+                    if (x.modo === 'serie-falta') {
+                        const { a, d } = x, k = a - d;
+                        return { tipo, modo: x.modo, texto: `FALTA (${a}, +${d})`, html: htmlSerie(a, d), clave: `serie-falta:${a}+${d}`, esperado: String(k), maxXifres: 2,
+                            preg: `Taula del ${d}: la figura 1 seria ${d}, però en té ${a}. Quantes hi falten?`,
+                            solucio: `${a} − ${d} = ${k}`,
+                            explica: `${d} · 1 = ${d}, i la figura 1 en té ${a}: hi falten ${a} − ${d} = ${k}. Fórmula: ${d} · n + ${k}. Comprova-ho amb la figura 2: ${d} · 2 + ${k} = ${2 * d + k}.` };
+                    }
                     if (x.modo === 'serie') {
-                        const { a, d, n } = x, r = a + d * (n - 1);
+                        const { a, d, n } = x, k = a - d, r = a + d * (n - 1);
                         return { tipo, modo: x.modo, texto: `FIG ${n} (${a}, +${d})`, html: htmlSerie(a, d), clave: `serie:${a}+${d}:${n}`, esperado: String(r), maxXifres: 3,
                             preg: `Quantes boles té la figura ${n}?`, solucio: `Figura ${n} = ${r} boles`,
                             explica: n === 4 ? `Cada figura en té ${d} més que l'anterior: ${a}, ${a + d}, ${a + 2 * d}… i la 4, ${a + 2 * d} + ${d} = ${r}.`
-                                : `La figura 1 en té ${a}, i cada figura en suma ${d}. De la 1 a la ${n} hi ha ${n - 1} salts: ${a} + ${d} · ${n - 1} = ${a} + ${d * (n - 1)} = ${r}.` };
+                                : `Se'n sumen ${d}: la taula del ${d}, ${d} · ${n} = ${d * n}. A la figura 1 hi falten ${a} − ${d} = ${k}. ${d} · ${n} + ${k} = ${d * n} + ${k} = ${r}.` };
                     }
                     if (x.modo === 'potencia') {
-                        const [h, base, exp, explica] = x.p;
-                        return { tipo, modo: x.modo, texto: sensePot(h), html: `${h} = ${base}<sup>?</sup>`, clave: `potencia:${sensePot(h)}`, esperado: String(exp), maxXifres: 2,
-                            preg: "En una sola potència. Quin és l'exponent?", solucio: `${sensePot(h)} = ${base}${sensePot(`<sup>${exp}</sup>`)}`, explica };
+                        const [h, base, exp, explica, pla] = x.p, text = pla || sensePot(h);
+                        return { tipo, modo: x.modo, texto: text, html: `${h} = ${base}<sup>?</sup>`, clave: `potencia:${text}`, esperado: String(exp), maxXifres: 2,
+                            preg: "En una sola potència. Quin és l'exponent?", solucio: `${text} = ${base}${sensePot(`<sup>${exp}</sup>`)}`, explica };
                     }
                     if (x.modo === 'suma') {
                         const [h, bona, explica] = x.p;
@@ -3297,6 +3325,13 @@
                             preg: 'Vertader o fals?', opcions: ['Vertader', 'Fals'], solucio: `${bona}: ${sensePot(h)}`, explica };
                     }
                     const c = x.c;
+                    // Setmana de l'examen: la frase de la profe amb la paraula clau buida (a l'examen l'ha d'escriure, no triar-la)
+                    if (x.buit && c.buit) {
+                        const [frase, bona, altres] = c.buit;
+                        return { tipo, modo: x.modo, texto: c.clau, html: `<span>${c.clau}</span><span class="tema1-buit">${escaparHtml(frase).replace('___', '<u>&emsp;&emsp;&emsp;</u>')}</span>`,
+                            clave: `concepte-buit:${c.clau}`, esperado: bona, preg: 'Quina paraula hi falta?', opcions: shuffle([bona, ...altres]),
+                            solucio: frase.replace('___', bona), explica: c.explica };
+                    }
                     return { tipo, modo: x.modo, texto: c.clau, clave: `concepte:${c.clau}`, esperado: c.bona,
                         preg: c.preg, opcions: shuffle([c.bona, c.altra]), solucio: c.bona, explica: c.explica };
                 }
