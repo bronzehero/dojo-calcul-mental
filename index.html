@@ -1797,6 +1797,8 @@
             // un bloque corto antes de las palabras. Leer y escribir números romanos, binario → número y la teoría de la pág. 11
             // (qué es additiu y qué es posicional), con la forma de las actividades del dossier. Si falla, ve la solución explicada.
             const TEMA1_DES_DE = '2026-10-22';
+            // L'examen del tema 1 és el 6/11 al matí: des d'aquell dia ja no surt
+            const TEMA1_FINS = '2026-11-05';
             const TEMA1_LLEGIR = ['XIV', 'XXVI', 'XC', 'XL', 'XIX', 'XLIV', 'CM', 'MMXXVI', 'LXXXVIII', 'CDXC', 'MCMXXVII', 'IX', 'XCIX'];
             // Escribir en romanos: la buena y dos que se le pueden cruzar (sumar de más, el símbolo pequeño en el lado que no toca)
             const TEMA1_ESCRIURE = [
@@ -2052,7 +2054,7 @@
             function leerTema1() {
                 try { return JSON.parse(localStorage.getItem('dojo_tema1')) || {}; } catch (e) { return {}; }
             }
-            const tema1Pendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= TEMA1_DES_DE && !leerTema1().pausa;
+            const tema1Pendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= TEMA1_DES_DE && hoy() <= TEMA1_FINS && !leerTema1().pausa;
             const conTema1 = m => ({ ...m, bloques: [...m.bloques, { tipo: 'tema1' }] });
 
             // CASTELLANO · la recuperación del control de la unidad 1: se adelantó al 26/10, así que el último día fue el 25.

@@ -236,10 +236,27 @@ test.describe('Tema 1 de mates', () => {
         expect(dades.filter(d => !d.correcta).map(d => d.detalle.modo)).toEqual(['serie']);
     });
 
-    // El 7/11, passat l'examen, torna el de sempre (romans amb la xuleta)
-    test('el 7/11 torna la xuleta dels romans', async ({ page }) => {
-        await preparar(page, '2026-11-07', { enCurso: { id: 10, bloque: 2, fecha: '2026-11-07' } });
-        await page.click('#btn-start-game');
-        await expect(page.locator('#btn-intro-vamos')).toHaveText('El papa ha mirat la xuleta ➜');
+    // Passat l'examen (6/11), el tema 1 ja no surt (papà, 3/11)
+    test('el 7/11 el tema 1 ja no surt', async ({ page }) => {
+        await preparar(page, '2026-11-07');
+        await expect(page.locator('#mision-pasos li').first()).toBeVisible();
+        await expect(page.locator('#mision-pasos li', { hasText: 'Tema 1' })).toHaveCount(0);
     });
+});
+
+test("des del 6/11 (el dia de l'examen) el tema 1 ja no surt a la missió", async ({ page }) => {
+    await simularSupabase(page, { tema1: true });
+    await page.clock.setFixedTime(new Date('2026-11-06T17:00:00'));
+    await page.addInitScript(() => {
+        if (sessionStorage.getItem('x')) return;
+        sessionStorage.setItem('x', '1');
+        localStorage.setItem('dojo_plan', JSON.stringify({ hechas: [1, 2, 3, 4, 5, 6].map(id => ({ id, fecha: '2026-01-01' })).concat([{ id: 10, fecha: '2026-10-17' }]),
+            extras: [{ id: 102, fecha: '2026-10-16' }, { id: 103, fecha: '2026-10-17' }] }));
+    });
+    await page.goto(URL_APP);
+    await expect(page.locator('#mision-pasos li').first()).toBeVisible();
+    await expect(page.locator('#mision-pasos li', { hasText: 'Tema 1' })).toHaveCount(0);
+    await page.clock.setFixedTime(new Date('2026-11-05T17:00:00'));
+    await page.reload();
+    await expect(page.locator('#mision-pasos li', { hasText: 'Tema 1' })).toHaveCount(1);
 });
