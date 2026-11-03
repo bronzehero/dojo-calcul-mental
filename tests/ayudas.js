@@ -21,6 +21,12 @@ async function simularSupabase(page, opciones = {}) {
             if (!localStorage.getItem('dojo_paraules')) localStorage.setItem('dojo_paraules', JSON.stringify({ pausa: true }));
         });
     }
+    // Y el laboratorio de palabras (desde el 7/11)
+    if (!opciones.lab) {
+        await page.addInitScript(() => {
+            if (!localStorage.getItem('dojo_lab')) localStorage.setItem('dojo_lab', JSON.stringify({ pausa: true }));
+        });
+    }
     // Lo mismo con el tema 1 de mates (desde el 22/10)
     if (!opciones.tema1) {
         await page.addInitScript(() => {

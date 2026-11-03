@@ -997,6 +997,23 @@
         .paraula-familia .clau { color: #db2777; background: #fce7f3; border-radius: 8px; padding: 0 3px; }
         .paraula-familia .buit-familia { display: inline-block; min-width: 3.5em; border-bottom: 3px solid #db2777; }
         .btn-paraula-seguir:hover { transform: none; }
+        /* Laboratori: el forat de la lletra que costa, els botons per posar-la, les lletres que canvien i la frase per repassar */
+        .lab-dalt { margin: 0 0 8px 0; padding: 10px 14px; border-radius: 16px; background: #fff7ed; color: #7c2d12; font-size: 1.35rem; line-height: 1.5; }
+        .lab-dalt .clau { color: #db2777; background: #fce7f3; border-radius: 8px; padding: 0 3px; font-weight: 700; }
+        .lab-dalt .tu { text-decoration: line-through; text-decoration-color: #f9a8d4; color: #475569; }
+        .paraula-gran .forat-lab { display: inline-block; min-width: 0.9em; border-bottom: 4px solid #db2777; color: #db2777; }
+        .paraula-gran .forat-lab.actual { background: #fce7f3; border-radius: 8px 8px 0 0; }
+        .lab-opcions { display: flex; gap: 12px; justify-content: center; margin: 0 0 12px 0; }
+        .lab-opcio { min-width: 110px; padding: 14px 20px; border: 3px solid #e9d5ff; border-radius: 16px; background: #fff; font-family: var(--font-main);
+            font-size: 2.2rem; font-weight: 700; color: #1e293b; cursor: pointer; }
+        .lab-opcio.bona { border-color: #10b981; background: #ecfdf5; }
+        .lab-lletra { display: inline-block; min-width: 0.7em; padding: 0 2px; border-radius: 8px; cursor: pointer; }
+        .lab-lletra.trobada { color: #db2777; background: #fce7f3; }
+        .lab-mots { font-size: 2rem; line-height: 1.8; letter-spacing: 0.02em; }
+        .lab-mot { display: inline-block; margin: 2px 4px; padding: 2px 10px; border: 2px solid #e2e8f0; border-radius: 12px; background: #fff; cursor: pointer; }
+        .lab-mot.canviat { border-color: #f9a8d4; background: #fdf2f8; }
+        .lab-frase { font-size: 1.9rem; line-height: 1.5; }
+        .lab-frase .clau { color: #db2777; background: #fce7f3; border-radius: 8px; padding: 0 3px; }
 
         /* Xifres: dues (o quatre) xifres per triar; una pot estar en mirall o girada */
         .xifres-opcions { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
@@ -1193,6 +1210,16 @@
                         <div id="paraula-parella" class="paraula-parella" hidden></div>
                         <button id="btn-escoltar-paraula" class="btn-subtle btn-escoltar-dictat">🔊 Torna-ho a escoltar</button>
                         <button id="btn-paraula-seguir" class="btn-action btn-paraula-seguir">Ja la tinc! Tapa-la 🙈</button>
+                    </div>
+
+                    <!-- Laboratori de paraules: la paraula (o la frase) gran, el que l'ajuda i els botons -->
+                    <div id="lab-panel" class="paraules-panel" hidden>
+                        <div id="lab-dalt" class="lab-dalt" hidden></div>
+                        <div id="lab-gran" class="paraula-gran"></div>
+                        <div id="lab-truc" class="paraula-truc" hidden></div>
+                        <div id="lab-opcions" class="lab-opcions" hidden></div>
+                        <button id="btn-lab-escoltar" class="btn-subtle btn-escoltar-dictat">🔊 Torna-ho a escoltar</button>
+                        <button id="btn-lab-seguir" class="btn-action btn-paraula-seguir">Ja la tinc! Tapa-la 🙈</button>
                     </div>
 
                     <!-- Xifres: escolta i toca la que està ben escrita / el número que ha sentit -->
@@ -1563,6 +1590,7 @@
                 xifra:   { nombre: 'Quin està ben escrit?', icono: '🔍', instr: "Ara, una prova curta i diferent: no hi ha comptes. Sentiràs un número i en veuràs dos. Un està ben escrit. L'altre està girat, com si el veiessis en un mirall, o és un altre número. Toca el que està ben escrit. Mira'ls bé, sense pressa. Si dubtes, tria el que et sembli: no passa res.", ejemplo: 'Sents «Toca el tres» ➜ toques el 3 ben escrit', paso: () => 'Quin està ben escrit?' },
                 sentir:  { nombre: 'Quin número és?', icono: '👂', instr: "Ara sentiràs un número de dues xifres i en veuràs quatre que s'assemblen molt. Toca el que has sentit. Mira'ls xifra per xifra, sense pressa. El pots tornar a escoltar tantes vegades com vulguis.", ejemplo: 'Sents «trenta-sis» ➜ toques el 36', paso: () => 'Quin número és?' },
                 paraules: { nombre: 'Paraules', icono: '🔤', instr: "Paraules que costen d'escriure. Les noves, primer les mires bé amb el seu truc i, quan te les sàpigues, les tapes i les escrius de memòria. Les que ja has vist, les sents i les escrius de memòria. Si no surt, la tornes a mirar i la tornes a escriure. Al teu ritme.", ejemplo: 'Mires «bien» (B de Bueno) ➜ la tapes ➜ escrius bien', paso: () => 'Paraules' },
+                lab:     { nombre: 'Laboratori de paraules', icono: '🧪', instr: "Paraules que costen, cada una apresa d'una manera diferent, per veure quina et va millor. Les noves, primer les mires com toqui i després les tapes i les escrius de memòria. Les que ja has vist, les sents i les escrius. Si alguna no surt, mires què canvia i la tornes a escriure. Alguns dies hi ha frases senceres i, al final, les repasses amb calma. Al teu ritme.", ejemplo: 'televisor ➜ televi_ión ➜ televisión', paso: () => 'Laboratori de paraules' },
                 tema1:   { nombre: 'Tema 1 de mates', icono: '🏛️', instr: "Repàs del tema 1 de mates, per a l'examen. Primer, agafa un full i fes-te la xuleta dels romans, com a l'examen: els números que van de 5 en 5, la lletra de cada un a sota i les parelles que resten, les del 4 i les del 9. Quan l'acabis, ensenya-la al papa perquè te la miri. Després, amb la xuleta al costat: romans, binari i què vol dir additiu i posicional. Al binari, suma només els que tenen un 1. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'XIV ➜ escrius 14', boto: 'El papa ha mirat la xuleta ➜', paso: () => 'Tema 1 de mates' },
                 catala:  { nombre: 'Català: apòstrof i contraccions', icono: '✏️', instr: "Repàs per a l'examen de català de demà. Agafa el full d'apunts de català i posa'l al costat: el fas servir com a l'examen. A cada frase, mira la paraula de després del forat i busca-la al full. Si una no surt, et dic on mirar i ho tornes a provar. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Anem ___ teatre (a + el) ➜ al', paso: () => 'Català: apòstrof i contraccions' },
                 tecno:   { nombre: 'Tecno per a l\'examen', icono: '💻', instr: "Repàs de l'examen de tecno del dijous: on és cada botó del Drive, dels Documents, de les Presentacions i del correu. Llegeixes què vols fer i tries com es fa. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Vull que l\'amiga pugui canviar coses ➜ Editor', paso: () => 'Tecno per a l\'examen' },
@@ -2330,7 +2358,8 @@
             // El control de castellano fue el 26/10: desde el 29/10 de castellano solo quedan coherencia y cohesión,
             // para medir si funciona un método nuevo
             const PARAULES_ES_FINS = '2026-10-28', PARAULES_ES_QUEDEN = ['es-coherencia', 'es-cohesion'];
-            const paraulaActiva = (w, d) => w.idioma !== 'es' || d <= PARAULES_ES_FINS || PARAULES_ES_QUEDEN.includes(w.id);
+            const paraulaActiva = (w, d) => !(d >= LAB_DES_DE && LAB_DE_PARAULES.includes(w.id)) &&
+                (w.idioma !== 'es' || d <= PARAULES_ES_FINS || PARAULES_ES_QUEDEN.includes(w.id));
             // Días con la misión corta (29/10: examen de tecno y vóley): solo las que ya ha visto, ninguna nueva
             const PARAULES_SENSE_NOVES = ['2026-10-29'];
             const NOM_IDIOMA = { es: 'castellà', ca: 'català' };
@@ -2341,6 +2370,478 @@
             // Les de la h d'un verb (hemos, hicimos…): si no surt de memòria, abans de tornar-la a mirar, l'escriu dins de la seva família
             const veuFamilia = w => ambIdioma(w, w.familia.veu);
             const htmlMarca = m => escaparHtml(m).replace(/\[([^\]]+)\]/g, '<span class="clau">$1</span>');
+
+            // ==========================================
+            // LABORATORI DE PARAULES (des del 7/11)
+            // ==========================================
+            // Quatre maneres d'aprendre una paraula que costa, comparades amb paraules diferents (totes, de les que fallen):
+            //   mira    · mirar-la amb les lletres que costen de color i el truc (com a Paraules)
+            //   trampa  · posar ella la lletra que costa (dos botons), amb el truc a la vista
+            //   germana · posar la lletra que costa mirant una paraula de la família (o de l'altra llengua) on es veu per què
+            //   trossos · sentir-la a trossos, amb el nom de la lletra que costa
+            // Després, totes igual: tapar-la i escriure-la de memòria. Si no surt: la seva i la bona, toca les lletres que
+            // canvien i la torna a escriure, dues vegades com a molt (que no escrigui moltes vegades la que no és).
+            // El primer dia, un dictat de totes sense correcció: les que surten bé no entren al laboratori; les altres es
+            // reparteixen entre les quatre maneres. Mesura: el primer intent de cada dia (dominada: 3 dies seguits) i, cada
+            // 4 dies, la paraula dins d'una frase escrita seguida (com a classe), que al final del bloc es repassa amb calma.
+            // Marca: [x|y] = la lletra que costa (x) i la que s'hi posa sovint (y; buida = no posar-hi res); [x] = només de color.
+            const LAB_DES_DE = '2026-11-07';
+            const LAB_METODES = ['mira', 'trampa', 'germana', 'trossos'];
+            const LAB_FRASES_CADA = 4, LAB_MAX_RECORDA = 10;
+            const LAB_PARAULES = [
+                { id: 'ca-podem', idioma: 'ca', marca: 'p[o|u]dem', frase: 'Podem sortir al pati?', frase2: 'Demà podem anar al parc.',
+                  truc: 'Amb o, encara que sona u.', germana: { marca: 'p[o]t', veu: 'Ve de poder, com pot, on se sent la o: podem.' }, trossos: 'po, dem. Po amb o.' },
+                { id: 'ca-entrem', idioma: 'ca', marca: '[e|a]ntrem', frase: 'Entrem a classe.', frase2: 'Ara entrem al museu.',
+                  truc: 'Comença amb e, encara que sona a.', germana: { marca: '[e]ntra', veu: 'Com entra, on se sent la e: entrem.' }, trossos: 'en, trem. Comença amb e.' },
+                { id: 'ca-aprenent', idioma: 'ca', marca: 'apr[e|a]nen[t|]', frase: 'Estic aprenent a nedar.', frase2: 'Avui estic aprenent molt.',
+                  truc: 'Pre amb e, i una t al final que no sona.', germana: { marca: 'apr[è]n · aprenen[t]a', veu: "Com aprèn, on se sent la e, i com aprenenta, on se sent la t: aprenent." }, trossos: 'a, pre, nent. Pre amb e, i la te del final.' },
+                { id: 'ca-nerviosos', idioma: 'ca', marca: 'n[e|a]r[v|b]i[o|u]sos', frase: "Abans de l'examen estem nerviosos.", frase2: 'Els gats estan nerviosos.',
+                  truc: 'Ner amb e, vi amb v, i després o.', germana: { marca: 'n[è]r[v]i · nervi[ó]s', veu: 'Com nervi i nerviós, on se senten la e, la ve i la o: nerviosos.' }, trossos: 'ner, vi, o, sos. Ner amb e, vi amb ve baixa, i o.' },
+                { id: 'ca-historia', idioma: 'ca', marca: '[h|]ist[ò]ri[a|e]', frase: "M'agrada la història.", frase2: "Llegim un llibre d'història.",
+                  truc: 'Amb h al davant, i acaba amb a.', germana: { marca: '[h]istori[a]', veu: 'Com historia en castellà: amb hac al davant i acaba amb a.' }, trossos: 'his, tò, ri, a. Amb hac al davant, i a al final.' },
+                { id: 'ca-cancons', idioma: 'ca', marca: 'can[ç|s]ons', frase: "M'agraden aquestes cançons.", frase2: 'Cantem tres cançons.',
+                  truc: 'Amb ç, la c amb cua.', germana: { marca: 'can[c]ión', veu: 'Com canción en castellà, amb ce: cançons, amb ce trencada.' }, trossos: 'can, çons. Amb ce trencada.' },
+                { id: 'ca-analitzar', idioma: 'ca', marca: 'an[a|e]li[tz|ts]a[r|]', frase: 'Cal analitzar el problema.', frase2: "Hem d'analitzar el text.",
+                  truc: 'Na amb a, tz, i la r del final.', germana: { marca: 'an[à]lisi', veu: 'Com anàlisi, on se sent la a. I com tots els verbs, erra al final: analitzar.' }, trossos: 'a, na, lit, zar. Na amb a, te zeta, i erra al final.' },
+                { id: 'ca-important', idioma: 'ca', paraules: 'ca-important', marca: 'i[m]portan[t|]', frase: 'Això és molt important.', frase2: 'És un dia molt important.',
+                  truc: 'La t del final no sona, però hi és.', germana: { marca: 'importan[t]íssim', veu: 'Com importantíssim, on se sent la te: important.' }, trossos: 'im, por, tant. I la te del final.' },
+                { id: 'ca-necessitem', idioma: 'ca', paraules: 'ca-necessitem', marca: 'ne[c|s]e[ss|s]item', frase: 'Necessitem més temps.', frase2: 'Necessitem una goma.',
+                  truc: 'Ce amb c, i ssi amb dues s.', germana: { marca: 'ne[c]esitamos', veu: 'Com necesitamos en castellà, amb ce. I en català, dues esses: necessitem.' }, trossos: 'ne, ce, ssi, tem. Ce amb ce, i dues esses.' },
+                { id: 'ca-serveixen', idioma: 'ca', marca: 'ser[v|b]eixen', frase: 'Els mapes serveixen per orientar-se.', frase2: 'Aquestes eines serveixen per tallar.',
+                  truc: 'Amb v baixa.', germana: { marca: 'ser[v]ei', veu: 'Com servei, i com servir en castellà: amb ve baixa.' }, trossos: 'ser, vei, xen. Amb ve baixa.' },
+                { id: 'es-cohesion', idioma: 'es', paraules: 'es-cohesion', marca: 'co[h|]e[s|c]i[ó]n', frase: 'El texto tiene cohesión.', frase2: 'Falta cohesión en el texto.',
+                  truc: 'He con h; sión con s. Y tilde en la o.', germana: { marca: 'ad[h]e[s]ivo', veu: 'Como adhesivo, que pega: con hache y con ese. La cohesión pega las frases.' }, trossos: 'co, he, sión. He con hache, y sión con ese.' },
+                { id: 'es-situacion', idioma: 'es', marca: '[s|c]itua[c|s]i[ó]n', frase: 'Es una situación difícil.', frase2: 'La situación es muy rara.',
+                  truc: 'Si con s al principio; ción con c.', germana: { marca: '[s]itio', veu: 'Como sitio, con ese al principio: situación.' }, trossos: 'si, tua, ción. Si con ese, y ción con ce.' },
+                { id: 'es-television', idioma: 'es', marca: 'tele[v|b]i[s|c]i[ó]n', frase: 'Miro la televisión.', frase2: 'Hay dibujos en la televisión.',
+                  truc: 'Vi con v; sión con s.', germana: { marca: 'tele[v]i[s]or', veu: 'Como televisor, con uve y con ese: televisión.' }, trossos: 'te, le, vi, sión. Vi con uve, y sión con ese.' },
+                { id: 'es-asociacion', idioma: 'es', marca: 'a[s|c]ocia[c|s]i[ó]n', frase: 'Es una asociación de vecinos.', frase2: 'Somos de una asociación.',
+                  truc: 'So con s; ción con c.', germana: { marca: '[s]ocio', veu: 'Como socio, con ese: asociación.' }, trossos: 'a, so, cia, ción. So con ese, y ción con ce.' },
+                { id: 'es-joven', idioma: 'es', marca: '[j|g]o[v|b]en', frase: 'Mi prima es muy joven.', frase2: 'El perro es joven.',
+                  truc: 'Con j y con v.', germana: { marca: '[j]o[v]e', veu: 'Como jove en catalán, con jota y con uve: joven.' }, trossos: 'jo, ven. Con jota, y con uve.' },
+                { id: 'es-hicimos', idioma: 'es', paraules: 'es-hicimos', marca: '[h|]i[c|s]imos', frase: 'Ayer hicimos un trabajo en grupo.', frase2: 'Hicimos un mural.',
+                  truc: 'Con h, y ci con c.', germana: { marca: '[h]a[c]er', veu: 'Viene de hacer, con hache y con ce: hicimos.' }, trossos: 'hi, ci, mos. Con hache, y ci con ce.' }
+            ].map(w => ({ ...w, paraula: labNet(w.marca) }));
+            // Les que passen al laboratori deixen de sortir a Paraules (que no es practiquin de dues maneres alhora)
+            const LAB_DE_PARAULES = LAB_PARAULES.map(w => w.paraules).filter(Boolean);
+            const LAB_INFO_PROVA = { ...TIPOS.lab, instr: "Avui, primer, un dictat de paraules, sense correcció: escriu-les com creguis que s'escriuen. Si no en saps alguna, prem «No ho sé». Al final les veuràs totes ben escrites.", ejemplo: '🎧 ➜ ✍️' };
+            const LAB_VEU_COMPARA = 'A dalt, la que has escrit. A baix, la bona. Busca a la bona les lletres que canvien i toca-les.';
+            const LAB_VEU_REVISA = 'Ara, amb calma. Llegeix la teva frase paraula per paraula. Si en veus alguna que no està bé, toca-la i arregla-la. Quan acabis, prem «Ja està».';
+            const veuLabDicta = w => ambIdioma(w, `${w.paraula}. ${w.frase} ${w.paraula}.`);
+            const veuLabMira = w => ambIdioma(w, `${w.paraula}. ${w.frase} ${w.paraula}. ${w.truc}`);
+            const veuLabGermana = w => ambIdioma(w, w.germana.veu);
+            const veuLabTrossos = w => ambIdioma(w, `${w.paraula}. ${w.trossos}`);
+            const veuLabFrase = w => ambIdioma(w, w.frase2);
+
+            function labNet(m) { return m.replace(/\[([^|\]]*)(?:\|[^\]]*)?\]/g, '$1'); }
+            // Trossos de la marca: { text }, { clau } (només de color) i { bona, dolenta } (la lletra que costa)
+            function labPeces(m) {
+                const p = [], re = /\[([^|\]]*)(\|([^\]]*))?\]/g;
+                let i = 0, x;
+                while ((x = re.exec(m))) {
+                    if (x.index > i) p.push({ text: m.slice(i, x.index) });
+                    p.push(x[2] !== undefined ? { bona: x[1], dolenta: x[3] } : { clau: x[1] });
+                    i = re.lastIndex;
+                }
+                if (i < m.length) p.push({ text: m.slice(i) });
+                return p;
+            }
+            const labForats = w => labPeces(w.marca).filter(p => p.bona !== undefined);
+            // Amb les lletres que costen de color. Amb posades (trampa, germana): els forats que falten, buits
+            function htmlLab(m, posades = null) {
+                let k = 0;
+                return labPeces(m).map(p => {
+                    if (p.text !== undefined) return escaparHtml(p.text);
+                    if (p.clau !== undefined) return `<span class="clau">${escaparHtml(p.clau)}</span>`;
+                    const j = k++;
+                    if (!posades || j < posades.length) return `<span class="clau">${escaparHtml(p.bona)}</span>`;
+                    return `<span class="forat-lab${j === posades.length ? ' actual' : ''}">&nbsp;</span>`;
+                }).join('');
+            }
+            // On són (dins de la paraula) les lletres que costen
+            function labIndexsTrampa(w) {
+                const r = [];
+                let pos = 0;
+                for (const p of labPeces(w.marca)) {
+                    const t = p.text !== undefined ? p.text : p.clau !== undefined ? p.clau : p.bona;
+                    const n = [...t].length;
+                    if (p.text === undefined) for (let i = 0; i < n; i++) r.push(pos + i);
+                    pos += n;
+                }
+                return r;
+            }
+            // Les lletres de la bona que no hi són a la seva (o no al seu lloc): la subseqüència comuna més llarga
+            function labDiff(bona, teva, w) {
+                if (teva === null) return labIndexsTrampa(w);
+                const a = [...bona], b = [...teva];
+                const L = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+                for (let i = a.length - 1; i >= 0; i--) for (let j = b.length - 1; j >= 0; j--)
+                    L[i][j] = a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+                const fora = [];
+                let i = 0, j = 0;
+                while (i < a.length) {
+                    if (j < b.length && a[i] === b[j]) { i++; j++; }
+                    else if (j < b.length && L[i][j + 1] > L[i + 1][j]) j++;
+                    else fora.push(i++);
+                }
+                return fora;
+            }
+            const labMots = t => t.toLowerCase().split(/[\s']+/).map(x => x.replace(/[^\p{L}·]/gu, '')).filter(Boolean);
+            const labTeLaParaula = (t, p) => labMots(t || '').includes(p.toLowerCase());
+            // La frase bona amb la paraula del laboratori de color
+            function labHtmlFrase(w) {
+                const f = w.frase2, i = f.toLowerCase().indexOf(w.paraula.toLowerCase());
+                if (i < 0) return escaparHtml(f);
+                return escaparHtml(f.slice(0, i)) + `<span class="clau">${escaparHtml(f.slice(i, i + w.paraula.length))}</span>` + escaparHtml(f.slice(i + w.paraula.length));
+            }
+
+            // Estat (només a l'iPad; una còpia va a eventos al final del bloc).
+            // prova: { data, ok } · assig[id] = manera · w[id] = { intro, dies, racha, dominada, ultima, metode, frase } · frases: últim dia amb frases
+            function leerLab() {
+                try {
+                    const st = JSON.parse(localStorage.getItem('dojo_lab'));
+                    if (st && typeof st === 'object') return { w: {}, assig: {}, ...st };
+                } catch (e) {}
+                return { w: {}, assig: {} };
+            }
+            function guardarLab(st) {
+                try { localStorage.setItem('dojo_lab', JSON.stringify(st)); } catch (e) {}
+            }
+
+            // Les que no han sortit al dictat del primer dia, repartides entre les quatre maneres (barrejant català i castellà)
+            function labRepartir(ok) {
+                const fallades = LAB_PARAULES.filter(w => !ok[w.id]);
+                const ordre = [...shuffle(fallades.filter(w => w.idioma === 'ca')), ...shuffle(fallades.filter(w => w.idioma === 'es'))];
+                const metodes = shuffle(LAB_METODES);
+                const assig = {};
+                ordre.forEach((w, i) => { assig[w.id] = metodes[i % metodes.length]; });
+                return assig;
+            }
+
+            // Cada 4 dies, frases amb paraules que fa 2 dies o més que va veure (primer les que fa més que no surten en frase)
+            function labPerFrase(st, d) {
+                if (st.frases && diesEntre(st.frases, d) < LAB_FRASES_CADA) return [];
+                const c = LAB_PARAULES.filter(w => st.assig[w.id] && st.w[w.id] && diesEntre(st.w[w.id].intro, d) >= 2);
+                if (c.length < 3) return [];
+                return shuffle(c).sort((a, b) => (st.w[a.id].frase || '').localeCompare(st.w[b.id].frase || '')).slice(0, 4);
+            }
+
+            // Les d'avui. El primer dia, el dictat de totes. Després: les frases (si toca), les ja vistes de memòria,
+            // les noves (una de cada manera), les noves un altre cop de memòria i, al final, el repàs de les frases.
+            function itemsLab() {
+                const st = leerLab(), d = hoy();
+                if (!st.prova) return shuffle(LAB_PARAULES).map(w => ({ w, fase: 'prova' }));
+                if (st.fet === d) return [];
+                const e = w => st.w[w.id];
+                const assignades = LAB_PARAULES.filter(w => st.assig[w.id]);
+                const vistes = assignades.filter(w => e(w) && e(w).intro < d);
+                const pendents = vistes.filter(w => !e(w).dominada);
+                const repas = vistes.filter(w => e(w).dominada && diesEntre(e(w).ultima, d) >= PARAULES_REPAS_CADA);
+                const recorda = shuffle([...pendents, ...repas]).slice(0, LAB_MAX_RECORDA);
+                const quantes = pendents.length >= 10 ? 0 : pendents.length >= 7 ? 2 : 4;
+                const noves = [];
+                for (const m of LAB_METODES) {
+                    if (noves.length >= quantes) break;
+                    const w = assignades.find(x => st.assig[x.id] === m && (!e(x) || e(x).intro === d));
+                    if (w) noves.push(w);
+                }
+                const frases = labPerFrase(st, d);
+                return [
+                    ...frases.map(w => ({ w, fase: 'frase' })),
+                    ...recorda.map(w => ({ w, fase: 'recorda' })),
+                    ...noves.map(w => ({ w, fase: 'nova' })),
+                    ...shuffle(noves).map(w => ({ w, fase: 'final' })),
+                    ...frases.map(w => ({ w, fase: 'revisa' }))
+                ];
+            }
+            const labPendent = m => {
+                if (![ENTRENAMENT.id, CONTROL.id].includes(m.id) || hoy() < LAB_DES_DE) return false;
+                const st = leerLab();
+                return !st.pausa && st.fet !== hoy() && itemsLab().length > 0;
+            };
+            const conLab = m => ({ ...m, bloques: [...m.bloques, { tipo: 'lab' }] });
+
+            function crearItemLab() {
+                const { w, fase } = sesion.fijos[sesion.hechos];
+                const metode = fase === 'prova' ? null : leerLab().assig[w.id] || null;
+                const etapa = fase === 'nova' ? metode : ['frase', 'revisa'].includes(fase) ? fase : 'escriu';
+                const frase = ['frase', 'revisa'].includes(fase);
+                return { tipo: 'lab', w, fase, metode, etapa, paraula: w.paraula, texto: w.paraula, clave: w.id, esperado: frase ? w.frase2 : w.paraula,
+                    intent: 1, escoltat: 0, posades: [], ultima: null, diff: [], trobades: [], errades: 0, pista: false, mirat_ms: null,
+                    mots: fase === 'revisa' ? (sesion.labFrases[w.id] || '').split(' ').filter(Boolean) : [], canvis: [] };
+            }
+
+            function pintarLab() {
+                const w = item.w, e = item.etapa;
+                if (e === 'revisa' && !item.mots.length) { sesion.hechos++; return siguienteItem(); }
+                const escriu = ['escriu', 'frase', 'edita'].includes(e);
+                const emoji = { mira: '👀', trampa: '🧩', germana: '👭', trossos: '🔉', escriu: '🎧', compara: '🔍', frase: '✍️', revisa: '🔍', edita: '✏️', resultat: '👀' }[e];
+                opFactorsEl.textContent = e === 'frase' ? `${emoji} Tota la frase, seguida · ${NOM_IDIOMA[w.idioma]}` : `${emoji} ${NOM_IDIOMA[w.idioma]}`;
+                document.getElementById('lab-panel').hidden = escriu;
+                document.getElementById('paraules-panel').hidden = true;
+                document.getElementById('dictat-panel').hidden = !escriu;
+                document.getElementById('paraula-familia').hidden = true;
+                document.getElementById('btn-no-ho-se').hidden = e !== 'escriu';
+                gentleBox.style.display = 'none';
+                opFeedbackEl.innerHTML = '';
+                isEvaluating = false;
+                if (escriu) {
+                    currentInput = e === 'edita' ? item.editant.text : '';
+                    teclas = [];
+                    pintarDictat();
+                    tInicio = performance.now();
+                    if (e === 'escriu') hablar(veuLabDicta(w));
+                    else if (e === 'frase') hablar(veuLabFrase(w));
+                    return;
+                }
+                const dalt = document.getElementById('lab-dalt'), gran = document.getElementById('lab-gran'), truc = document.getElementById('lab-truc');
+                const opcions = document.getElementById('lab-opcions'), seguir = document.getElementById('btn-lab-seguir');
+                dalt.hidden = true;
+                truc.hidden = true;
+                opcions.hidden = true;
+                seguir.hidden = false;
+                gran.className = 'paraula-gran';
+                if (LAB_METODES.includes(e)) {
+                    const forats = labForats(w);
+                    const posa = ['trampa', 'germana'].includes(e);
+                    const triant = posa && item.posades.length < forats.length;
+                    gran.innerHTML = htmlLab(w.marca, posa ? item.posades : null);
+                    if (e === 'mira' || e === 'trampa') { truc.hidden = false; truc.textContent = w.truc; }
+                    if (e === 'trossos') { truc.hidden = false; truc.textContent = w.trossos; }
+                    if (e === 'germana') { dalt.hidden = false; dalt.innerHTML = `${htmlLab(w.germana.marca)} ➜`; }
+                    if (triant) {
+                        const f = forats[item.posades.length];
+                        if (!item.ordre || item.ordre.k !== item.posades.length) item.ordre = { k: item.posades.length, o: shuffle([f.bona, f.dolenta]) };
+                        opcions.hidden = false;
+                        opcions.innerHTML = item.ordre.o.map(o => `<button class="lab-opcio" data-lletra="${escaparHtml(o)}">${o ? escaparHtml(o) : '—'}</button>`).join('');
+                        seguir.hidden = true;
+                    } else seguir.textContent = 'Ja la tinc! Tapa-la 🙈';
+                    if (!item.dit) {
+                        item.dit = true;
+                        item.tMira = performance.now();
+                        hablar(e === 'germana' ? veuLabGermana(w) : e === 'trossos' ? veuLabTrossos(w) : veuLabMira(w));
+                    }
+                    return;
+                }
+                if (e === 'compara') {
+                    const totes = item.pista || item.intent > 2 || item.diff.every(i => item.trobades.includes(i));
+                    const marcada = i => item.trobades.includes(i) || ((item.pista || item.intent > 2) && item.diff.includes(i));
+                    dalt.hidden = false;
+                    dalt.innerHTML = `Has escrit: <span class="tu">${escaparHtml(item.ultima || '—')}</span>`;
+                    gran.innerHTML = [...w.paraula].map((c, i) => `<span class="lab-lletra${marcada(i) ? ' trobada' : ''}" data-i="${i}">${escaparHtml(c)}</span>`).join('');
+                    truc.hidden = false;
+                    truc.textContent = item.intent > 2 ? w.truc : !item.diff.length ? 'Hi has posat alguna lletra de més.' : 'Toca a la bona les lletres que canvien.';
+                    seguir.textContent = item.intent > 2 ? 'Seguim ➜' : 'La torno a escriure ✍️';
+                    seguir.hidden = !totes;
+                    if (!item.ditCompara) {
+                        item.ditCompara = true;
+                        hablar(item.intent > 2 ? veuLabMira(w) : LAB_VEU_COMPARA);
+                    }
+                    return;
+                }
+                if (e === 'revisa') {
+                    dalt.hidden = false;
+                    dalt.textContent = 'Llegeix-la amb calma, paraula per paraula. Si alguna no està bé, toca-la i arregla-la.';
+                    gran.className = 'paraula-gran lab-mots';
+                    gran.innerHTML = item.mots.map((m, i) => `<span class="lab-mot${item.canvis.some(c => c.i === i) ? ' canviat' : ''}" data-mot="${i}">${escaparHtml(m)}</span>`).join(' ');
+                    seguir.textContent = 'Ja està ✓';
+                    if (!sesion.labRevisaDit) {
+                        sesion.labRevisaDit = true;
+                        hablar(LAB_VEU_REVISA);
+                    }
+                    return;
+                }
+                // resultat: la bona, amb la paraula de color, i la seva a sobre
+                dalt.hidden = false;
+                dalt.textContent = `La teva: ${item.mots.join(' ')}`;
+                gran.className = 'paraula-gran lab-frase';
+                gran.innerHTML = labHtmlFrase(w);
+                truc.hidden = false;
+                truc.textContent = "Així és com s'escriu.";
+                seguir.textContent = 'Seguim ➜';
+            }
+
+            // Trampa i germana: posa la lletra que falta. Si no és, es veu la bona un moment i es posa la bona
+            function labTria(lletra) {
+                if (isEvaluating || !item || item.tipo !== 'lab' || !['trampa', 'germana'].includes(item.etapa)) return;
+                const forats = labForats(item.w), k = item.posades.length;
+                if (k >= forats.length) return;
+                const f = forats[k], ok = lletra === f.bona;
+                if (!enPrueba()) {
+                    guardarEvento({ modulo: 'lab', item: item.w.id, esperado: f.bona, respuesta: lletra, correcta: ok,
+                        detalle: { mision: sesion.mision.id, fase: 'nova', metode: item.metode, etapa: 'tria', forat: k, idioma: item.w.idioma } });
+                }
+                const posar = () => { item.posades.push(f.bona); isEvaluating = false; pintarLab(); };
+                if (ok) return posar();
+                isEvaluating = true;
+                document.querySelectorAll('#lab-opcions .lab-opcio').forEach(b => b.classList.toggle('bona', b.dataset.lletra === f.bona));
+                setTimeout(posar, 900);
+            }
+
+            function labToca(i) {
+                if (!item || item.tipo !== 'lab' || item.etapa !== 'compara' || item.pista || item.intent > 2) return;
+                if (item.diff.includes(i)) { if (!item.trobades.includes(i)) item.trobades.push(i); }
+                else if (++item.errades >= 2) item.pista = true;
+                pintarLab();
+            }
+
+            function labEdita(i) {
+                if (!item || item.tipo !== 'lab' || item.etapa !== 'revisa') return;
+                callarVeu();
+                item.editant = { i, text: item.mots[i] };
+                item.etapa = 'edita';
+                pintarLab();
+            }
+
+            function labSeguir() {
+                if (isEvaluating || !item || item.tipo !== 'lab') return;
+                const e = item.etapa;
+                callarVeu();
+                if (LAB_METODES.includes(e)) {
+                    if (['trampa', 'germana'].includes(e) && item.posades.length < labForats(item.w).length) return;
+                    item.mirat_ms = Math.round(performance.now() - item.tMira);
+                    item.etapa = 'escriu';
+                    return pintarLab();
+                }
+                if (e === 'compara') {
+                    if (item.intent > 2) return acabarLab();
+                    item.etapa = 'escriu';
+                    return pintarLab();
+                }
+                if (e === 'revisa') return labRevisat();
+                if (e === 'resultat') return acabarLab();
+            }
+
+            function labEscoltar() {
+                if (!item || item.tipo !== 'lab' || isEvaluating) return;
+                item.escoltat++;
+                const e = item.etapa, w = item.w;
+                if (['frase', 'revisa', 'edita', 'resultat'].includes(e)) return hablar(veuLabFrase(w));
+                if (e === 'germana') return hablar(veuLabGermana(w));
+                if (e === 'trossos') return hablar(veuLabTrossos(w));
+                if (['mira', 'trampa', 'compara'].includes(e)) return hablar(veuLabMira(w));
+                hablar(veuLabDicta(w));
+            }
+
+            // L'enter del teclat de lletres
+            function enterLab(text) {
+                if (isEvaluating || !item || item.tipo !== 'lab') return;
+                if (item.etapa === 'edita') {
+                    const { i } = item.editant, de = item.mots[i];
+                    if (text && text !== de) {
+                        item.mots[i] = text;
+                        item.canvis.push({ i, de, a: text });
+                    }
+                    item.etapa = 'revisa';
+                    return pintarLab();
+                }
+                if (!text) return;
+                if (item.etapa === 'frase') return labFrase(text);
+                if (item.etapa === 'escriu') return evaluarLab(text);
+            }
+
+            // resposta: el que ha escrit, o null si ha premut «No ho sé»
+            function evaluarLab(resposta) {
+                if (isEvaluating || !item || item.tipo !== 'lab' || item.etapa !== 'escriu') return;
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                const ok = resposta === item.paraula;
+                callarVeu();
+                if (!enPrueba()) {
+                    guardarEvento({
+                        modulo: 'lab', item: item.w.id, esperado: item.paraula, respuesta: resposta, correcta: ok,
+                        tiempo_ms: ms, primera_tecla_ms: teclas.length ? teclas[0][0] : null,
+                        detalle: { mision: sesion.mision.id, fase: item.fase, metode: item.metode, intent: item.intent, idioma: item.w.idioma,
+                            teclas, escoltat: item.escoltat, mirat_ms: item.mirat_ms, pista: item.pista || undefined, no_lo_se: resposta === null || undefined }
+                    });
+                    if (item.intent === 1 && item.fase === 'recorda') apuntarLab(item.w, ok);
+                }
+                if (item.fase === 'prova') {
+                    sesion.labRes[item.w.id] = ok;
+                    return setTimeout(acabarLab, 350);
+                }
+                if (ok) return acabarLab(true);
+                playFeedbackSound(false);
+                item.ultima = resposta;
+                item.diff = labDiff(item.paraula, resposta, item.w);
+                item.trobades = [];
+                item.errades = 0;
+                item.pista = !item.diff.length;
+                item.ditCompara = false;
+                item.intent++;
+                item.etapa = 'compara';
+                pintarLab();
+            }
+
+            // La frase seguida (com a classe): sense correcció; es repassa al final del bloc
+            function labFrase(resposta) {
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                callarVeu();
+                if (!enPrueba()) {
+                    guardarEvento({ modulo: 'lab', item: item.w.id, esperado: item.w.frase2, respuesta: resposta, correcta: labTeLaParaula(resposta, item.paraula),
+                        tiempo_ms: ms, primera_tecla_ms: teclas.length ? teclas[0][0] : null,
+                        detalle: { mision: sesion.mision.id, fase: 'frase', metode: item.metode, idioma: item.w.idioma, teclas, escoltat: item.escoltat } });
+                }
+                sesion.labFrases[item.w.id] = resposta;
+                setTimeout(acabarLab, 350);
+            }
+
+            // El repàs amb calma: el que ha canviat i si la paraula del laboratori ha quedat bé
+            function labRevisat() {
+                const id = item.w.id, original = sesion.labFrases[id] || '', revisada = item.mots.join(' ');
+                if (!enPrueba()) {
+                    guardarEvento({ modulo: 'lab', item: id, esperado: item.w.frase2, respuesta: revisada, correcta: labTeLaParaula(revisada, item.paraula),
+                        detalle: { mision: sesion.mision.id, fase: 'revisa', metode: item.metode, idioma: item.w.idioma, original, canvis: item.canvis,
+                            abans: labTeLaParaula(original, item.paraula) } });
+                    const st = leerLab();
+                    if (st.w[id]) { st.w[id].frase = hoy(); guardarLab(st); }
+                }
+                item.etapa = 'resultat';
+                pintarLab();
+            }
+
+            function acabarLab(celebra = false) {
+                if (!enPrueba() && item.fase === 'nova') {
+                    const st = leerLab();
+                    if (!st.w[item.w.id]) st.w[item.w.id] = { intro: hoy(), dies: [], racha: 0, dominada: null, ultima: hoy(), metode: item.metode };
+                    guardarLab(st);
+                }
+                sesion.hechos++;
+                if (celebra) celebrar();
+                else siguienteItem();
+            }
+
+            // El primer intent del dia d'una ja vista: compta per dominar-la (3 dies seguits) o la torna a practicar
+            function apuntarLab(w, ok) {
+                const st = leerLab();
+                const e = st.w[w.id];
+                if (!e || e.dies.includes(hoy())) return;
+                e.ultima = hoy();
+                if (ok) {
+                    e.dies.push(hoy());
+                    e.racha++;
+                    if (e.racha >= PARAULES_DIES_DOMINADA && !e.dominada) e.dominada = hoy();
+                } else {
+                    e.racha = 0;
+                    e.dominada = null;
+                }
+                guardarLab(st);
+            }
+
+            // Al final del bloc: el primer dia, el repartiment; i sempre, fet per avui i una còpia de l'estat
+            function tancarLab() {
+                if (enPrueba()) return;
+                const st = leerLab(), d = hoy();
+                if (sesion.labProva) {
+                    st.prova = { data: d, ok: sesion.labRes };
+                    st.assig = labRepartir(sesion.labRes);
+                }
+                if (Object.keys(sesion.labFrases).length) st.frases = d;
+                st.fet = d;
+                guardarLab(st);
+                guardarEvento({ modulo: 'lab', item: 'estado', detalle: st });
+            }
 
             // Misiones fuera del plan: papá las pone para un día concreto desde la Zona Papá
             const MISIONES_EXTRA = [
@@ -2514,6 +3015,10 @@
             window.__accentActual = () => item && item.tipo === 'accent' ? { paraula: item.paraula, intent: item.intent, ambAccent: item.ambAccent } : null;
             window.__itemsAccent = () => itemsAccent();
             window.__itemsParaules = () => itemsParaules().map(x => ({ id: x.w.id, fase: x.fase }));
+            window.__labActual = () => item && item.tipo === 'lab' ? { id: item.w.id, paraula: item.paraula, fase: item.fase, etapa: item.etapa, metode: item.metode,
+                intent: item.intent, diff: item.diff, forats: labForats(item.w).map(f => f.bona), posades: item.posades.length, frase: item.w.frase2 } : null;
+            window.__itemsLab = () => itemsLab().map(x => ({ id: x.w.id, fase: x.fase }));
+            window.__labParaules = () => LAB_PARAULES.map(w => ({ id: w.id, paraula: w.paraula, idioma: w.idioma, frase2: w.frase2 }));
             window.__paraulaActual = () => item && item.tipo === 'paraules' ? { id: item.w.id, paraula: item.paraula, fase: item.fase, etapa: item.etapa } : null;
             window.__itemsXifresProva = () => itemsXifra();
             window.__htmlPotParens = htmlPotParens;
@@ -2579,6 +3084,14 @@
                 t.add(CATALA_VEU_FULL);
                 t.add(CATALA_VEU_PAPA);
                 PARAULES.forEach(w => { t.add(veuDicta(w)); t.add(veuMira(w)); if (w.familia) t.add(veuFamilia(w)); });
+                // Des del 7/11, el laboratori de paraules al final (amb o sense tema 1, paraules i xifres)
+                t.add(LAB_INFO_PROVA.instr);
+                [LAB_VEU_COMPARA, LAB_VEU_REVISA].forEach(x => t.add(x));
+                LAB_PARAULES.forEach(w => [veuLabDicta, veuLabMira, veuLabGermana, veuLabTrossos, veuLabFrase].forEach(f => t.add(f(w))));
+                [m => m, conTema1].forEach(ambT => [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
+                    SETMANA.forEach(f => t.add(fraseMision(ambX(conLab(ambP(ambT(ENTRENAMENT)))), f)));
+                    t.add(fraseMision(ambX(conLab(ambP(ambT(CONTROL))))));
+                })));
                 return [...t];
             };
 
@@ -2773,7 +3286,8 @@
                 if (catalaPendent(m)) t = conCatala(t);
                 if (tecnoPendent(m)) t = conTecno(t);
                 if (accentPendent(m)) t = conAccent(t);
-                return paraulesPendents(m) ? conParaules(t) : t;
+                if (paraulesPendents(m)) t = conParaules(t);
+                return labPendent(m) ? conLab(t) : t;
             };
 
             // ¿Toca encadenar les xifres al acabar esta misión?
@@ -2835,6 +3349,7 @@
                 if (b.tipo === 'setmana') return infoSetmana(fetSetmana());
                 if (b.tipo === 'dictat') return { ...TIPOS.dictat, nombre: `Dictat · part ${b.bloc + 1} de ${DICTAT.bloques.length}`, paso: () => `Dictat, part ${b.bloc + 1}` };
                 if (b.tipo === 'tema1' && setmanaExamenMates()) return { ...TIPOS.tema1, ...TEMA1_EXAMEN_INFO };
+                if (b.tipo === 'lab' && !leerLab().prova) return LAB_INFO_PROVA;
                 if (b.tipo !== 'grafia') return TIPOS[b.tipo];
                 // Igual que l'enunciat de l'examen; el color només ajuda a trobar-ho al full
                 const e = EXAMEN_CATALA[b.bloc];
@@ -2978,6 +3493,12 @@
                     sesion.fijos = itemsSentir();
                 } else if (b.tipo === 'paraules') {
                     sesion.fijos = itemsParaules();
+                } else if (b.tipo === 'lab') {
+                    sesion.labProva = !leerLab().prova;
+                    sesion.labRes = {};
+                    sesion.labFrases = {};
+                    sesion.labRevisaDit = false;
+                    sesion.fijos = itemsLab();
                 } else if (b.tipo === 'tema1') {
                     sesion.fijos = itemsTema1();
                 } else if (b.tipo === 'accent') {
@@ -3001,7 +3522,7 @@
                     document.getElementById('grafia-panel').classList.add(`bloc-${e.color}`);
                     document.getElementById('grafia-botones').innerHTML = e.opciones.map(o => `<button class="grafia-btn" data-lletra="${o}">${o}</button>`).join('');
                 }
-                screens.game.classList.toggle('dictat', ['dictat', 'paraules', 'accent'].includes(b.tipo));
+                screens.game.classList.toggle('dictat', ['dictat', 'paraules', 'accent', 'lab'].includes(b.tipo));
                 showScreen('game');
                 siguienteItem();
             }
@@ -3228,6 +3749,7 @@
                     const [paraula, frase] = sesion.fijos[sesion.hechos];
                     return { tipo, paraula, frase, texto: paraula, clave: paraula, esperado: paraula, escoltat: 0 };
                 }
+                if (tipo === 'lab') return crearItemLab();
                 if (tipo === 'paraules') {
                     const { w, fase } = sesion.fijos[sesion.hechos];
                     return { tipo, w, fase, paraula: w.paraula, texto: w.paraula, clave: w.id, esperado: w.paraula,
@@ -3378,8 +3900,10 @@
                 if (bloqueActual().tipo === 'tema1') while (sesion.hechos < sesion.total && saltarRoma(sesion.fijos[sesion.hechos])) sesion.hechos++;
                 if (sesion.hechos >= sesion.total) {
                     if (['grafia', 'dictat'].includes(bloqueActual().tipo)) mostrarRepas();
+                    else if (bloqueActual().tipo === 'lab' && sesion.labProva) { tancarLab(); mostrarRepas(); }
                     else {
                         if (bloqueActual().tipo === 'paraules') tancarParaules();
+                        if (bloqueActual().tipo === 'lab') tancarLab();
                         finBloque();
                     }
                     return;
@@ -3397,7 +3921,7 @@
                 opFactorsEl.innerHTML = item.html || htmlOperacion(item.texto);
                 marcarCanviDeSigne();
                 opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
-                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir', 'paraules', 'accent'].includes(item.tipo) || ambOpcions || (item.tipo === 'parens' && !item.maxXifres);
+                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir', 'paraules', 'accent', 'lab'].includes(item.tipo) || ambOpcions || (item.tipo === 'parens' && !item.maxXifres);
                 opAnswerEl.hidden = !numerico;
                 opCardEl.classList.toggle('op-largo', item.tipo === 'vf' || item.tipo === 'tema1' || (item.tipo === 'parens' && item.modo !== 'obre'));
                 // Tema 1 y castellano: la pregunta, pequeña, arriba; lo que hay que mirar (el número, la palabra clave, el texto, la viñeta), grande
@@ -3425,6 +3949,7 @@
                 document.getElementById('grafia-panel').hidden = item.tipo !== 'grafia';
                 document.getElementById('dictat-panel').hidden = !['dictat', 'accent'].includes(item.tipo);
                 document.getElementById('paraules-panel').hidden = true;
+                document.getElementById('lab-panel').hidden = true;
                 const ambXifres = ['xifra', 'sentir'].includes(item.tipo);
                 document.getElementById('xifres-panel').hidden = !ambXifres;
                 if (ambXifres) {
@@ -3455,6 +3980,7 @@
                 oralPanel.hidden = item.tipo !== 'oral';
                 document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'parens'].includes(item.tipo);
                 if (item.tipo === 'paraules') pintarParaula();
+                if (item.tipo === 'lab') pintarLab();
                 document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
                 document.getElementById('correction-pista').hidden = true;
                 mostrarRecta(!!item.pasos || (item.tipo === 'pas10' && item.ayuda === 'recta'));
@@ -3766,6 +4292,14 @@
             }
 
             function mostrarRepas() {
+                if (bloqueActual().tipo === 'lab') {
+                    const llista = document.getElementById('repas-llista');
+                    llista.className = 'repas-llista';
+                    llista.innerHTML = LAB_PARAULES.map(w => `<li><b>${htmlLab(w.marca)}</b></li>`).join('');
+                    document.getElementById('repas-sub').textContent = 'Mira-les bé, una per una: les lletres de color són les que costen.';
+                    showScreen('repas');
+                    return;
+                }
                 if (bloqueActual().tipo === 'dictat') {
                     const llista = document.getElementById('repas-llista');
                     llista.className = 'repas-llista';
@@ -3807,13 +4341,14 @@
 
             function teclaDictat(k) {
                 if (isEvaluating || !item) return;
-                const escrivint = ['dictat', 'accent'].includes(item.tipo) || (item.tipo === 'paraules' && ['escriu', 'familia'].includes(item.etapa));
+                const escrivint = ['dictat', 'accent'].includes(item.tipo) || (item.tipo === 'paraules' && ['escriu', 'familia'].includes(item.etapa)) ||
+                    (item.tipo === 'lab' && ['escriu', 'frase', 'edita'].includes(item.etapa));
                 if (!escrivint) return;
                 teclas.push([Math.round(performance.now() - tInicio), k]);
                 if (k === 'back') currentInput = currentInput.slice(0, -1);
-                else if (k === 'enter') return item.tipo === 'paraules' ? evaluarParaula(currentInput.trim()) : item.tipo === 'accent' ? evaluarAccent() : evaluarDictat();
+                else if (k === 'enter') return item.tipo === 'lab' ? enterLab(currentInput.trim()) : item.tipo === 'paraules' ? evaluarParaula(currentInput.trim()) : item.tipo === 'accent' ? evaluarAccent() : evaluarDictat();
                 else if (k === ' ') { if (currentInput && !currentInput.endsWith(' ')) currentInput += ' '; }
-                else if (currentInput.length < 24) currentInput += k;
+                else if (currentInput.length < (item.tipo === 'lab' && item.etapa === 'frase' ? 70 : 24)) currentInput += k;
                 pintarDictat();
             }
 
@@ -4027,6 +4562,7 @@
             // "No ho sé": se le enseña la respuesta sin sonido de error; se guarda aparte de los fallos
             function noHoSe() {
                 if (item && item.tipo === 'paraules') return evaluarParaula(null);
+                if (item && item.tipo === 'lab') return evaluarLab(null);
                 if (item && item.tipo === 'parens') return responderParens(null);
                 if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno'].includes(item.tipo)) return;
                 isEvaluating = true;
@@ -5216,11 +5752,24 @@
                 if (btn && btn.dataset.tecla) teclaDictat(btn.dataset.tecla);
             });
             document.getElementById('btn-escoltar-dictat').addEventListener('click', () => {
+                if (item && item.tipo === 'lab') return labEscoltar();
                 if (!item || !['dictat', 'paraules', 'accent'].includes(item.tipo) || isEvaluating) return;
                 item.escoltat++;
                 hablar(item.tipo === 'accent' ? veuAccent([item.paraula, item.frase]) : item.tipo !== 'paraules' ? veuDictat([item.paraula, item.frase]) : item.etapa === 'familia' ? veuFamilia(item.w) : veuDicta(item.w));
             });
             document.getElementById('btn-paraula-seguir').addEventListener('click', seguirParaula);
+            // Laboratori de paraules
+            document.getElementById('lab-opcions').addEventListener('click', (e) => {
+                const btn = e.target.closest('button');
+                if (btn && btn.dataset.lletra !== undefined) labTria(btn.dataset.lletra);
+            });
+            document.getElementById('lab-gran').addEventListener('click', (e) => {
+                const l = e.target.closest('[data-i]'), m = e.target.closest('[data-mot]');
+                if (l) labToca(parseInt(l.dataset.i, 10));
+                else if (m) labEdita(parseInt(m.dataset.mot, 10));
+            });
+            document.getElementById('btn-lab-seguir').addEventListener('click', labSeguir);
+            document.getElementById('btn-lab-escoltar').addEventListener('click', labEscoltar);
             document.getElementById('btn-escoltar-paraula').addEventListener('click', () => {
                 if (!item || item.tipo !== 'paraules' || item.etapa === 'escriu') return;
                 item.escoltat++;
