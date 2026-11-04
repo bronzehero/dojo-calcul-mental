@@ -29,12 +29,14 @@ async function seguent(page, anterior) {
 }
 
 test.describe('Accents en castellà', () => {
-    for (const [dia, hi] of [['2026-10-28', false], ['2026-10-29', true], ['2026-11-05', true], ['2026-11-06', false]]) {
-        test(`el ${dia}, ${hi ? 'hi és, després del tema 1' : 'no hi és'}`, async ({ page }) => {
+    // Fins al 5/11, després del tema 1; des del 6/11 (ja sense tema 1) continua fins al 20/11 (papà, 4/11)
+    for (const [dia, hi] of [['2026-10-28', false], ['2026-10-29', true], ['2026-11-05', true], ['2026-11-06', true], ['2026-11-20', true], ['2026-11-21', false]]) {
+        test(`el ${dia}, ${hi ? 'hi és' : 'no hi és'}`, async ({ page }) => {
             await preparar(page, dia);
             await expect(page.locator('#mision-titulo')).toHaveText('Entrenament');
             const pasos = await page.locator('#mision-pasos li').allTextContents();
-            if (hi) expect(pasos[pasos.indexOf('🏛️ Tema 1 de mates') + 1]).toBe('🎧 Accents en castellà');
+            if (hi && dia <= '2026-11-05') expect(pasos[pasos.indexOf('🏛️ Tema 1 de mates') + 1]).toBe('🎧 Accents en castellà');
+            else if (hi) expect(pasos).toContain('🎧 Accents en castellà');
             else expect(pasos.join(' ')).not.toContain('Accents');
         });
     }
@@ -50,6 +52,19 @@ test.describe('Accents en castellà', () => {
             expect(p.filter(x => x.endsWith('ón'))).toHaveLength(8);
             expect(p.filter(x => !/[áéíóú]/.test(x))).toHaveLength(4);
             for (const x of items) expect(x.frase).toContain(x.paraula);
+        }
+    });
+
+    // Des del 7/11, les del laboratori ja no hi surten (cohesión, asociación, situación, televisión): continuen sent 8 en -ón
+    test("des del 7/11, sense les paraules del laboratori", async ({ page }) => {
+        await preparar(page, '2026-11-07');
+        for (let i = 0; i < 3; i++) {
+            const p = (await page.evaluate(() => window.__itemsAccent())).map(x => x.paraula);
+            expect(p).toHaveLength(12);
+            expect(new Set(p).size).toBe(12);
+            expect(p).toContain('información');
+            for (const x of ['cohesión', 'asociación', 'situación', 'televisión']) expect(p).not.toContain(x);
+            expect(p.filter(x => x.endsWith('ón'))).toHaveLength(8);
         }
     });
 
@@ -72,6 +87,10 @@ test.describe('Accents en castellà', () => {
         await page.click('#btn-dictat-fet');
         await expect(page.locator('#accent-llegeix')).toContainText('tal com l\'has escrita');
         await expect(page.locator('#accent-llegeix')).toContainText("Si acaba en -on, l'accent va a sobre de la o: -ón.");
+        // El truc del papa (4/11): MAMÓN, i si acaba en -ción/-sión, dir-la fort per sentir si sona S o Z
+        await expect(page.locator('#accent-llegeix')).toContainText('com MAMÓN!');
+        if (/[cs]ión$/.test(a.paraula)) await expect(page.locator('#accent-llegeix')).toContainText('et sona S o Z?');
+        else await expect(page.locator('#accent-llegeix')).not.toContainText('S o Z');
         await expect(page.locator('#dictat-escrit')).toHaveText(dolenta);
         expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
         for (let i = 0; i < dolenta.length; i++) await page.click('#teclat-lletres [data-tecla="back"]');
@@ -89,7 +108,7 @@ test.describe('Accents en castellà', () => {
         await expect(page.locator('#correction-math-text')).toHaveText(a.paraula);
         await expect(page.locator('#correction-pista')).toContainText(a.ambAccent ? 'Acaba en -ón: porta accent' : 'sense accent');
         // Les paraules en -ón que va triar ella per recordar-ho (1/11)
-        if (a.ambAccent) await expect(page.locator('#correction-pista')).toContainText('jamón, salchichón i mamón');
+        if (a.ambAccent) await expect(page.locator('#correction-pista')).toContainText('jamón, salchichón i MAMÓN!');
         expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
 
         const dades = envios.filter(e => e.datos.modulo === 'accent').map(e => e.datos);

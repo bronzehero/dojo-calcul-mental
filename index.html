@@ -1679,7 +1679,10 @@
             // Cada día 8 en -ón (siempre las 3 primeras y 5 más) mezcladas con 4 sin acento
             // (llanas en -en y plurales en -ones). El primer intento es el que mide. Si no sale: leerla flojito tal como la ha
             // escrito, la que lleva acento más fuerte y más larga, y arreglarla; si tampoco, la buena con la regla.
-            const ACCENT_DES_DE = '2026-10-29', ACCENT_FINS = '2026-11-05';
+            // Papà (4/11) vol veure com evoluciona el seu truc (dir-la fort: sona S o Z?; -ón amb la força a la O = accent, com MAMÓN):
+            // continua fins al 20/11. Des del 7/11 sense les paraules del laboratori (cohesión, asociación, situación, televisión).
+            const ACCENT_DES_DE = '2026-10-29', ACCENT_FINS = '2026-11-20';
+            const ACCENT_DEL_LAB = ['cohesión', 'asociación', 'situación', 'televisión'];
             const ACCENT_ON_SEMPRE = [['información', 'Busco información en internet.'], ['asociación', 'Es una asociación de vecinos.'], ['cohesión', 'El texto tiene cohesión.']];
             const ACCENT_ON = [['introducción', 'Lee la introducción del texto.'], ['conclusión', 'Escribe una conclusión.'], ['excursión', 'Mañana vamos de excursión.'],
                 ['canción', 'Me gusta esta canción.'], ['opinión', 'Di tu opinión.'], ['explicación', 'La profe da una explicación.'],
@@ -1690,17 +1693,24 @@
             const ACCENT_LLEGEIX = "Llegeix-la fluixet, tal com l'has escrita, lletra per lletra. La que porta accent, més forta i més llarga. I arregla-la.";
             // Des del 30/10: al 2n intent posaven l'accent a la i (-íon); la pista diu també on va (sense dir si en porta)
             const ACCENT_ON_O = 'Si acaba en -on, l\'accent va a sobre de la o: -ón.';
+            // El truc del papa (4/11), només a la pantalla (sense més veu)
+            const ACCENT_MAMON = 'La força és a la O? Porta accent, com MAMÓN!';
+            const ACCENT_S_Z = 'Digues-la fort, en veu alta: et sona S o Z? S → s · Z → c.';
+            const acabaCion = it => /[cs]ión$/.test(it.paraula);
             const ACCENT_LLEGEIX_VEU = `${ACCENT_LLEGEIX} Si acaba en on, l'accent va a sobre de la o.`;
             function itemsAccent() {
-                const on = [...ACCENT_ON_SEMPRE, ...shuffle(ACCENT_ON).slice(0, 5)];
+                const delLab = hoy() >= LAB_DES_DE ? ACCENT_DEL_LAB : [];
+                const fora = ([p]) => !delLab.includes(p);
+                const sempre = ACCENT_ON_SEMPRE.filter(fora);
+                const on = [...sempre, ...shuffle(ACCENT_ON.filter(fora)).slice(0, 8 - sempre.length)];
                 return shuffle([...on, ...shuffle(ACCENT_NO).slice(0, 4)]).map(([paraula, frase]) => ({ paraula, frase }));
             }
             const accentBe = (it, r) => it.ambAccent ? r.endsWith('ón') : !/[áéíóú]/.test(r);
             function reglaAccent(it, r) {
-                if (accentBe(it, r)) return "L'accent està bé: mira les lletres.";
+                if (accentBe(it, r)) return acabaCion(it) ? `L'accent està bé: mira les lletres. ${ACCENT_S_Z}` : "L'accent està bé: mira les lletres.";
                 if (it.ambAccent && /[áéíú]/.test(r)) return "Acaba en -ón: l'accent va a sobre de la o, no de la " + r.match(/[áéíú]/)[0].normalize('NFD')[0] + ': -ón.';
                 // Desde el 1/11, las palabras en -ón que eligió ella para acordarse (la que más le gusta, mamón)
-                if (it.ambAccent) return 'Acaba en -ón: porta accent a la ó, com jamón, salchichón i mamón.';
+                if (it.ambAccent) return 'Acaba en -ón: porta accent a la ó, com jamón, salchichón i MAMÓN!';
                 if (it.paraula.endsWith('ones')) return 'Acaba en -ones: sense accent (canción → canciones).';
                 return 'Acaba en -en, no en -ón: sense accent.';
             }
@@ -3120,6 +3130,11 @@
                     SETMANA.forEach(f => t.add(fraseMision(ambX(conLab(ambP(ambT(ENTRENAMENT)))), f)));
                     t.add(fraseMision(ambX(conLab(ambP(ambT(CONTROL))))));
                 })));
+                // Des del 6/11, els accents sense el tema 1 (fins al 20/11), amb o sense paraules i laboratori
+                [m => m, conLab].forEach(ambL => [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
+                    SETMANA.forEach(f => t.add(fraseMision(ambX(ambL(ambP(conAccent(ENTRENAMENT)))), f)));
+                    t.add(fraseMision(ambX(ambL(ambP(conAccent(CONTROL))))));
+                })));
                 return [...t];
             };
 
@@ -4410,7 +4425,8 @@
                 if (item.intent === 1) {
                     sesion.hechos--;
                     item.intent = 2;
-                    opFeedbackEl.innerHTML = `<div id="accent-llegeix" class="correction-pista">🔍 ${escaparHtml(ACCENT_LLEGEIX)}<br>👒 ${escaparHtml(ACCENT_ON_O)}</div>`;
+                    opFeedbackEl.innerHTML = `<div id="accent-llegeix" class="correction-pista">🔍 ${escaparHtml(ACCENT_LLEGEIX)}<br>👒 ${escaparHtml(ACCENT_ON_O)} ${escaparHtml(ACCENT_MAMON)}`
+                        + (acabaCion(item) ? `<br>🗣️ ${escaparHtml(ACCENT_S_Z)}` : '') + '</div>';
                     hablar(ACCENT_LLEGEIX_VEU);
                     teclas = [];
                     tInicio = performance.now();
