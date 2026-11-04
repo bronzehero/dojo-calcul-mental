@@ -236,6 +236,42 @@ test.describe('Tema 1 de mates', () => {
         expect(dades.filter(d => !d.correcta).map(d => d.detalle.modo)).toEqual(['serie']);
     });
 
+    // L'últim dia (5/11): només el que encara falla a l'examen de prova en paper (contes pas a pas, potències amb parèntesi i punt,
+    // la suma sense drecera i la teoria d'additiu). Sense sèries ni arrels, que ja surten bé (papà, 4/11)
+    test("el 5/11, només el que encara falla: contes, potències amb parèntesi, i additiu", async ({ page }) => {
+        const envios = await preparar(page, '2026-11-05', { enCurso: { id: 10, bloque: 2, fecha: '2026-11-05' } });
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toHaveText('Tema 1 de mates');
+        await expect(page.locator('#intro-texto')).toContainText("Últim repàs abans de l'examen de demà");
+        await page.click('#btn-intro-vamos');
+        const vistos = [];
+        let anterior = 'null', fallada = false;
+        for (let i = 0; i < 8; i++) {
+            const t = await seguent(page, anterior);
+            vistos.push(t);
+            if (t.modo === 'conta' && !fallada) {
+                // Si falla, la conta explicada pas a pas, sense comptar errors
+                fallada = true;
+                await expect(page.locator('#op-factors')).toContainText('20 − 6 : 2 + 1');
+                await teclear(page, 16);
+                await expect(page.locator('#gentle-correction-box')).toBeVisible();
+                await expect(page.locator('#gentle-correction-box')).toContainText("d'esquerra a dreta");
+                expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
+                await page.click('#btn-correction-continue');
+            } else if (t.opcions) await page.click(`#tema1-opcions button[data-opcio="${t.esperado}"]`);
+            else await teclear(page, t.esperado);
+            anterior = JSON.stringify(t);
+        }
+        expect(vistos.map(t => t.modo)).toEqual(['conta', 'conta', 'conta', 'conta', 'potencia', 'potencia', 'suma', 'concepte']);
+        expect(vistos.slice(0, 4).map(t => t.esperado)).toEqual(['18', '13', '11', '4']);
+        expect(vistos.slice(4, 6).map(t => t.esperado)).toEqual(['11', '13']);
+        expect(vistos[7]).toMatchObject({ texto: 'ADDITIU', esperado: 'sumant' });
+        await expect(page.locator('#summary-titulo')).toHaveText('Missió complerta!');
+        const dades = envios.filter(e => e.datos.modulo === 'tema1').map(e => e.datos);
+        expect(dades).toHaveLength(8);
+        expect(dades.filter(d => !d.correcta).map(d => d.item)).toEqual(['conta:20 − 6 : 2 + 1']);
+    });
+
     // Passat l'examen (6/11), el tema 1 ja no surt (papà, 3/11)
     test('el 7/11 el tema 1 ja no surt', async ({ page }) => {
         await preparar(page, '2026-11-07');
