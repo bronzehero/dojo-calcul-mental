@@ -1038,6 +1038,9 @@
         .frac > span:first-child { border-bottom: 4px solid currentColor; padding: 0 0.2em; }
         .frac > span:last-child { padding: 0 0.2em; }
         .tema1-opcions { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 14px; }
+        .tema1-opcions.sil { grid-auto-flow: column; grid-auto-columns: 1fr; }
+        .tema1-opcions.sil .tema1-btn { font-size: 2rem; padding: 18px 8px; }
+        .tonica-icona { font-size: 2.6rem; }
         .tema1-btn { min-height: 76px; padding: 12px 18px; border: 4px solid #e9dcff; border-radius: 20px; background: #fff; cursor: pointer;
             font-family: var(--font-main); font-size: 1.35rem; font-weight: 700; line-height: 1.35; color: #1e293b; text-align: left; box-shadow: 0 6px 16px var(--c-shadow); }
         .tema1-btn.roma { font-size: 2.4rem; letter-spacing: 0.1em; text-align: center; }
@@ -1231,6 +1234,7 @@
                     <!-- Tema 1 de mates: triar la bona (com s'escriu en romans, què vol dir additiu…) -->
                     <div id="tema1-panel" hidden>
                         <div id="tema1-opcions" class="tema1-opcions"></div>
+                        <button id="btn-escoltar-tonica" class="btn-subtle btn-escoltar-xifra" hidden>🔊 Torna-la a escoltar</button>
                     </div>
 
                     <!-- Mejor decir "no ho sé" que adivinar: una respuesta inventada y errónea se queda grabada -->
@@ -1595,6 +1599,7 @@
                 catala:  { nombre: 'Català: apòstrof i contraccions', icono: '✏️', instr: "Repàs per a l'examen de català de demà. Agafa el full d'apunts de català i posa'l al costat: el fas servir com a l'examen. A cada frase, mira la paraula de després del forat i busca-la al full. Si una no surt, et dic on mirar i ho tornes a provar. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Anem ___ teatre (a + el) ➜ al', paso: () => 'Català: apòstrof i contraccions' },
                 tecno:   { nombre: 'Tecno per a l\'examen', icono: '💻', instr: "Repàs de l'examen de tecno del dijous: on és cada botó del Drive, dels Documents, de les Presentacions i del correu. Llegeixes què vols fer i tries com es fa. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Vull que l\'amiga pugui canviar coses ➜ Editor', paso: () => 'Tecno per a l\'examen' },
                 socials: { nombre: 'Socials per a l\'examen', icono: '🌋', instr: "Socials, per a l'examen de dimarts: el relleu. Llegeixes la pregunta i tries la bona entre tres. Si et va bé, digues la resposta en veu alta abans de tocar-la. Si una no surt, et surt explicada i demà la tornaràs a veure. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'On es nota més un terratrèmol? ➜ A l\'epicentre', paso: () => 'Socials per a l\'examen' },
+                tonica:  { nombre: 'On pica la força?', icono: '🥁', instr: "Ara, paraules en català: on pica la força. Sentiràs una paraula i la veuràs partida en trossos. Digues-la tu en veu alta, ben fort, com si cridessis algú de lluny. El tros que s'allarga és el que pica: toca'l. Si dubtes, torna-la a escoltar. Al teu ritme.", ejemplo: 'ca-mí ➜ toques «mi»', paso: () => 'On pica la força?' },
                 castella: { nombre: 'Castellà per a l\'examen', icono: '💬', instr: "Repàs del control de castellà, com a l'examen: llegeixes un text curt o mires una vinyeta i tries què és. Quina propietat falla, quin tipus de text és, quin pla, quin angle o quina part del còmic. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '«Primero, bate dos huevos…» ➜ Instructivo', paso: () => 'Castellà per a l\'examen' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
@@ -2423,12 +2428,51 @@
                 // Primer les que va fallar (dels blocs que ja han sortit), després les noves de cada bloc
                 const repeteix = shuffle(SOCIALS_PREGUNTES.filter(p => falla.has(p[1]) && p[0] <= finsBloc));
                 const ja = new Set(repeteix.map(p => p[1]));
-                const noves = [1, 2, 3].flatMap(b => shuffle(SOCIALS_PREGUNTES.filter(p => p[0] === b && !ja.has(p[1]))).slice(0, quants[b - 1]));
-                const total = quants.reduce((a, b) => a + b, 0);
-                return [...repeteix, ...noves].slice(0, Math.max(total, repeteix.length)).map(([bloc, preg, bona, altres, explica]) => ({ bloc, preg, bona, altres, explica }));
+                // Les repetides es descompten dels blocs vells, mai del bloc nou del dia
+                let descompte = repeteix.length;
+                const noves = [1, 2, 3].flatMap(b => {
+                    let n = quants[b - 1];
+                    if (b < finsBloc) { const treu = Math.min(n, descompte); n -= treu; descompte -= treu; }
+                    return shuffle(SOCIALS_PREGUNTES.filter(p => p[0] === b && !ja.has(p[1]))).slice(0, n);
+                });
+                return [...repeteix, ...noves].map(([bloc, preg, bona, altres, explica]) => ({ bloc, preg, bona, altres, explica }));
             }
             const socialsPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= SOCIALS_DES_DE && hoy() <= SOCIALS_FINS && !leerSocials().pausa;
             const conSocials = m => ({ ...m, bloques: [...m.bloques, { tipo: 'socials' }] });
+
+            // TÒNICA · català: identificar la síl·laba que pica (6/11: als accents de català, 3 de 8; sense la tònica cau tota la regla).
+            // Del 7 al 13/11 (examen d'accents probable ~13/11). Sent la paraula, la veu partida en trossos (sense accents gràfics,
+            // perquè no li donin la resposta) i toca el tros fort. Si falla: la bona en majúscules i el truc de cridar-la.
+            // Les fallades tornen primer l'endemà.
+            const TONICA_DES_DE = '2026-11-07', TONICA_FINS = '2026-11-13';
+            const TONICA_PARAULES = [
+                [['ca', 'sa'], 0], [['ca', 'mí'], 1], [['can', 'tar'], 1], [['lli', 'bre'], 0], [['ca', 'fè'], 1], [['so', 'fà'], 1],
+                [['ma', 're'], 0], [['sor', 'tir'], 1], [['an', 'glès'], 1], [['fà', 'cil'], 0], [['mò', 'bil'], 0], [['a', 'mic'], 1],
+                [['por', 'ta'], 0], [['can', 'çó'], 1], [['A', 'bril'], 1], [['plà', 'tan'], 0],
+                [['te', 'lè', 'fon'], 1], [['mú', 'si', 'ca'], 0], [['pà', 'gi', 'na'], 0], [['e', 'xa', 'men'], 1], [['a', 'vi', 'ó'], 2],
+                [['pi', 'lo', 'ta'], 1], [['fi', 'nes', 'tra'], 1], [['a', 'ni', 'mal'], 2], [['es', 'co', 'la'], 1], [['nú', 'me', 'ro'], 0],
+                [['mà', 'qui', 'na'], 0], [['ga', 'le', 'ta'], 1], [['ca', 'ra', 'mel'], 2], [['ca', 'mi', 'ó'], 2]
+            ];
+            const TONICA_PER_DIA = 10;
+            const senseAccent = t => t.normalize('NFD').replace(/[\u0300\u0301]/g, '').normalize('NFC');
+            const paraulaTonica = ([sil]) => sil.join('');
+            function leerTonica() {
+                try { return JSON.parse(localStorage.getItem('dojo_tonica')) || {}; } catch (e) { return {}; }
+            }
+            function anotarTonica(it, ok) {
+                const st = leerTonica();
+                const falla = new Set(st.falla || []);
+                if (ok) falla.delete(it.paraula); else falla.add(it.paraula);
+                try { localStorage.setItem('dojo_tonica', JSON.stringify({ ...st, falla: [...falla] })); } catch (e) { /* sense memòria, segueix igual */ }
+            }
+            function itemsTonica() {
+                const falla = new Set(leerTonica().falla || []);
+                const primer = shuffle(TONICA_PARAULES.filter(w => falla.has(paraulaTonica(w))));
+                const resta = shuffle(TONICA_PARAULES.filter(w => !falla.has(paraulaTonica(w))));
+                return [...primer, ...resta].slice(0, Math.max(TONICA_PER_DIA, primer.length));
+            }
+            const tonicaPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= TONICA_DES_DE && hoy() <= TONICA_FINS && !leerTonica().pausa;
+            const conTonica = m => ({ ...m, bloques: [...m.bloques, { tipo: 'tonica' }] });
 
             // PARAULES · ortografía palabra a palabra, cada día al final del entrenamiento (o del repaso del domingo),
             // DENTRO de la misión: no está complerta hasta acabarlas. Las nuevas: mirar con su truco → tapar → escribir de
@@ -3134,11 +3178,12 @@
             window.__itemsXifresProva = () => itemsXifra();
             window.__itemsSocials = () => itemsSocials().map(x => ({ bloc: x.bloc, preg: x.preg }));
             window.__idMisio = () => misionMostrada().id;
+            window.__itemsTonica = () => itemsTonica().map(w => paraulaTonica(w));
             window.__htmlPotParens = htmlPotParens;
             window.__parensActual = () => item && item.tipo === 'parens' ? { n: item.idx, modo: item.modo, esperado: item.esperado, format: item.format || null, opcions: item.opcions || null } : null;
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
-            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno', 'socials'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
+            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 ROMANS_ESCALA.forEach(e => t.add(e.veu));
@@ -3206,6 +3251,12 @@
                     SETMANA.forEach(f => t.add(fraseMision(ambX(conLab(ambP(ambT(ENTRENAMENT)))), f)));
                     t.add(fraseMision(ambX(conLab(ambP(ambT(CONTROL))))));
                 })));
+                // Del 7 al 13/11, la tònica després dels socials (fins al 9/11) i abans dels accents; amb o sense paraules, laboratori i xifres
+                TONICA_PARAULES.forEach(w => t.add(paraulaTonica(w)));
+                [conSocials, m => m].forEach(ambS => [m => m, conLab].forEach(ambL => [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
+                    SETMANA.forEach(f => t.add(fraseMision(ambX(ambL(ambP(conAccent(conTonica(ambS(ENTRENAMENT)))))), f)));
+                    t.add(fraseMision(ambX(ambL(ambP(conAccent(conTonica(ambS(CONTROL))))))));
+                }))));
                 // Del 6 al 9/11, els socials abans dels accents (amb o sense paraules, laboratori i xifres)
                 [m => m, conLab].forEach(ambL => [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
                     SETMANA.forEach(f => t.add(fraseMision(ambX(ambL(ambP(conAccent(conSocials(ENTRENAMENT))))), f)));
@@ -3410,6 +3461,7 @@
                 if (catalaPendent(m)) t = conCatala(t);
                 if (tecnoPendent(m)) t = conTecno(t);
                 if (socialsPendent(m)) t = conSocials(t);
+                if (tonicaPendent(m)) t = conTonica(t);
                 if (accentPendent(m)) t = conAccent(t);
                 if (paraulesPendents(m)) t = conParaules(t);
                 return labPendent(m) ? conLab(t) : t;
@@ -3637,6 +3689,8 @@
                     sesion.fijos = itemsTecno();
                 } else if (b.tipo === 'socials') {
                     sesion.fijos = itemsSocials();
+                } else if (b.tipo === 'tonica') {
+                    sesion.fijos = itemsTonica();
                 } else {
                     sesion.fijos = null;
                 }
@@ -4004,6 +4058,16 @@
                     return { ...base, texto: '', html: svgElemento(x.bona), clave: `elemento:${x.bona}`, preg: '¿Cómo se llama lo que señala la flecha?',
                         opcions: ambAltres(x.bona, Object.keys(ELEMENTOS)), explica: ELEMENTOS[x.bona] };
                 }
+                if (tipo === 'tonica') {
+                    const w = sesion.fijos[sesion.hechos];
+                    const [sil, t] = w;
+                    const paraula = paraulaTonica(w);
+                    return { tipo, modo: `sil${sil.length}`, paraula, texto: '🎧', html: '<span class="tonica-icona">🎧</span>', clave: `tonica:${paraula}`,
+                        esperado: senseAccent(sil[t]), preg: 'On pica la força? Digues-la fort i toca el tros que s\'allarga.',
+                        opcions: sil.map(senseAccent), veu: paraula, escoltat: 0,
+                        solucio: sil.map((x, i) => i === t ? x.toUpperCase() : x).join(' - '),
+                        explica: `Crida-la com si cridessis algú de lluny: ${sil.map((x, i) => i === t ? x.toUpperCase().replace(/([AEIOUÀÈÉÍÒÓÚ])(?!.*[AEIOUÀÈÉÍÒÓÚ])/, '$1$1$1') : x).join('-')}! El tros que s'allarga és el que pica.` };
+                }
                 if (tipo === 'socials') {
                     const x = sesion.fijos[sesion.hechos];
                     return { tipo, modo: `bloc${x.bloc}`, texto: x.preg, clave: `socials:${x.preg.slice(0, 30)}`, esperado: x.bona,
@@ -4052,7 +4116,7 @@
                 teclas = [];
                 oralRespuesta = null;
 
-                const ambPreg = ['tema1', 'castella', 'catala', 'tecno', 'socials', 'parens'].includes(item.tipo);
+                const ambPreg = ['tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica', 'parens'].includes(item.tipo);
                 const ambOpcions = ambPreg && !!item.opcions;
                 const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo) || (item.tipo === 'tema1' && !ambOpcions) ||
                     (item.tipo === 'parens' && !!item.maxXifres);
@@ -4066,7 +4130,7 @@
                 const preg = document.getElementById('tema1-preg');
                 preg.hidden = !ambPreg;
                 preg.textContent = ambPreg ? item.preg : '';
-                if (item.tipo === 'tema1' && item.veu) hablar(item.veu);
+                if ((item.tipo === 'tema1' || item.tipo === 'tonica') && item.veu) hablar(item.veu);
                 // Parèntesis: la pregunta en veu quan canvia el tipus (no a cada una)
                 if (item.tipo === 'parens' && sesion.parensModo !== item.modo) { sesion.parensModo = item.modo; hablar(item.preg); }
                 if (item.tipo === 'pas10' && item.clase === 'nou') {
@@ -4075,9 +4139,11 @@
                     hablar(PAS10_DITS);
                 }
                 opCardEl.classList.toggle('op-tema1-clau', item.modo === 'concepte');
-                opCardEl.classList.toggle('op-cast-text', ['castella', 'catala', 'tecno', 'socials'].includes(item.tipo) && !item.html);
+                opCardEl.classList.toggle('op-cast-text', ['castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo) && !item.html);
                 opCardEl.classList.toggle('op-cast-dibuix', ['castella', 'tecno'].includes(item.tipo) && !!item.html);
                 document.getElementById('tema1-panel').hidden = !ambOpcions;
+                document.getElementById('tema1-opcions').classList.toggle('sil', item.tipo === 'tonica');
+                document.getElementById('btn-escoltar-tonica').hidden = item.tipo !== 'tonica';
                 if (ambOpcions) {
                     document.getElementById('tema1-opcions').innerHTML = item.opcions
                         .map(o => `<button class="tema1-btn${item.modo === 'escriure' ? ' roma' : ''}" data-opcio="${escaparHtml(o)}">${escaparHtml(o)}</button>`).join('');
@@ -4116,7 +4182,7 @@
                 keypad.style.display = numerico ? 'grid' : 'none';
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
-                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials', 'parens'].includes(item.tipo);
+                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica', 'parens'].includes(item.tipo);
                 if (item.tipo === 'paraules') pintarParaula();
                 if (item.tipo === 'lab') pintarLab();
                 document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
@@ -4317,7 +4383,7 @@
                 const el = document.getElementById('correction-pista');
                 let txt = '';
                 if (item.tipo === 'pas10' && item.clase === 'nou') txt = trucPas10(item);
-                if (['tema1', 'castella', 'catala', 'tecno', 'socials'].includes(item.tipo)) txt = item.explica;
+                if (['tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo)) txt = item.explica;
                 if (item.objetivo) { txt = `Truc: ${fetSetmana().pista}`; hablar(fetSetmana().diccio); }
                 if (item.contraste) {
                     const s = SETMANA.find(x => (x.a === item.a && x.b === item.b) || (x.a === item.b && x.b === item.a));
@@ -4346,19 +4412,21 @@
             // Tema 1 y castellano, elegir: si no es la buena, la solución explicada (como en las demás, se para en la primera que falla)
             function responderTema1(opcio) {
                 if (item && item.tipo === 'parens') return responderParens(opcio);
-                if (isEvaluating || !item || !['tema1', 'castella', 'catala', 'tecno', 'socials'].includes(item.tipo) || !item.opcions) return;
+                if (isEvaluating || !item || !['tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo) || !item.opcions) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 const ok = opcio === item.esperado;
                 if (!ok && item.tipo === 'catala' && item.intent === 1) return catalaAlFull(opcio, ms);
                 if (item.tipo === 'socials') anotarSocials(item, ok);
-                registrar(item, opcio, ok, ms, item.tipo === 'catala' ? { modo: item.modo, opcions: item.opcions, intent: item.intent } : { modo: item.modo, opcions: item.opcions });
+                if (item.tipo === 'tonica') anotarTonica(item, ok);
+                registrar(item, opcio, ok, ms, item.tipo === 'catala' ? { modo: item.modo, opcions: item.opcions, intent: item.intent } : item.tipo === 'tonica' ? { modo: item.modo, opcions: item.opcions, escoltat: item.escoltat } : { modo: item.modo, opcions: item.opcions });
                 document.getElementById('tema1-panel').hidden = true;
                 if (ok) celebrar();
                 else {
                     opFeedbackEl.innerHTML = '';
                     mostrarCorreccion('🌸 Gairebé! Fixa-t\'hi bé:', item.solucio, `Tu has triat: ${opcio}`);
                     mostrarPistaCorreccion();
+                    if (item.tipo === 'tonica') hablar(item.veu);
                 }
             }
 
@@ -4704,7 +4772,7 @@
                 if (item && item.tipo === 'paraules') return evaluarParaula(null);
                 if (item && item.tipo === 'lab') return evaluarLab(null);
                 if (item && item.tipo === 'parens') return responderParens(null);
-                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials'].includes(item.tipo)) return;
+                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo)) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 if (item.tipo === 'catala' && item.intent === 1) return catalaAlFull(null, ms);
@@ -4718,10 +4786,11 @@
                     hablar(CATALA_VEU_PAPA);
                     return;
                 }
-                if (['tema1', 'castella', 'catala', 'tecno', 'socials'].includes(item.tipo)) {
+                if (['tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo)) {
                     registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo, ...(item.nivell !== undefined ? { nivell: item.nivell, pas: item.pas } : {}) });
                     if (item.tipo === 'tema1' && item.modo === 'roma') anotarRoma(item.fix, false);
                     if (item.tipo === 'socials') anotarSocials(item, false);
+                    if (item.tipo === 'tonica') { anotarTonica(item, false); hablar(item.veu); }
                     document.getElementById('tema1-panel').hidden = true;
                     mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', item.solucio, 'Millor això que endevinar. Mira-la bé i seguim.', false);
                     mostrarPistaCorreccion();
@@ -5860,6 +5929,11 @@
             document.getElementById('xifres-opcions').addEventListener('click', (e) => {
                 const btn = e.target.closest('button');
                 if (btn && btn.dataset.xifra) responderXifra(btn.dataset.xifra);
+            });
+            document.getElementById('btn-escoltar-tonica').addEventListener('click', () => {
+                if (!item || item.tipo !== 'tonica' || isEvaluating) return;
+                item.escoltat++;
+                hablar(item.veu);
             });
             document.getElementById('btn-escoltar-xifra').addEventListener('click', () => {
                 if (!item || !['xifra', 'sentir'].includes(item.tipo) || isEvaluating) return;

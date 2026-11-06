@@ -51,6 +51,12 @@ async function simularSupabase(page, opciones = {}) {
             if (!localStorage.getItem('dojo_tecno')) localStorage.setItem('dojo_tecno', JSON.stringify({ pausa: true }));
         });
     }
+    // Y con la tònica en català (del 7 al 13/11)
+    if (!opciones.tonica) {
+        await page.addInitScript(() => {
+            if (!localStorage.getItem('dojo_tonica')) localStorage.setItem('dojo_tonica', JSON.stringify({ pausa: true }));
+        });
+    }
     // Y con los socials (del 6 al 9/11)
     if (!opciones.socials) {
         await page.addInitScript(() => {
