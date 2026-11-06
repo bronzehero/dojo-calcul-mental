@@ -1594,6 +1594,7 @@
                 tema1:   { nombre: 'Tema 1 de mates', icono: '🏛️', instr: "Repàs del tema 1 de mates, per a l'examen. Primer, agafa un full i fes-te la xuleta dels romans, com a l'examen: els números que van de 5 en 5, la lletra de cada un a sota i les parelles que resten, les del 4 i les del 9. Quan l'acabis, ensenya-la al papa perquè te la miri. Després, amb la xuleta al costat: romans, binari i què vol dir additiu i posicional. Al binari, suma només els que tenen un 1. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'XIV ➜ escrius 14', boto: 'El papa ha mirat la xuleta ➜', paso: () => 'Tema 1 de mates' },
                 catala:  { nombre: 'Català: apòstrof i contraccions', icono: '✏️', instr: "Repàs per a l'examen de català de demà. Agafa el full d'apunts de català i posa'l al costat: el fas servir com a l'examen. A cada frase, mira la paraula de després del forat i busca-la al full. Si una no surt, et dic on mirar i ho tornes a provar. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Anem ___ teatre (a + el) ➜ al', paso: () => 'Català: apòstrof i contraccions' },
                 tecno:   { nombre: 'Tecno per a l\'examen', icono: '💻', instr: "Repàs de l'examen de tecno del dijous: on és cada botó del Drive, dels Documents, de les Presentacions i del correu. Llegeixes què vols fer i tries com es fa. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Vull que l\'amiga pugui canviar coses ➜ Editor', paso: () => 'Tecno per a l\'examen' },
+                socials: { nombre: 'Socials per a l\'examen', icono: '🌋', instr: "Socials, per a l'examen de dimarts: el relleu. Llegeixes la pregunta i tries la bona entre tres. Si et va bé, digues la resposta en veu alta abans de tocar-la. Si una no surt, et surt explicada i demà la tornaràs a veure. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'On es nota més un terratrèmol? ➜ A l\'epicentre', paso: () => 'Socials per a l\'examen' },
                 castella: { nombre: 'Castellà per a l\'examen', icono: '💬', instr: "Repàs del control de castellà, com a l'examen: llegeixes un text curt o mires una vinyeta i tries què és. Quina propietat falla, quin tipus de text és, quin pla, quin angle o quina part del còmic. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '«Primero, bate dos huevos…» ➜ Instructivo', paso: () => 'Castellà per a l\'examen' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
             };
@@ -2356,6 +2357,79 @@
             const tecnoPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= TECNO_DES_DE && hoy() <= TECNO_FINS && !leerTecno().pausa;
             const conTecno = m => ({ ...m, bloques: [...m.bloques, { tipo: 'tecno' }] });
 
+            // SOCIALS · examen de la U2 «Com són les formes de relleu?» el dimarts 10/11. Del 6 al 9/11, després del bloc de base.
+            // Preguntes de triar entre 3, totes dels apunts de la profe. Cada dia un bloc més (com el full del papa):
+            // 6/11 bloc 1 (capes, plaques, agents interns) · 7/11 + bloc 2 (agents externs, aigua) · 8/11 + bloc 3 (relleu, Catalunya) · 9/11 tot.
+            // Les que falla tornen a sortir primer l'endemà.
+            const SOCIALS_DES_DE = '2026-11-06', SOCIALS_FINS = '2026-11-09';
+            const SOC_CAPES = "Nucli a dins (de metalls), mantell al mig (el més gruixut, amb el magma), escorça a fora (prima, de roques).";
+            const SOC_CENTRE = "Hipocentre (o focus) = a dins, on comença. Epicentre = a la superfície, just a sobre: on es nota més.";
+            const SOC_AGENTS = "Interns = de dins de la Terra: terratrèmols, tsunamis i volcans. Externs = de fora: l'aigua, el vent, la vegetació i l'ésser humà.";
+            const SOC_RIU = "Cabal = quanta aigua porta. Conca = les terres d'on ve l'aigua. Règim = com canvia durant l'any. Curs = els trams del riu.";
+            const SOC_MUNTANYA = "Cim = la part de dalt (si és punxegut, pic). Vessants = els costats. Peu = la part de baix.";
+            const SOC_PLA = "Altiplà = pla i alt. Plana = pla i baix. Depressió = més baixa que el que l'envolta.";
+            const SOCIALS_PREGUNTES = [
+                [1, "Quina és la capa de fora de la Terra, prima i de roques?", "L'escorça", ['El mantell', 'El nucli'], SOC_CAPES],
+                [1, "Quina capa de la Terra és la més gruixuda i té el magma?", 'El mantell', ['El nucli', "L'escorça"], SOC_CAPES],
+                [1, "De què és el nucli de la Terra?", 'De metalls', ['De roques', "D'aigua"], "El nucli és de metalls: l'intern és sòlid i l'extern, líquid."],
+                [1, "Com es deia el continent únic que hi havia abans?", 'Pangea', ['Litosfera', 'Epicentre'], "La Pangea era un sol continent que surava sobre el mantell. Es va trencar i va fer les plaques tectòniques."],
+                [1, "Quan dues plaques xoquen, què passa?", "Una puja i fa serralades; l'altra s'enfonsa i fa fosses", ['Es desfan i fan magma', 'No passa res'], "On xoquen les plaques: serralades i fosses marines. I també terratrèmols i volcans."],
+                [1, "On comença un terratrèmol, a dins de la Terra?", "A l'hipocentre", ["A l'epicentre", 'Al cràter'], SOC_CENTRE],
+                [1, "On es nota més un terratrèmol?", "A l'epicentre", ["A l'hipocentre", 'Al nucli'], SOC_CENTRE],
+                [1, "Què és un tsunami?", "Un moviment molt fort del mar per un terratrèmol al fons del mar", ['Un volcà que surt del mar', 'Una pluja molt forta'], "Tsunami = terratrèmol al fons del mar → l'aigua es mou molt fort → inundacions a la costa baixa."],
+                [1, "Per on puja el magma, en un volcà?", 'Per la xemeneia', ['Pel con volcànic', 'Per la lava'], "Cambra magmàtica (a baix) → xemeneia → cràter (el forat de dalt) → en surt la lava."],
+                [1, "Quins són els agents interns?", 'Terratrèmols, tsunamis i volcans', ["L'aigua, el vent i la vegetació", 'Els rius, els llacs i els mars'], SOC_AGENTS],
+                [2, "Quins són els agents externs?", "L'aigua, el vent, la vegetació i l'ésser humà", ['Terratrèmols, tsunamis i volcans', 'El nucli i el mantell'], SOC_AGENTS],
+                [2, "Quin és el principal agent que modela el paisatge?", "L'aigua", ['El vent', "L'ésser humà"], "L'aigua és la principal: desgasta les valls, trenca les roques quan es glaça i les onades desgasten la costa."],
+                [2, "Com trenca les roques la vegetació?", 'Amb les arrels', ['Amb les fulles', 'Amb les flors'], "Les arrels trenquen les roques, i també aguanten el sòl a les muntanyes."],
+                [2, "Quanta aigua de la Terra és salada?", 'Gairebé tota (el 97 %)', ['La meitat', 'Molt poca'], "El 97 % és salada: els oceans i els mars. Dolça, només una mica menys del 3 %."],
+                [2, "Quants oceans hi ha?", '5', ['6', '3'], "Pacífic, Atlàntic, Índic, Àrtic i Antàrtic. Continents, n'hi ha 6."],
+                [2, "Què és el cabal d'un riu?", "La quantitat d'aigua que porta", ["Les terres d'on ve l'aigua", "Com canvia l'aigua durant l'any"], SOC_RIU],
+                [2, "Què és la conca d'un riu?", "Les terres d'on venen les aigües", ["La quantitat d'aigua que porta", 'El tros final del riu'], SOC_RIU],
+                [2, "Un riu de règim nival, d'on treu l'aigua?", 'De la neu que es fon', ['De la pluja', 'Del mar'], "Pluvial = de la pluja. Nival = de la neu."],
+                [2, "Per què diem que l'aigua és un recurs escàs?", 'Perquè molt poca és dolça i bona per beure', ["Perquè s'evapora tota", 'Perquè només és als pols'], "Només una part molt petita és bona per al consum, i cada cop en necessitem més. La sequera i la contaminació ho empitjoren."],
+                [2, "En què es fa servir més l'aigua dolça?", "En l'agricultura", ['A les cases', 'En la indústria'], "Un 65 % per a l'agricultura, un 25 % per a la indústria i només un 10 % a les cases."],
+                [3, "Quants continents hi ha?", '6', ['5', '7'], "Àfrica, Amèrica, Àsia, Europa, Oceania i Antàrtida. Oceans, n'hi ha 5."],
+                [3, "Com es diu la part més alta d'una muntanya?", 'El cim', ['El peu', 'El vessant'], SOC_MUNTANYA],
+                [3, "Un conjunt de muntanyes en fila és…", 'Una serralada', ['Un altiplà', 'Una vall'], "Serralada = muntanyes alineades (si és petita, serra)."],
+                [3, "Un terreny pla però alt, com el Tibet, és…", 'Un altiplà', ['Una plana', 'Una depressió'], SOC_PLA],
+                [3, "Una vall amb forma de V, qui l'ha fet?", 'Un riu', ['Una glacera', 'El vent'], "Vall fluvial (d'un riu) = forma de V. Vall glacial (del gel) = forma de U."],
+                [3, "La terra en forma de triangle on acaba un riu, feta de sediments, és…", 'Un delta', ['Un golf', 'Una ria'], "Delta = triangle de sediments a la desembocadura, com el de l'Ebre."],
+                [3, "Un grup d'illes és…", 'Un arxipèlag', ['Una península', 'Un cap'], "Arxipèlag = moltes illes juntes, com les Balears o les Canàries."],
+                [3, "Una terra envoltada d'aigua gairebé per tot arreu és…", 'Una península', ['Una illa', 'Una badia'], "Península = gairebé tota envoltada d'aigua. Illa = envoltada del tot."],
+                [3, "Una entrada de mar dins la terra, gran i rodona, és…", 'Un golf', ['Un cap', 'Una illa'], "Golf = gran. Badia = com un golf però més petita. Cap = la terra que entra dins del mar."],
+                [3, "Quines són les grans unitats del relleu de Catalunya?", 'Els Pirineus, les serralades de la costa i la Depressió Central', ["La Meseta, el Sistema Central i la vall de l'Ebre", "Els Alps, els Andes i l'Himàlaia"], "Pirineus, serralades de la costa (Prelitoral i Litoral) i Depressió Central. I les planes de la costa: l'Empordà i l'Ebre."],
+                [3, "Quina és la plana més gran de Catalunya?", 'La Depressió Central', ["L'Empordà", 'El Vallès'], "La Depressió Central. Abans hi havia un llac. Les planes de la costa més importants són l'Empordà i la de l'Ebre."],
+                [3, "On són el Montseny i Montserrat?", 'A la Serralada Prelitoral', ['Als Pirineus', 'A la Serralada Litoral'], "La Prelitoral és la més alta i llarga (Montseny, Montserrat). La Litoral és més baixa i curta, a prop del mar."],
+                [3, "Quines dues serralades formen els Pirineus?", 'El Pirineu Axial i el Prepirineu', ['La Prelitoral i la Litoral', 'El Sistema Central i el Sistema Ibèric'], "Pirineu Axial + Prepirineu. Ocupen un terç de Catalunya i acaben al cap de Creus."],
+                [3, "Quin és el cim més alt d'Espanya?", 'El Teide', ['El Montseny', 'Montserrat'], "El Teide (3.718 m), a Tenerife. Les illes Canàries són volcàniques."],
+                [3, "Quina és la part central del relleu de la Península?", 'La Meseta', ['La Depressió Central', 'Els Pirineus'], "La Meseta, al mig, dividida en dues pel Sistema Central."]
+            ];
+            // Quantes de cada bloc surten cada dia
+            const SOCIALS_PER_DIA = { '2026-11-06': [8, 0, 0], '2026-11-07': [3, 5, 0], '2026-11-08': [2, 2, 5], '2026-11-09': [3, 3, 3] };
+            function leerSocials() {
+                try { return JSON.parse(localStorage.getItem('dojo_socials')) || {}; } catch (e) { return {}; }
+            }
+            function anotarSocials(it, ok) {
+                const st = leerSocials();
+                const falla = new Set(st.falla || []);
+                if (ok) falla.delete(it.texto); else falla.add(it.texto);
+                try { localStorage.setItem('dojo_socials', JSON.stringify({ ...st, falla: [...falla] })); } catch (e) { /* sense memòria, segueix igual */ }
+            }
+            function itemsSocials() {
+                const quants = SOCIALS_PER_DIA[hoy()] || [3, 3, 3];
+                const falla = new Set(leerSocials().falla || []);
+                const finsBloc = Math.max(...[1, 2, 3].filter(b => quants[b - 1] > 0));
+                // Primer les que va fallar (dels blocs que ja han sortit), després les noves de cada bloc
+                const repeteix = shuffle(SOCIALS_PREGUNTES.filter(p => falla.has(p[1]) && p[0] <= finsBloc));
+                const ja = new Set(repeteix.map(p => p[1]));
+                const noves = [1, 2, 3].flatMap(b => shuffle(SOCIALS_PREGUNTES.filter(p => p[0] === b && !ja.has(p[1]))).slice(0, quants[b - 1]));
+                const total = quants.reduce((a, b) => a + b, 0);
+                return [...repeteix, ...noves].slice(0, Math.max(total, repeteix.length)).map(([bloc, preg, bona, altres, explica]) => ({ bloc, preg, bona, altres, explica }));
+            }
+            const socialsPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= SOCIALS_DES_DE && hoy() <= SOCIALS_FINS && !leerSocials().pausa;
+            const conSocials = m => ({ ...m, bloques: [...m.bloques, { tipo: 'socials' }] });
+
             // PARAULES · ortografía palabra a palabra, cada día al final del entrenamiento (o del repaso del domingo),
             // DENTRO de la misión: no está complerta hasta acabarlas. Las nuevas: mirar con su truco → tapar → escribir de
             // memoria → comparar y volver a escribir. Las ya vistas: de memoria (el primer intento del día es la medida).
@@ -3058,11 +3132,13 @@
             window.__labParaules = () => LAB_PARAULES.map(w => ({ id: w.id, paraula: w.paraula, idioma: w.idioma, frase2: w.frase2 }));
             window.__paraulaActual = () => item && item.tipo === 'paraules' ? { id: item.w.id, paraula: item.paraula, fase: item.fase, etapa: item.etapa } : null;
             window.__itemsXifresProva = () => itemsXifra();
+            window.__itemsSocials = () => itemsSocials().map(x => ({ bloc: x.bloc, preg: x.preg }));
+            window.__idMisio = () => misionMostrada().id;
             window.__htmlPotParens = htmlPotParens;
             window.__parensActual = () => item && item.tipo === 'parens' ? { n: item.idx, modo: item.modo, esperado: item.esperado, format: item.format || null, opcions: item.opcions || null } : null;
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
-            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
+            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno', 'socials'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 ROMANS_ESCALA.forEach(e => t.add(e.veu));
@@ -3129,6 +3205,11 @@
                 [m => m, conTema1].forEach(ambT => [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
                     SETMANA.forEach(f => t.add(fraseMision(ambX(conLab(ambP(ambT(ENTRENAMENT)))), f)));
                     t.add(fraseMision(ambX(conLab(ambP(ambT(CONTROL))))));
+                })));
+                // Del 6 al 9/11, els socials abans dels accents (amb o sense paraules, laboratori i xifres)
+                [m => m, conLab].forEach(ambL => [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
+                    SETMANA.forEach(f => t.add(fraseMision(ambX(ambL(ambP(conAccent(conSocials(ENTRENAMENT))))), f)));
+                    t.add(fraseMision(ambX(ambL(ambP(conAccent(conSocials(CONTROL)))))));
                 })));
                 // Des del 6/11, els accents sense el tema 1 (fins al 20/11), amb o sense paraules i laboratori
                 [m => m, conLab].forEach(ambL => [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
@@ -3328,6 +3409,7 @@
                 if (castellaPendent(m)) t = conCastella(t);
                 if (catalaPendent(m)) t = conCatala(t);
                 if (tecnoPendent(m)) t = conTecno(t);
+                if (socialsPendent(m)) t = conSocials(t);
                 if (accentPendent(m)) t = conAccent(t);
                 if (paraulesPendents(m)) t = conParaules(t);
                 return labPendent(m) ? conLab(t) : t;
@@ -3553,6 +3635,8 @@
                     sesion.fijos = itemsCatala();
                 } else if (b.tipo === 'tecno') {
                     sesion.fijos = itemsTecno();
+                } else if (b.tipo === 'socials') {
+                    sesion.fijos = itemsSocials();
                 } else {
                     sesion.fijos = null;
                 }
@@ -3920,6 +4004,11 @@
                     return { ...base, texto: '', html: svgElemento(x.bona), clave: `elemento:${x.bona}`, preg: '¿Cómo se llama lo que señala la flecha?',
                         opcions: ambAltres(x.bona, Object.keys(ELEMENTOS)), explica: ELEMENTOS[x.bona] };
                 }
+                if (tipo === 'socials') {
+                    const x = sesion.fijos[sesion.hechos];
+                    return { tipo, modo: `bloc${x.bloc}`, texto: x.preg, clave: `socials:${x.preg.slice(0, 30)}`, esperado: x.bona,
+                        preg: 'Quina és la bona?', opcions: shuffle([x.bona, ...x.altres]), solucio: x.bona, explica: x.explica };
+                }
                 if (tipo === 'tecno') {
                     const x = sesion.fijos[sesion.hechos];
                     if (x.modo === 'dibuix') return { tipo, modo: x.modo, texto: '', html: svgDiapositiva(x.bona), clave: `dibuix:${x.bona}`, esperado: x.bona,
@@ -3963,7 +4052,7 @@
                 teclas = [];
                 oralRespuesta = null;
 
-                const ambPreg = ['tema1', 'castella', 'catala', 'tecno', 'parens'].includes(item.tipo);
+                const ambPreg = ['tema1', 'castella', 'catala', 'tecno', 'socials', 'parens'].includes(item.tipo);
                 const ambOpcions = ambPreg && !!item.opcions;
                 const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo) || (item.tipo === 'tema1' && !ambOpcions) ||
                     (item.tipo === 'parens' && !!item.maxXifres);
@@ -3986,7 +4075,7 @@
                     hablar(PAS10_DITS);
                 }
                 opCardEl.classList.toggle('op-tema1-clau', item.modo === 'concepte');
-                opCardEl.classList.toggle('op-cast-text', ['castella', 'catala', 'tecno'].includes(item.tipo) && !item.html);
+                opCardEl.classList.toggle('op-cast-text', ['castella', 'catala', 'tecno', 'socials'].includes(item.tipo) && !item.html);
                 opCardEl.classList.toggle('op-cast-dibuix', ['castella', 'tecno'].includes(item.tipo) && !!item.html);
                 document.getElementById('tema1-panel').hidden = !ambOpcions;
                 if (ambOpcions) {
@@ -4027,7 +4116,7 @@
                 keypad.style.display = numerico ? 'grid' : 'none';
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
-                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'parens'].includes(item.tipo);
+                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials', 'parens'].includes(item.tipo);
                 if (item.tipo === 'paraules') pintarParaula();
                 if (item.tipo === 'lab') pintarLab();
                 document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
@@ -4228,7 +4317,7 @@
                 const el = document.getElementById('correction-pista');
                 let txt = '';
                 if (item.tipo === 'pas10' && item.clase === 'nou') txt = trucPas10(item);
-                if (['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo)) txt = item.explica;
+                if (['tema1', 'castella', 'catala', 'tecno', 'socials'].includes(item.tipo)) txt = item.explica;
                 if (item.objetivo) { txt = `Truc: ${fetSetmana().pista}`; hablar(fetSetmana().diccio); }
                 if (item.contraste) {
                     const s = SETMANA.find(x => (x.a === item.a && x.b === item.b) || (x.a === item.b && x.b === item.a));
@@ -4257,11 +4346,12 @@
             // Tema 1 y castellano, elegir: si no es la buena, la solución explicada (como en las demás, se para en la primera que falla)
             function responderTema1(opcio) {
                 if (item && item.tipo === 'parens') return responderParens(opcio);
-                if (isEvaluating || !item || !['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo) || !item.opcions) return;
+                if (isEvaluating || !item || !['tema1', 'castella', 'catala', 'tecno', 'socials'].includes(item.tipo) || !item.opcions) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 const ok = opcio === item.esperado;
                 if (!ok && item.tipo === 'catala' && item.intent === 1) return catalaAlFull(opcio, ms);
+                if (item.tipo === 'socials') anotarSocials(item, ok);
                 registrar(item, opcio, ok, ms, item.tipo === 'catala' ? { modo: item.modo, opcions: item.opcions, intent: item.intent } : { modo: item.modo, opcions: item.opcions });
                 document.getElementById('tema1-panel').hidden = true;
                 if (ok) celebrar();
@@ -4614,7 +4704,7 @@
                 if (item && item.tipo === 'paraules') return evaluarParaula(null);
                 if (item && item.tipo === 'lab') return evaluarLab(null);
                 if (item && item.tipo === 'parens') return responderParens(null);
-                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno'].includes(item.tipo)) return;
+                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials'].includes(item.tipo)) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 if (item.tipo === 'catala' && item.intent === 1) return catalaAlFull(null, ms);
@@ -4628,9 +4718,10 @@
                     hablar(CATALA_VEU_PAPA);
                     return;
                 }
-                if (['tema1', 'castella', 'catala', 'tecno'].includes(item.tipo)) {
+                if (['tema1', 'castella', 'catala', 'tecno', 'socials'].includes(item.tipo)) {
                     registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo, ...(item.nivell !== undefined ? { nivell: item.nivell, pas: item.pas } : {}) });
                     if (item.tipo === 'tema1' && item.modo === 'roma') anotarRoma(item.fix, false);
+                    if (item.tipo === 'socials') anotarSocials(item, false);
                     document.getElementById('tema1-panel').hidden = true;
                     mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', item.solucio, 'Millor això que endevinar. Mira-la bé i seguim.', false);
                     mostrarPistaCorreccion();

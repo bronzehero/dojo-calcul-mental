@@ -51,6 +51,12 @@ async function simularSupabase(page, opciones = {}) {
             if (!localStorage.getItem('dojo_tecno')) localStorage.setItem('dojo_tecno', JSON.stringify({ pausa: true }));
         });
     }
+    // Y con los socials (del 6 al 9/11)
+    if (!opciones.socials) {
+        await page.addInitScript(() => {
+            if (!localStorage.getItem('dojo_socials')) localStorage.setItem('dojo_socials', JSON.stringify({ pausa: true }));
+        });
+    }
     // Y con los acentos en castellano (del 29/10 al 5/11)
     if (!opciones.accent) {
         await page.addInitScript(() => {
