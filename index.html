@@ -2373,6 +2373,8 @@
             const SOC_RIU = "Cabal = quanta aigua porta. Conca = les terres d'on ve l'aigua. Règim = com canvia durant l'any. Curs = els trams del riu.";
             const SOC_MUNTANYA = "Cim = la part de dalt (si és punxegut, pic). Vessants = els costats. Peu = la part de baix.";
             const SOC_PLA = "Altiplà = pla i alt. Plana = pla i baix. Depressió = més baixa que el que l'envolta.";
+            const SOC_ORDRE = "Meteorització (la roca es trenca) → erosió (l'aigua o el vent la desgasten) → transport (se l'emporten) → sedimentació (es diposita en un altre lloc).";
+            const SOC_VALL = "Vall fluvial (d'un riu) = forma de V. Vall glacial (d'una glacera) = forma de U. V, de riu; U, de glacera.";
             const SOCIALS_PREGUNTES = [
                 [1, "Quina és la capa de fora de la Terra, prima i de roques?", "L'escorça", ['El mantell', 'El nucli'], SOC_CAPES],
                 [1, "Quina capa de la Terra és la més gruixuda i té el magma?", 'El mantell', ['El nucli', "L'escorça"], SOC_CAPES],
@@ -2398,7 +2400,7 @@
                 [3, "Com es diu la part més alta d'una muntanya?", 'El cim', ['El peu', 'El vessant'], SOC_MUNTANYA],
                 [3, "Un conjunt de muntanyes en fila és…", 'Una serralada', ['Un altiplà', 'Una vall'], "Serralada = muntanyes alineades (si és petita, serra)."],
                 [3, "Un terreny pla però alt, com el Tibet, és…", 'Un altiplà', ['Una plana', 'Una depressió'], SOC_PLA],
-                [3, "Una vall amb forma de V, qui l'ha fet?", 'Un riu', ['Una glacera', 'El vent'], "Vall fluvial (d'un riu) = forma de V. Vall glacial (del gel) = forma de U."],
+                [3, "Una vall amb forma de V, qui l'ha fet?", 'Un riu', ['Una glacera', 'El vent'], SOC_VALL],
                 [3, "La terra en forma de triangle on acaba un riu, feta de sediments, és…", 'Un delta', ['Un golf', 'Una ria'], "Delta = triangle de sediments a la desembocadura, com el de l'Ebre."],
                 [3, "Un grup d'illes és…", 'Un arxipèlag', ['Una península', 'Un cap'], "Arxipèlag = moltes illes juntes, com les Balears o les Canàries."],
                 [3, "Una terra envoltada d'aigua gairebé per tot arreu és…", 'Una península', ['Una illa', 'Una badia'], "Península = gairebé tota envoltada d'aigua. Illa = envoltada del tot."],
@@ -2408,10 +2410,18 @@
                 [3, "On són el Montseny i Montserrat?", 'A la Serralada Prelitoral', ['Als Pirineus', 'A la Serralada Litoral'], "La Prelitoral és la més alta i llarga (Montseny, Montserrat). La Litoral és més baixa i curta, a prop del mar."],
                 [3, "Quines dues serralades formen els Pirineus?", 'El Pirineu Axial i el Prepirineu', ['La Prelitoral i la Litoral', 'El Sistema Central i el Sistema Ibèric'], "Pirineu Axial + Prepirineu. Ocupen un terç de Catalunya i acaben al cap de Creus."],
                 [3, "Quin és el cim més alt d'Espanya?", 'El Teide', ['El Montseny', 'Montserrat'], "El Teide (3.718 m), a Tenerife. Les illes Canàries són volcàniques."],
-                [3, "Quina és la part central del relleu de la Península?", 'La Meseta', ['La Depressió Central', 'Els Pirineus'], "La Meseta, al mig, dividida en dues pel Sistema Central."]
+                [3, "Quina és la part central del relleu de la Península?", 'La Meseta', ['La Depressió Central', 'Els Pirineus'], "La Meseta, al mig, dividida en dues pel Sistema Central."],
+                // 8/11: el que va fallar a l'examen de prova en paper i encara no hi era
+                [1, "Com és el nucli intern de la Terra? I l'extern?", "L'intern és sòlid i l'extern és líquid", ["L'intern és líquid i l'extern és sòlid", 'Tots dos són de roca'], "Nucli intern = sòlid. Nucli extern = líquid. Tots dos són de metall."],
+                [1, "Què és un volcà?", "Una esquerda de l'escorça per on puja el magma i surt", ['Una muntanya molt alta i punxeguda', 'Un forat al fons del mar'], "Volcà = esquerda de l'escorça per on el magma puja i surt: gasos, cendres, pedres i lava."],
+                [2, "Quins són els 5 oceans?", 'Pacífic, Atlàntic, Índic, Àrtic i Antàrtic', ['Pacífic, Atlàntic, Índic, Mediterrani i Cantàbric', 'Pacífic, Atlàntic, Àfrica, Àsia i Europa'], "Pacífic, Atlàntic, Índic, Àrtic (a dalt de tot) i Antàrtic (a baix de tot)."],
+                [2, "Què és l'erosió?", "L'aigua o el vent desgasten la roca i se n'emporten trossos", ['El material es diposita en un altre lloc', "La quantitat d'aigua que porta un riu"], SOC_ORDRE],
+                [2, "Què és la sedimentació?", 'El material que porta el riu es diposita en un altre lloc', ["L'aigua desgasta la roca", 'El riu neix a la muntanya'], SOC_ORDRE],
+                [3, "Un terreny més baix que el que l'envolta és…", 'Una depressió', ['Un altiplà', 'Un cim'], SOC_PLA],
+                [3, "Una vall amb forma de U, qui l'ha fet?", 'Una glacera', ['Un riu', 'El vent'], SOC_VALL]
             ];
-            // Quantes de cada bloc surten cada dia
-            const SOCIALS_PER_DIA = { '2026-11-06': [8, 0, 0], '2026-11-07': [3, 5, 0], '2026-11-08': [2, 2, 5], '2026-11-09': [3, 3, 3] };
+            // Quantes de cada bloc surten cada dia. 9/11, l'últim: més del bloc 3 (relleu, Catalunya i Espanya), el que menys sap
+            const SOCIALS_PER_DIA = { '2026-11-06': [8, 0, 0], '2026-11-07': [3, 5, 0], '2026-11-08': [2, 2, 5], '2026-11-09': [2, 3, 6] };
             function leerSocials() {
                 try { return JSON.parse(localStorage.getItem('dojo_socials')) || {}; } catch (e) { return {}; }
             }
