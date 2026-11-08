@@ -3518,8 +3518,8 @@
             // Días en que el entrenamiento se puede hacer dos veces porque la primera falló la app
             // (12/10: los saltos de «Passar pel 10» se preguntaban con la resta a la vista)
             const REPETIR_ENTRENAMENT = ['2026-10-12'];
-            // Días con una segunda misión por la tarde (8/11: la del domingo por la mañana y, por la tarde, otra
-            // antes del examen de Sociales del 10/11). La de la tarde es el entrenamiento normal del día.
+            // Días con una segunda misión por la tarde (8/11: el repaso del domingo por la mañana y, por la tarde, el
+            // entrenamiento normal, antes del examen de Sociales del 10/11). Solo si la de la mañana fue el repaso.
             const SEGONA_MISSIO = ['2026-11-08'];
 
             function misionHechaHoy() {
@@ -3527,8 +3527,10 @@
                 const p = leerPlan();
                 if (REPETIR_ENTRENAMENT.includes(hoy()) && misionActual().id === ENTRENAMENT.id &&
                     p.hechas.filter(h => h.id === ENTRENAMENT.id && h.fecha === hoy()).length === 1) return false;
-                if (SEGONA_MISSIO.includes(hoy()) &&
-                    [...p.hechas, ...(p.extras || [])].filter(h => h.fecha === hoy()).length === 1) return false;
+                if (SEGONA_MISSIO.includes(hoy())) {
+                    const avui = [...p.hechas, ...(p.extras || [])].filter(h => h.fecha === hoy());
+                    if (avui.length === 1 && avui[0].id === CONTROL.id) return false;
+                }
                 const ultimas = [p.hechas[p.hechas.length - 1], (p.extras || [])[(p.extras || []).length - 1]];
                 return ultimas.some(u => u && u.fecha === hoy()) && p.permitirOtra !== hoy();
             }
