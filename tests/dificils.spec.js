@@ -89,6 +89,9 @@ test.describe('Les difícils', () => {
             await expect(page.locator('#dificil-dir')).toBeVisible();
             await expect(page.locator('#dificil-op-1')).toHaveText(d.texto);
             await expect(page.locator('#dificil-op-2')).toHaveText(d.altra);
+            // 4 × 7: la cançó del 4, des del principi (el seu truc); les altres, sense ajuda
+            if (['4 × 7', '7 × 4'].includes(d.texto)) await expect(page.locator('#dificil-ajuda')).toContainText('cançó del 4 des del principi');
+            else await expect(page.locator('#dificil-ajuda')).toBeHidden();
             await expect(page.locator('#keypad')).toBeHidden();
             await expect(page.locator('#btn-no-ho-se')).toBeHidden();
             await page.keyboard.type('1');

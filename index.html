@@ -970,6 +970,7 @@
         .dificil-dir-titol { font-size: 1.4rem; font-weight: 800; color: #c2410c; }
         .dificil-dir-ops { display: flex; justify-content: center; align-items: center; gap: 14px; font-size: 2.3rem; font-weight: 900; margin: 10px 0; }
         .dificil-dir-i { font-size: 1.3rem; color: #64748b; font-weight: 700; }
+        .dificil-ajuda { font-size: 1.25rem; font-weight: 800; color: #9a3412; background: #ffedd5; border-radius: 14px; padding: 8px 12px; margin: 0 0 10px; }
 
         /* Signos de color; late cuando cambia respecto a la anterior */
         .signe { font-weight: 900; display: inline-block; }
@@ -1208,6 +1209,7 @@
                     <div id="dificil-dir" class="dificil-dir" hidden>
                         <div class="dificil-dir-titol">🗣️ Digues-la en veu alta:</div>
                         <div class="dificil-dir-ops"><span id="dificil-op-1">7 × 9</span><span class="dificil-dir-i">i</span><span id="dificil-op-2">9 × 7</span></div>
+                        <div id="dificil-ajuda" class="dificil-ajuda" hidden></div>
                         <button id="btn-dificil-dit" class="btn-action btn-dificil">✅ Ja l'he dit en veu alta</button>
                     </div>
 
@@ -1590,7 +1592,9 @@
             const DIFICILS = [
                 { a: 7, b: 9, pista: 'Taula del 9: la desena és un menys (6) i les xifres sumen 9 (6 + 3): 63.', diccio: 'set per nou, seixanta-tres' },
                 { a: 3, b: 8, pista: '8 + 8 + 8: 16, 24.', diccio: 'tres per vuit, vint-i-quatre' },
-                { a: 4, b: 7, pista: '7 + 7 + 7 + 7: 14, 21, 28.', diccio: 'quatre per set, vint-i-vuit' },
+                // 9/11: el truc és la cançó de la taula del 4, cantada des del principi
+                { a: 4, b: 7, pista: 'Canta la cançó del 4 des del principi, fins al 4 × 7: 28.', diccio: 'quatre per set, vint-i-vuit',
+                  ajuda: '💡 Si dubtes, canta la cançó del 4 des del principi.' },
                 { a: 3, b: 6, pista: '6 + 6 + 6: 12, 18.', diccio: 'tres per sis, divuit' },
                 { a: 3, b: 7, pista: '7 + 7 + 7: 14, 21.', diccio: 'tres per set, vint-i-u' }
             ];
@@ -4378,6 +4382,9 @@
                 if (item.fase === 'dir') {
                     document.getElementById('dificil-op-1').textContent = item.texto;
                     document.getElementById('dificil-op-2').textContent = item.altra;
+                    const ajuda = dificilDe(item).ajuda, caixa = document.getElementById('dificil-ajuda');
+                    caixa.hidden = !ajuda;
+                    caixa.textContent = ajuda || '';
                     hablar(DIFICIL_VEU_DIR);
                 }
                 item.tFase = ara;
