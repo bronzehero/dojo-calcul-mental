@@ -41,6 +41,17 @@ test.describe('Accents en castellà', () => {
         });
     }
 
+    test("opinión (8/11): cada dia, i la regla la junta amb canción i excursión; si posa ò, l'accent va cap a la dreta", async ({ page }) => {
+        await preparar(page, '2026-11-09');
+        const p = (await page.evaluate(() => window.__itemsAccent())).map(x => x.paraula);
+        expect(p).toContain('opinión');
+        const regla = (w, r) => page.evaluate(([w, r]) => window.__reglaAccent(w, r), [w, r]);
+        expect(await regla('opinión', 'opinion')).toContain('canción i excursión');
+        expect(await regla('opinión', 'opiniòn')).toMatch(/ó, no ò.*canción i excursión/);
+        expect(await regla('información', 'informacòn')).toContain('ó, no ò');
+        expect(await regla('opiniones', 'opiniónes')).toContain('opiniones');
+    });
+
     test("cada dia 12: les 3 de sempre, 5 més en -ón i 4 sense accent, barrejades", async ({ page }) => {
         await preparar(page, '2026-10-29');
         for (let i = 0; i < 3; i++) {
@@ -48,7 +59,7 @@ test.describe('Accents en castellà', () => {
             const p = items.map(x => x.paraula);
             expect(p).toHaveLength(12);
             expect(new Set(p).size).toBe(12);
-            expect(p).toEqual(expect.arrayContaining(['información', 'asociación', 'cohesión']));
+            expect(p).toEqual(expect.arrayContaining(['información', 'asociación', 'cohesión', 'opinión']));
             expect(p.filter(x => x.endsWith('ón'))).toHaveLength(8);
             expect(p.filter(x => !/[áéíóú]/.test(x))).toHaveLength(4);
             for (const x of items) expect(x.frase).toContain(x.paraula);

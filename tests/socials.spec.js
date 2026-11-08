@@ -40,7 +40,7 @@ test.describe("Socials per a l'examen", () => {
         });
     }
 
-    for (const [dia, blocs] of [['2026-11-06', { bloc1: 8 }], ['2026-11-07', { bloc1: 3, bloc2: 5 }], ['2026-11-08', { bloc1: 3, bloc2: 6 }], ['2026-11-09', { bloc1: 5, bloc2: 7 }]]) {
+    for (const [dia, blocs] of [['2026-11-06', { bloc1: 8 }], ['2026-11-07', { bloc1: 3, bloc2: 5 }], ['2026-11-08', { bloc1: 3, bloc2: 6 }]]) {
         test(`el ${dia}, els blocs que toquen: ${JSON.stringify(blocs)}`, async ({ page }) => {
             await preparar(page, dia);
             const items = await page.evaluate(() => window.__itemsSocials());
@@ -50,6 +50,41 @@ test.describe("Socials per a l'examen", () => {
             expect(new Set(items.map(x => x.preg)).size).toBe(items.length);
         });
     }
+
+    test("el 2026-11-09: primer l'explicació de tot el que falla i després les mateixes preguntes", async ({ page }) => {
+        await preparar(page, '2026-11-09', {}, { falla: ['Quants continents hi ha?', 'Com es deia el continent únic que hi havia abans?', 'Un grup d\'illes és…'] });
+        const items = await page.evaluate(() => window.__itemsSocials());
+        const previa = items.filter(x => x.previa), preg = items.filter(x => !x.previa);
+        expect(items.slice(0, previa.length).every(x => x.previa)).toBe(true);
+        expect(previa.length).toBe(15); // 13 de l'examen 2 + 2 fallades del Dojo (la del bloc 3 ja no entra)
+        expect(preg.map(x => x.preg).sort()).toEqual(previa.map(x => x.preg).sort());
+        expect(preg.map(x => x.preg)).toContain('Què és la conca d\'un riu?');
+        expect(preg.map(x => x.preg)).not.toContain('Un grup d\'illes és…');
+    });
+
+    test("la fitxa d'explicació: la bona i per què, sense opcions; no es guarda com a resposta", async ({ page }) => {
+        const envios = await preparar(page, '2026-11-09');
+        await expect.poll(async () => (await pasos(page)).join('|')).toContain('Socials');
+        const p = await pasos(page);
+        await page.evaluate(i => {
+            const plan = JSON.parse(localStorage.getItem('dojo_plan'));
+            localStorage.setItem('dojo_plan', JSON.stringify({ ...plan, enCurso: { id: window.__idMisio(), bloque: i, fecha: '2026-11-09' } }));
+        }, p.indexOf(SOCIALS));
+        await page.reload();
+        await page.click('#btn-start-game');
+        await page.click('#btn-intro-vamos');
+        const t = await seguent(page, 'null');
+        expect(t.modo).toBe('previa');
+        await expect(page.locator('#gentle-correction-box')).toBeVisible();
+        await expect(page.locator('#correction-math-text')).toHaveText(t.esperado);
+        await expect(page.locator('#correction-pista')).toBeVisible();
+        await expect(page.locator('#tema1-panel')).toBeHidden();
+        expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
+        await page.click('#btn-correction-continue');
+        const t2 = await seguent(page, JSON.stringify(t));
+        expect(t2.modo).toBe('previa');
+        expect(envios.filter(e => e.datos.modulo === 'socials')).toHaveLength(0);
+    });
 
     test("si falla, la bona i per què; torna al final del bloc; es guarda; l'endemà torna a sortir primer", async ({ page }) => {
         const envios = await preparar(page, '2026-11-06');

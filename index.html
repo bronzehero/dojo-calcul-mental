@@ -1689,9 +1689,10 @@
             // continua fins al 20/11. Des del 7/11 sense les paraules del laboratori (cohesión, asociación, situación, televisión).
             const ACCENT_DES_DE = '2026-10-29', ACCENT_FINS = '2026-11-20';
             const ACCENT_DEL_LAB = ['cohesión', 'asociación', 'situación', 'televisión'];
-            const ACCENT_ON_SEMPRE = [['información', 'Busco información en internet.'], ['asociación', 'Es una asociación de vecinos.'], ['cohesión', 'El texto tiene cohesión.']];
+            const ACCENT_ON_SEMPRE = [['información', 'Busco información en internet.'], ['asociación', 'Es una asociación de vecinos.'], ['cohesión', 'El texto tiene cohesión.'],
+                ['opinión', 'Di tu opinión.']]; // 8/11: opinión, 7 sessions sense accent (opiniones sí): cada dia, i juntada amb canción i excursión
             const ACCENT_ON = [['introducción', 'Lee la introducción del texto.'], ['conclusión', 'Escribe una conclusión.'], ['excursión', 'Mañana vamos de excursión.'],
-                ['canción', 'Me gusta esta canción.'], ['opinión', 'Di tu opinión.'], ['explicación', 'La profe da una explicación.'],
+                ['canción', 'Me gusta esta canción.'], ['explicación', 'La profe da una explicación.'],
                 ['atención', 'Presta atención en clase.'], ['televisión', 'Miro la televisión.'], ['situación', 'Es una situación difícil.']];
             const ACCENT_NO = [['examen', 'Mañana tengo examen.'], ['resumen', 'Haz un resumen del tema.'], ['imagen', 'Mira esta imagen.'],
                 ['joven', 'Mi prima es muy joven.'], ['canciones', 'Me gustan estas canciones.'], ['opiniones', 'Hay muchas opiniones.']];
@@ -1712,9 +1713,13 @@
                 return shuffle([...on, ...shuffle(ACCENT_NO).slice(0, 4)]).map(([paraula, frase]) => ({ paraula, frase }));
             }
             const accentBe = (it, r) => it.ambAccent ? r.endsWith('ón') : !/[áéíóú]/.test(r);
+            const ACCENT_OPINION = 'Opinión va amb canción i excursión: acaba en -ión → accent a la ó. Opi-NIÓN! I al plural se\'n va: opiniones.';
             function reglaAccent(it, r) {
+                // 8/11: al 2n intent posa ò (com en català): en castellà, sempre ó
+                if (/[àèìòù]/.test(r)) return `En castellà l'accent sempre va cap a la dreta: ó, no ò.${it.paraula.startsWith('opini') ? ' ' + ACCENT_OPINION : ''}`;
                 if (accentBe(it, r)) return acabaCion(it) ? `L'accent està bé: mira les lletres. ${ACCENT_S_Z}` : "L'accent està bé: mira les lletres.";
                 if (it.ambAccent && /[áéíú]/.test(r)) return "Acaba en -ón: l'accent va a sobre de la o, no de la " + r.match(/[áéíú]/)[0].normalize('NFD')[0] + ': -ón.';
+                if (it.paraula.startsWith('opini') && !accentBe(it, r)) return ACCENT_OPINION;
                 // Desde el 1/11, las palabras en -ón que eligió ella para acordarse (la que más le gusta, mamón)
                 if (it.ambAccent) return 'Acaba en -ón: porta accent a la ó, com jamón, salchichón i MAMÓN!';
                 if (it.paraula.endsWith('ones')) return 'Acaba en -ones: sense accent (canción → canciones).';
@@ -2448,9 +2453,21 @@
                 if (ok) falla.delete(it.texto); else falla.add(it.texto);
                 try { localStorage.setItem('dojo_socials', JSON.stringify({ ...st, falla: [...falla] })); } catch (e) { /* sense memòria, segueix igual */ }
             }
+            // 9/11 (papà): primer l'explicació de tot el que sabem que falla (les fallades del Dojo i el que no va saber a
+            // l'examen 2 de paper) i després, les mateixes preguntes barrejades
+            const SOCIALS_PREVIA = { '2026-11-09': ["Com és el mantell?", "Què són les plaques tectòniques?", "Què és una falla?",
+                "Com es diuen les ones que surten de l'hipocentre i fan tremolar la terra?", "On es nota més un terratrèmol?",
+                "Què és el cabal d'un riu?", "Què és la conca d'un riu?", "Què és el règim d'un riu?", "Què és el curs d'un riu?",
+                "Què és l'erosió?", "Què és la sedimentació?", "Quins són els 6 continents?", "Quin oceà hi ha entre Amèrica i Europa i Àfrica?"] };
             function itemsSocials() {
                 const quants = SOCIALS_PER_DIA[hoy()] || [3, 3, 3];
                 const falla = new Set(leerSocials().falla || []);
+                const previa = SOCIALS_PREVIA[hoy()];
+                if (previa) {
+                    const totes = SOCIALS_PREGUNTES.filter(p => p[0] <= 2 && (falla.has(p[1]) || previa.includes(p[1])));
+                    const fitxa = ([bloc, preg, bona, altres, explica]) => ({ bloc, preg, bona, altres, explica });
+                    return [...totes.map(p => ({ ...fitxa(p), previa: true })), ...shuffle(totes).map(fitxa)];
+                }
                 const finsBloc = Math.max(...[1, 2, 3].filter(b => quants[b - 1] > 0));
                 // Primer les que va fallar (dels blocs que ja han sortit), després les noves de cada bloc
                 const repeteix = shuffle(SOCIALS_PREGUNTES.filter(p => falla.has(p[1]) && p[0] <= finsBloc));
@@ -3206,6 +3223,7 @@
             window.__itemsTema1 = () => itemsTema1();
             window.__accentActual = () => item && item.tipo === 'accent' ? { paraula: item.paraula, intent: item.intent, ambAccent: item.ambAccent } : null;
             window.__itemsAccent = () => itemsAccent();
+            window.__reglaAccent = (paraula, r) => reglaAccent({ paraula, ambAccent: paraula.endsWith('ón') }, r);
             window.__itemsParaules = () => itemsParaules().map(x => ({ id: x.w.id, fase: x.fase }));
             window.__labActual = () => item && item.tipo === 'lab' ? { id: item.w.id, paraula: item.paraula, fase: item.fase, etapa: item.etapa, metode: item.metode,
                 intent: item.intent, diff: item.diff, forats: labForats(item.w).map(f => f.bona), posades: item.posades.length, frase: item.w.frase2 } : null;
@@ -3213,7 +3231,7 @@
             window.__labParaules = () => LAB_PARAULES.map(w => ({ id: w.id, paraula: w.paraula, idioma: w.idioma, frase2: w.frase2 }));
             window.__paraulaActual = () => item && item.tipo === 'paraules' ? { id: item.w.id, paraula: item.paraula, fase: item.fase, etapa: item.etapa } : null;
             window.__itemsXifresProva = () => itemsXifra();
-            window.__itemsSocials = () => itemsSocials().map(x => ({ bloc: x.bloc, preg: x.preg }));
+            window.__itemsSocials = () => itemsSocials().map(x => ({ bloc: x.bloc, preg: x.preg, ...(x.previa ? { previa: true } : {}) }));
             window.__idMisio = () => misionMostrada().id;
             window.__itemsTonica = () => itemsTonica().map(w => paraulaTonica(w));
             window.__htmlPotParens = htmlPotParens;
@@ -4114,6 +4132,8 @@
                 }
                 if (tipo === 'socials') {
                     const x = sesion.fijos[sesion.hechos];
+                    if (x.previa) return { tipo, modo: 'previa', previa: true, texto: x.preg, clave: `previa:${x.preg.slice(0, 30)}`, esperado: x.bona,
+                        preg: 'Abans de les preguntes, recorda-ho:', opcions: null, solucio: x.bona, explica: x.explica, fix: x };
                     return { tipo, modo: `bloc${x.bloc}`, texto: x.preg, clave: `socials:${x.preg.slice(0, 30)}`, esperado: x.bona,
                         preg: 'Quina és la bona?', opcions: shuffle([x.bona, ...x.altres]), solucio: x.bona, explica: x.explica, fix: x };
                 }
@@ -4240,6 +4260,12 @@
                 }
                 updateInputDisplay();
                 document.getElementById('progreso-barra').style.width = `${(sesion.hechos / sesion.total) * 100}%`;
+                if (item.previa) {
+                    document.getElementById('btn-no-ho-se').hidden = true;
+                    mostrarCorreccion('📖 Abans de les preguntes, recorda-ho:', item.esperado, '', false);
+                    mostrarPistaCorreccion();
+                    hablar(`${item.texto} ${item.esperado}. ${item.explica}`);
+                }
 
                 tInicio = performance.now();
             }
@@ -5913,7 +5939,8 @@
             document.getElementById('btn-exit-game').addEventListener('click', pararPorHoy);
 
             // Botón continuar tras corrección
-            document.getElementById('btn-correction-continue').addEventListener('click', siguienteItem);
+            // Les fitxes d'explicació prèvia (socials, 9/11) no es responen: només passen
+            document.getElementById('btn-correction-continue').addEventListener('click', () => { if (item && item.previa) sesion.hechos++; siguienteItem(); });
 
             // Volver al inicio desde resumen
             document.getElementById('btn-summary-home').addEventListener('click', volverAlInicio);
