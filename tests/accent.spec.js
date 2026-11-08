@@ -117,9 +117,11 @@ test.describe('Accents en castellà', () => {
         await page.click('#btn-dictat-fet');
         await expect(page.locator('#gentle-correction-box')).toBeVisible();
         await expect(page.locator('#correction-math-text')).toHaveText(a.paraula);
-        await expect(page.locator('#correction-pista')).toContainText(a.ambAccent ? 'Acaba en -ón: porta accent' : 'sense accent');
+        // opinión (8/11) té la seva regla: amb canción i excursión
+        const opinion = a.paraula.startsWith('opini');
+        await expect(page.locator('#correction-pista')).toContainText(opinion ? 'Opi-NIÓN!' : a.ambAccent ? 'Acaba en -ón: porta accent' : 'sense accent');
         // Les paraules en -ón que va triar ella per recordar-ho (1/11)
-        if (a.ambAccent) await expect(page.locator('#correction-pista')).toContainText('jamón, salchichón i MAMÓN!');
+        if (a.ambAccent && !opinion) await expect(page.locator('#correction-pista')).toContainText('jamón, salchichón i MAMÓN!');
         expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
 
         const dades = envios.filter(e => e.datos.modulo === 'accent').map(e => e.datos);

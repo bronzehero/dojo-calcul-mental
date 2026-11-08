@@ -126,6 +126,9 @@ async function teclear(page, numero) {
 async function contestarBloqueNumerico(page, fallarEn = [], vistos = null) {
     let n = 0;
     while (await page.isVisible('#screen-game')) {
+        // Les difícils (des del 9/11, dins de «La de la setmana»): l'avís i «ja l'he dit en veu alta»
+        if (await page.isVisible('#dificil-avis')) { await page.click('#btn-dificil-avis'); continue; }
+        if (await page.isVisible('#dificil-dir')) { await page.click('#btn-dificil-dit'); continue; }
         const texto = await page.textContent('#op-factors');
         if (vistos) vistos.push(texto);
         const ok = respuestaCorrecta(texto);

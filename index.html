@@ -949,6 +949,28 @@
         .btn-pista { width: 100%; margin-top: 12px; padding: 10px; border: 2px solid #fde68a; border-radius: 16px; background: #fffbeb; color: #92400e; font-family: var(--font-main); font-size: 1.15rem; font-weight: 700; cursor: pointer; }
         .correction-pista { margin: 6px 0 0 0; color: #5b21b6; font-size: 1.1rem; font-weight: 700; }
 
+        /* Les difícils: el fons de cinta d'avís (groc i negre) i tot en taronja, que es vegi d'una hora lluny */
+        body.mode-dificil {
+            background: repeating-linear-gradient(45deg, #facc15 0 28px, #1d1b24 28px 56px);
+            background-attachment: fixed;
+        }
+        body.mode-dificil .app-card { background: #fffdf8; border: 6px solid #f97316; box-shadow: 0 0 0 6px #facc15, 0 14px 44px rgba(0, 0, 0, 0.35); }
+        body.mode-dificil .badge-ciclo { background: #f97316; color: #fff; }
+        body.mode-dificil .operation-display { background: #fff7ed; border: 4px solid #f97316; }
+        .dificil-avis { text-align: center; padding: 10px 6px 4px 6px; }
+        .dificil-avis-titol { font-size: 2.6rem; font-weight: 900; color: #c2410c; letter-spacing: 0.04em; }
+        .dificil-avis-sub { font-size: 1.9rem; font-weight: 700; color: var(--k-black); margin: 4px 0 14px 0; }
+        .dificil-avis-sub b { color: #c2410c; }
+        .dificil-avis-obligatori { font-size: 1.3rem; font-weight: 700; color: #475569; }
+        .dificil-passos { list-style: none; counter-reset: pas; padding: 0; margin: 10px auto; max-width: 360px; text-align: left; }
+        .dificil-passos li { counter-increment: pas; font-size: 1.45rem; margin: 10px 0; padding: 10px 14px; background: #fff7ed; border: 2px solid #fdba74; border-radius: 16px; }
+        .dificil-passos li::before { content: counter(pas) ". "; font-weight: 900; color: #c2410c; }
+        .btn-dificil { background: #f97316 !important; color: #fff !important; }
+        .dificil-dir { text-align: center; background: #fff7ed; border: 3px solid #f97316; border-radius: 20px; padding: 14px; margin-top: 12px; }
+        .dificil-dir-titol { font-size: 1.4rem; font-weight: 800; color: #c2410c; }
+        .dificil-dir-ops { display: flex; justify-content: center; align-items: center; gap: 14px; font-size: 2.3rem; font-weight: 900; margin: 10px 0; }
+        .dificil-dir-i { font-size: 1.3rem; color: #64748b; font-weight: 700; }
+
         /* Signos de color; late cuando cambia respecto a la anterior */
         .signe { font-weight: 900; display: inline-block; }
         .signe-mes { color: #059669; }
@@ -1137,6 +1159,19 @@
                 </button>
             </div>
 
+            <!-- Les difícils (des del 9/11): abans de cada una, l'avís; fins que no prem el botó, no la veu -->
+            <div id="dificil-avis" class="dificil-avis" hidden>
+                <div class="dificil-avis-titol">⚠️ ATENCIÓ!</div>
+                <div class="dificil-avis-sub">La següent és <b>DIFÍCIL</b></div>
+                <div class="dificil-avis-obligatori">Abans de contestar, has de:</div>
+                <ol class="dificil-passos">
+                    <li>👀 <b>Mirar-la</b> bé</li>
+                    <li>🤔 <b>Pensar-la</b></li>
+                    <li>🗣️ <b>Dir-la en veu alta</b>, de les dues maneres</li>
+                </ol>
+                <button id="btn-dificil-avis" class="btn-action btn-dificil">D'acord ➜</button>
+            </div>
+
             <div class="game-content-layout">
                 <div class="game-left-col">
                     <!-- Operación visual grande -->
@@ -1167,6 +1202,13 @@
                         <button id="btn-correction-continue" class="btn-action" style="background: var(--c-mint); margin: 10px 0 0 0; padding: 12px;">
                             Entesos, seguim! ➜
                         </button>
+                    </div>
+
+                    <!-- Les difícils: primer la diu en veu alta de les dues maneres; després surt el teclat -->
+                    <div id="dificil-dir" class="dificil-dir" hidden>
+                        <div class="dificil-dir-titol">🗣️ Digues-la en veu alta:</div>
+                        <div class="dificil-dir-ops"><span id="dificil-op-1">7 × 9</span><span class="dificil-dir-i">i</span><span id="dificil-op-2">9 × 7</span></div>
+                        <button id="btn-dificil-dit" class="btn-action btn-dificil">✅ Ja l'he dit en veu alta</button>
                     </div>
 
                     <!-- Teclado táctil en pantalla -->
@@ -1539,8 +1581,28 @@
                 { a: 6, b: 9, pista: 'Taula del 9: la desena és un menys (5) i les xifres sumen 9 (5 + 4): 54.', diccio: 'sis per nou, cinquanta-quatre', imanes: [27, 45, 48, 56] },
                 { a: 3, b: 6, pista: '6 + 6 + 6: 12, 18.', diccio: 'tres per sis, divuit', imanes: [24, 81] }
             ];
-            // Las que todavía no salen solas: no se usan de relleno
-            const ATASCADAS = ['6x8', '7x8', '9x9', '3x6', '3x7', '6x9', '5x7'];
+            // LES DIFÍCILS (des del 9/11): les que costen més surten amb un avís abans («la següent és difícil») i el fons
+            // canviat, i abans de contestar es diuen en veu alta de les dues maneres (fins que no es prem el botó, no surt
+            // el teclat). Màxim 3 al dia, afegides a «La de la setmana»: com surten quan s'hi va a poc a poc. Per ordre.
+            // No surten la de la setmana ni les que li fan d'imant (3 × 8 = 24 amb 3 × 7): el mateix bloc les barrejaria.
+            const DIFICILS_DESDE = '2026-11-09', DIFICILS_N = 3;
+            const DIFICILS_EN = [3, 7, 14]; // posicions al bloc (15): mai just abans de la de la setmana
+            const DIFICILS = [
+                { a: 7, b: 9, pista: 'Taula del 9: la desena és un menys (6) i les xifres sumen 9 (6 + 3): 63.', diccio: 'set per nou, seixanta-tres' },
+                { a: 3, b: 8, pista: '8 + 8 + 8: 16, 24.', diccio: 'tres per vuit, vint-i-quatre' },
+                { a: 4, b: 7, pista: '7 + 7 + 7 + 7: 14, 21, 28.', diccio: 'quatre per set, vint-i-vuit' },
+                { a: 3, b: 6, pista: '6 + 6 + 6: 12, 18.', diccio: 'tres per sis, divuit' },
+                { a: 3, b: 7, pista: '7 + 7 + 7: 14, 21.', diccio: 'tres per set, vint-i-u' }
+            ];
+            const DIFICIL_VEU_AVIS = "Atenció! La següent és difícil. Mira-la bé, pensa-la, i digues-la en veu alta de les dues maneres. Després contesta.";
+            const DIFICIL_VEU_DIR = "Digues-la en veu alta, de les dues maneres.";
+            function dificilsDelDia(f = fetSetmana()) {
+                if (hoy() < DIFICILS_DESDE) return [];
+                const mateixa = d => (d.a === f.a && d.b === f.b) || (d.a === f.b && d.b === f.a);
+                return DIFICILS.filter(d => !mateixa(d) && !f.imanes.includes(d.a * d.b) && d.a * d.b !== f.a * f.b).slice(0, DIFICILS_N);
+            }
+            // Las que todavía no salen solas: no se usan de relleno (las difíciles, tampoco: solo salen con su aviso)
+            const ATASCADAS = ['6x8', '7x8', '9x9', '3x6', '3x7', '6x9', '5x7', '3x8', '4x7', '7x9'];
             const SETMANA_N = 12, SETMANA_OBJETIVO_EN = [1, 4, 7, 10];
             // Las de contraste van justo después de la de la semana (primero la buena, después la que se le cruza)
             const SETMANA_CONTRASTE_EN = [2, 5, 8];
@@ -3219,6 +3281,8 @@
             // Todo lo que puede decir en voz alta (para generar los MP3 y comprobar en las pruebas que no falta ninguno)
             // Per a les proves: la paraula del dictat que hi ha a la pantalla (no es mostra enlloc)
             window.__sinDudar = sinDudar;
+            window.__itemsSetmana = () => itemsSetmana();
+            window.__dificilActual = () => item && item.dificil ? { texto: item.texto, altra: item.altra, fase: item.fase, esperado: item.esperado } : null;
             window.__dictatActual = () => item && item.tipo === 'dictat' ? item.paraula : null;
             window.__itemsRomans = () => itemsRomans();
             window.__itemsTema1 = () => itemsTema1();
@@ -3255,6 +3319,10 @@
                     t.add(fraseMision(ambParens(ambP(ambT(CONTROL)))));
                 }));
                 t.add(PAS10_DITS_REPROVA);
+                // Des del 9/11, les difícils (l'avís, «digues-la» i com es diu cada una)
+                t.add(DIFICIL_VEU_AVIS);
+                t.add(DIFICIL_VEU_DIR);
+                DIFICILS.forEach(d => t.add(d.diccio));
                 SETMANA.forEach(f => {
                     t.add(f.diccio);
                     t.add(infoSetmana(f, false).voz);
@@ -3346,6 +3414,7 @@
                 Object.values(screens).forEach(s => s.style.display = 'none');
                 screens[screenKey].style.display = 'block';
                 mainCard.classList.toggle('wide', screenKey === 'papa');
+                if (screenKey !== 'game') document.body.classList.remove('mode-dificil');
             }
 
             // ==========================================
@@ -3548,8 +3617,9 @@
                         // Mètode nou (1/11, comptar endavant): torna a començar amb la recta, com a molt el nivell 2
                         if (f.pas10.metode !== 'endavant') f.pas10 = { nivel: Math.min(f.pas10.nivel || 1, 2), buenos: [], metode: 'endavant' };
                         // 9/11 (papà): 7 × 8 ja la sap (24 de 26 des de l'1/11, a ~2 s), però un despiste reiniciava els dies:
-                        // es dona per dominada i passa a 3 × 7
-                        if (hoy() >= '2026-11-09' && f.setmana.idx === 1 && !(f.setmana.dominadas || []).some(d => d.fet === '7x8'))
+                        // es dona per dominada i passa a 3 × 7. Només si ja era a 7 × 8 abans del 9/11 (si papà la hi posa després, s'hi queda)
+                        const domina = (f.setmana.dominadas || []);
+                        if (hoy() >= '2026-11-09' && f.setmana.idx === 1 && !domina.some(d => d.fet === '7x8') && domina.some(d => d.fet === '6x8' && d.fecha < '2026-11-09'))
                             f.setmana = { ...f.setmana, idx: 2, dias: [], mezcla: null, dominadas: [...(f.setmana.dominadas || []), { fet: '7x8', fecha: hoy(), papa: true }] };
                         return { setmana: { ...base.setmana, ...f.setmana }, pas10: { ...base.pas10, ...f.pas10 } };
                     }
@@ -3918,9 +3988,18 @@
                             lista.push({ a, b, objetivo: false, contraste: true });
                         } else lista.push({ ...otras[k++], objetivo: false });
                     }
-                    if (lista.every((c, i) => i === 0 || !sePareceA('multi', c, lista[i - 1]))) return lista;
+                    if (lista.every((c, i) => i === 0 || !sePareceA('multi', c, lista[i - 1]))) return ambDificils(lista, f);
                 }
-                return SETMANA_OBJETIVO_EN.map(() => ({ a: f.a, b: f.b, objetivo: true }));
+                return ambDificils(SETMANA_OBJETIVO_EN.map(() => ({ a: f.a, b: f.b, objetivo: true })), f);
+            }
+            // Las difíciles, añadidas (no quitan ninguna); cada una en un orden al azar
+            function ambDificils(lista, f) {
+                const l = [...lista];
+                shuffle(dificilsDelDia(f)).forEach((d, i) => {
+                    const gir = Math.random() < 0.5;
+                    l.splice(Math.min(DIFICILS_EN[i], l.length), 0, { a: gir ? d.b : d.a, b: gir ? d.a : d.b, objetivo: false, dificil: true });
+                });
+                return l;
             }
 
             // Xifres: mezcladas sin la misma cifra dos veces seguidas; la buena, a la izquierda o a la derecha al azar
@@ -4031,7 +4110,9 @@
                 }
                 if (tipo === 'setmana') {
                     const c = sesion.fijos[sesion.hechos];
-                    return { tipo: 'multi', a: c.a, b: c.b, objetivo: c.objetivo, contraste: !!c.contraste, texto: `${c.a} × ${c.b}`, clave: `${c.a}x${c.b}`, esperado: String(c.a * c.b) };
+                    const it = { tipo: 'multi', a: c.a, b: c.b, objetivo: c.objetivo, contraste: !!c.contraste, texto: `${c.a} × ${c.b}`, clave: `${c.a}x${c.b}`, esperado: String(c.a * c.b) };
+                    if (c.dificil) Object.assign(it, { dificil: true, fase: 'avis', altra: `${c.b} × ${c.a}`, msAvis: null, msDir: null });
+                    return it;
                 }
                 if (tipo === 'control') {
                     const [op, a, b] = sesion.fijos[sesion.hechos];
@@ -4271,8 +4352,48 @@
                     mostrarPistaCorreccion();
                     hablar(`${item.texto} ${item.esperado}. ${item.explica}`);
                 }
+                document.body.classList.toggle('mode-dificil', !!item.dificil);
+                if (bloqueActual().tipo === 'setmana' && !item.dificil) document.getElementById('game-badge-ciclo').textContent = infoBloque(bloqueActual()).nombre;
+                document.getElementById('dificil-avis').hidden = true;
+                document.getElementById('dificil-dir').hidden = true;
+                document.querySelector('#screen-game .game-content-layout').hidden = false;
 
                 tInicio = performance.now();
+                if (item.dificil) pintarDificil();
+            }
+
+            // Les difícils: 1) l'avís, sense la multiplicació; 2) la multiplicació i el botó «ja l'he dit en veu alta»,
+            // sense teclat; 3) el teclat. El temps de la resposta compta des que surt el teclat.
+            function pintarDificil() {
+                const ara = performance.now();
+                const teclat = item.fase === 'respon';
+                document.getElementById('dificil-avis').hidden = item.fase !== 'avis';
+                document.querySelector('#screen-game .game-content-layout').hidden = item.fase === 'avis';
+                document.getElementById('dificil-dir').hidden = item.fase !== 'dir';
+                document.getElementById('game-badge-ciclo').textContent = '⚠️ DIFÍCIL';
+                keypad.hidden = !teclat;
+                keypad.style.display = teclat ? 'grid' : 'none';
+                document.getElementById('btn-no-ho-se').hidden = !teclat;
+                if (item.fase === 'avis') hablar(DIFICIL_VEU_AVIS);
+                if (item.fase === 'dir') {
+                    document.getElementById('dificil-op-1').textContent = item.texto;
+                    document.getElementById('dificil-op-2').textContent = item.altra;
+                    hablar(DIFICIL_VEU_DIR);
+                }
+                item.tFase = ara;
+                tInicio = ara;
+                teclas = [];
+            }
+            const dificilDe = it => DIFICILS.find(d => (d.a === it.a && d.b === it.b) || (d.a === it.b && d.b === it.a));
+            // Lo que se guarda de cada difícil: cuánto ha estado en el aviso y diciéndola (el tiempo de la respuesta, desde el teclado)
+            const extraDificil = () => ({ dificil: true, ms_avis: item.msAvis, ms_dir: item.msDir, primer: item.texto });
+            function avancarDificil() {
+                if (!item || !item.dificil || isEvaluating) return;
+                const ms = Math.round(performance.now() - item.tFase);
+                if (item.fase === 'avis') { item.msAvis = ms; item.fase = 'dir'; }
+                else if (item.fase === 'dir') { item.msDir = ms; item.fase = 'respon'; callarVeu(); }
+                else return;
+                pintarDificil();
             }
 
             // El signo, de color (+ verde, − rosa, × lila). Cuando lleva varias del mismo signo y cambia,
@@ -4438,12 +4559,14 @@
                     extra.setmana = `${fetSetmana().a}x${fetSetmana().b}`;
                     extra.objetivo = item.objetivo;
                     if (item.contraste) extra.contraste = true;
+                    if (item.dificil) Object.assign(extra, extraDificil());
                     if (item.objetivo) sesion.objetivo.push({ ok, ms, pt: teclas.length ? teclas[0][0] : ms, rectifica: teclas.some(t => t[1] === 'back') });
                 }
                 registrar(item, currentInput, ok, ms, extra);
 
                 if (ok) {
                     if (item.objetivo) hablar(fetSetmana().diccio);
+                    if (item.dificil) hablar(dificilDe(item).diccio);
                     celebrar();
                 } else {
                     const mates = item.tipo === 'teclear' ? item.texto : item.tipo === 'tema1' ? item.solucio : `${item.texto} = ${item.esperado}`;
@@ -4460,6 +4583,7 @@
                 if (item.tipo === 'pas10' && item.clase === 'nou') txt = trucPas10(item);
                 if (['tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo)) txt = item.explica;
                 if (item.objetivo) { txt = `Truc: ${fetSetmana().pista}`; hablar(fetSetmana().diccio); }
+                if (item.dificil) { txt = `Truc: ${dificilDe(item).pista}`; hablar(dificilDe(item).diccio); }
                 if (item.contraste) {
                     const s = SETMANA.find(x => (x.a === item.a && x.b === item.b) || (x.a === item.b && x.b === item.a));
                     if (s) { txt = `Truc: ${s.pista}`; hablar(s.diccio); }
@@ -4890,6 +5014,7 @@
                     extra.setmana = `${fetSetmana().a}x${fetSetmana().b}`;
                     extra.objetivo = item.objetivo;
                     if (item.contraste) extra.contraste = true;
+                    if (item.dificil) Object.assign(extra, extraDificil());
                     if (item.objetivo) sesion.objetivo.push({ ok: false, ms, rectifica: false });
                 }
                 registrar(item, null, false, ms, extra);
@@ -5945,6 +6070,8 @@
 
             // Botón continuar tras corrección
             // Les fitxes d'explicació prèvia (socials, 9/11) no es responen: només passen
+            document.getElementById('btn-dificil-avis').addEventListener('click', avancarDificil);
+            document.getElementById('btn-dificil-dit').addEventListener('click', avancarDificil);
             document.getElementById('btn-correction-continue').addEventListener('click', () => { if (item && item.previa) sesion.hechos++; siguienteItem(); });
 
             // Volver al inicio desde resumen

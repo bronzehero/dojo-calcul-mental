@@ -28,7 +28,16 @@ async function contestarEntrenamiento(page, opciones = {}) {
             await page.click('#btn-correction-continue');
             continue;
         }
+        // Les difícils (des del 9/11): l'avís i «ja l'he dit»; no compten com a vistes (en porta la llista a part)
+        if (await page.isVisible('#dificil-avis')) { await page.click('#btn-dificil-avis'); continue; }
+        if (await page.isVisible('#dificil-dir')) { await page.click('#btn-dificil-dit'); continue; }
         const texto = await page.textContent('#op-factors');
+        if (await page.evaluate(() => !!window.__dificilActual())) {
+            if (opciones.dificils) opciones.dificils.push(texto);
+            await teclear(page, respuestaCorrecta(texto));
+            await page.waitForTimeout(850);
+            continue;
+        }
         const pregunta = (await page.isVisible('#pas10-panel')) ? (await page.textContent('#pas10-pregunta')) : '';
         let m;
         if ((m = pregunta.match(/^De (\d+) a 10\?$/))) { await teclear(page, 10 - parseInt(m[1], 10)); continue; }
@@ -138,7 +147,7 @@ test.describe('Fase 1 · misión entera', () => {
             expect(e.datos.detalle).toMatchObject({ nivel: 1, ayuda: 'recta', metode: 'endavant' });
             expect(e.datos.detalle.pasos).toBeUndefined();
         }
-        const multis = envios.filter(e => e.tabla === 'registros');
+        const multis = envios.filter(e => e.tabla === 'registros' && !e.datos.detalle.dificil);
         expect(multis).toHaveLength(12);
         expect(multis.filter(e => e.datos.detalle.objetivo)).toHaveLength(4);
         expect(multis.every(e => e.datos.detalle.setmana === '6x8')).toBe(true);
