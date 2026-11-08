@@ -2364,7 +2364,7 @@
 
             // SOCIALS · examen de la U2 «Com són les formes de relleu?» el dimarts 10/11. Del 6 al 9/11, després del bloc de base.
             // Preguntes de triar entre 3, totes dels apunts de la profe. Cada dia un bloc més (com el full del papa):
-            // 6/11 bloc 1 (capes, plaques, agents interns) · 7/11 + bloc 2 (agents externs, aigua) · 8/11 + bloc 3 (relleu, Catalunya) · 9/11 tot.
+            // 6/11 bloc 1 (capes, plaques, agents interns) · 7/11 + bloc 2 (agents externs, aigua) · el bloc 3 (relleu, Catalunya) va sortir el 8/11 al matí; a l'examen no entra.
             // Les que falla tornen a sortir primer l'endemà.
             const SOCIALS_DES_DE = '2026-11-06', SOCIALS_FINS = '2026-11-09';
             const SOC_CAPES = "Nucli a dins (de metalls), mantell al mig (el més gruixut, amb el magma), escorça a fora (prima, de roques).";
@@ -2396,7 +2396,7 @@
                 [2, "Un riu de règim nival, d'on treu l'aigua?", 'De la neu que es fon', ['De la pluja', 'Del mar'], "Pluvial = de la pluja. Nival = de la neu."],
                 [2, "Per què diem que l'aigua és un recurs escàs?", 'Perquè molt poca és dolça i bona per beure', ["Perquè s'evapora tota", 'Perquè només és als pols'], "Només una part molt petita és bona per al consum, i cada cop en necessitem més. La sequera i la contaminació ho empitjoren."],
                 [2, "En què es fa servir més l'aigua dolça?", "En l'agricultura", ['A les cases', 'En la indústria'], "Un 65 % per a l'agricultura, un 25 % per a la indústria i només un 10 % a les cases."],
-                [3, "Quants continents hi ha?", '6', ['5', '7'], "Àfrica, Amèrica, Àsia, Europa, Oceania i Antàrtida. Oceans, n'hi ha 5."],
+                [2, "Quants continents hi ha?", '6', ['5', '7'], "Àfrica, Amèrica, Àsia, Europa, Oceania i Antàrtida. Oceans, n'hi ha 5."],
                 [3, "Com es diu la part més alta d'una muntanya?", 'El cim', ['El peu', 'El vessant'], SOC_MUNTANYA],
                 [3, "Un conjunt de muntanyes en fila és…", 'Una serralada', ['Un altiplà', 'Una vall'], "Serralada = muntanyes alineades (si és petita, serra)."],
                 [3, "Un terreny pla però alt, com el Tibet, és…", 'Un altiplà', ['Una plana', 'Una depressió'], SOC_PLA],
@@ -2418,10 +2418,20 @@
                 [2, "Què és l'erosió?", "L'aigua o el vent desgasten la roca i se n'emporten trossos", ['El material es diposita en un altre lloc', "La quantitat d'aigua que porta un riu"], SOC_ORDRE],
                 [2, "Què és la sedimentació?", 'El material que porta el riu es diposita en un altre lloc', ["L'aigua desgasta la roca", 'El riu neix a la muntanya'], SOC_ORDRE],
                 [3, "Un terreny més baix que el que l'envolta és…", 'Una depressió', ['Un altiplà', 'Un cim'], SOC_PLA],
-                [3, "Una vall amb forma de U, qui l'ha fet?", 'Una glacera', ['Un riu', 'El vent'], SOC_VALL]
+                [3, "Una vall amb forma de U, qui l'ha fet?", 'Una glacera', ['Un riu', 'El vent'], SOC_VALL],
+                // 8/11 nit: el que no va saber al segon examen de prova (vocabulari, zona sísmica, continents)
+                [1, "Com és el mantell?", 'La capa del mig, la més gruixuda, amb el magma', ['La capa de fora, prima i de roques', 'La capa de dins de tot, de metalls'], SOC_CAPES],
+                [1, "Què són les plaques tectòniques?", "Els trossos en què es va trencar l'escorça", ['Les ones que fan tremolar la terra', 'Les capes de dins de la Terra'], "Quan es va trencar la Pangea, l'escorça va quedar en trossos: les plaques tectòniques. Es mouen sobre el mantell."],
+                [1, "Què és una falla?", 'La línia on es trenca i es mou el terreny', ["El forat de dalt d'un volcà", 'Una onada gegant'], "Falla = la línia on el terreny es trenca i es mou. Allà comença el terratrèmol."],
+                [1, "Com es diuen les ones que surten de l'hipocentre i fan tremolar la terra?", 'Ones sísmiques', ['Línies de falla', 'Tsunamis'], "Hipocentre (a dins, on comença) → ones sísmiques (es propaguen) → epicentre (a la superfície, on es nota més)."],
+                [2, "Què és el règim d'un riu?", "Com canvia el cabal durant l'any", ["La quantitat d'aigua que porta", "Les terres d'on ve l'aigua"], SOC_RIU],
+                [2, "Què és el curs d'un riu?", 'Els trams per on passa, des que neix fins a la desembocadura', ["La quantitat d'aigua que porta", "Com canvia el cabal durant l'any"], SOC_RIU],
+                [2, "Quins són els 6 continents?", 'Amèrica, Europa, Àsia, Àfrica, Oceania i Antàrtida', ['Amèrica, Europa, Àsia, Àfrica, Pacífic i Antàrtida', 'Espanya, Europa, Àsia, Àfrica, Oceania i Antàrtida'], "Amèrica (una de sola, de dalt a baix), Europa, Àsia, Àfrica, Oceania (a sota d'Àsia) i Antàrtida (a baix de tot)."],
+                [2, "Quin oceà hi ha entre Amèrica i Europa i Àfrica?", "L'Atlàntic", ['El Pacífic', "L'Índic"], "Atlàntic = entre Amèrica i Europa-Àfrica. Pacífic = als dos costats del mapa. Índic = a sota d'Àsia."]
             ];
-            // Quantes de cada bloc surten cada dia. 9/11, l'últim: més del bloc 3 (relleu, Catalunya i Espanya), el que menys sap
-            const SOCIALS_PER_DIA = { '2026-11-06': [8, 0, 0], '2026-11-07': [3, 5, 0], '2026-11-08': [2, 2, 5], '2026-11-09': [2, 3, 6] };
+            // Quantes de cada bloc surten cada dia. 8/11 nit: a l'examen només entra fins als rius (pàg. 16 de la presentació):
+            // el bloc 3 (formes de relleu, Catalunya, Espanya) ja no surt; el 9/11, més dels blocs 1 i 2
+            const SOCIALS_PER_DIA = { '2026-11-06': [8, 0, 0], '2026-11-07': [3, 5, 0], '2026-11-08': [3, 6, 0], '2026-11-09': [5, 7, 0] };
             function leerSocials() {
                 try { return JSON.parse(localStorage.getItem('dojo_socials')) || {}; } catch (e) { return {}; }
             }

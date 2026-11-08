@@ -40,7 +40,7 @@ test.describe("Socials per a l'examen", () => {
         });
     }
 
-    for (const [dia, blocs] of [['2026-11-06', { bloc1: 8 }], ['2026-11-07', { bloc1: 3, bloc2: 5 }], ['2026-11-08', { bloc1: 2, bloc2: 2, bloc3: 5 }], ['2026-11-09', { bloc1: 2, bloc2: 3, bloc3: 6 }]]) {
+    for (const [dia, blocs] of [['2026-11-06', { bloc1: 8 }], ['2026-11-07', { bloc1: 3, bloc2: 5 }], ['2026-11-08', { bloc1: 3, bloc2: 6 }], ['2026-11-09', { bloc1: 5, bloc2: 7 }]]) {
         test(`el ${dia}, els blocs que toquen: ${JSON.stringify(blocs)}`, async ({ page }) => {
             await preparar(page, dia);
             const items = await page.evaluate(() => window.__itemsSocials());
