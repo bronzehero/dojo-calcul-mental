@@ -559,6 +559,22 @@ test.describe('repetir el entrenamiento el 12/10 (la primera vez falló la app)'
             await expect(page.locator('#mision-hecha')).toBeVisible({ visible: !puede });
         });
     }
+    // 8/11 (domingo): el repaso por la mañana y, por la tarde, el entrenamiento; una tercera, no
+    const domingo = (extras, hechas = []) => ({ hechas: [1, 2, 3, 4, 5, 6, 10].map(id => ({ id, fecha: '2026-01-01' })).concat(hechas), extras });
+    for (const [nom, p, puede] of [
+        ['8/11 con el repaso hecho: puede hacer otra', domingo([{ id: 11, fecha: '2026-11-08' }]), true],
+        ['8/11 con el repaso y el entrenamiento: misión complerta', domingo([{ id: 11, fecha: '2026-11-08' }], [{ id: 10, fecha: '2026-11-08' }]), false],
+        ['15/11 con el repaso hecho: misión complerta', domingo([{ id: 11, fecha: '2026-11-15' }]), false]
+    ]) {
+        test(nom, async ({ page }) => {
+            await simularSupabase(page);
+            await page.clock.setFixedTime(new Date(`${p.extras[0].fecha}T17:00:00`));
+            await page.addInitScript(p => localStorage.setItem('dojo_plan', JSON.stringify(p)), p);
+            await page.goto(URL_APP);
+            await expect(page.locator('#btn-start-game')).toBeVisible({ visible: puede });
+            await expect(page.locator('#mision-hecha')).toBeVisible({ visible: !puede });
+        });
+    }
     test('otro día, con uno hecho ese día: misión complerta', async ({ page }) => {
         await simularSupabase(page);
         await page.clock.setFixedTime(new Date('2026-10-13T17:00:00'));

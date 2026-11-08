@@ -1,5 +1,5 @@
 // Socials per a l'examen de dimarts 10/11 (U2, el relleu): del 6 al 9/11, abans dels accents.
-// Triar entre 3; si falla, la bona i per què, i l'endemà torna a sortir primer.
+// Triar entre 3; si falla, la bona i per què, torna al final del bloc i l'endemà surt primer.
 const { test, expect, URL_APP, simularSupabase } = require('./ayudas');
 
 const PROHIBIDO_EN_PANTALLA = /segons|cronòmetre|errades|errors|fallades|fallos|\d+\s*\/\s*\d+|malament|incorrect/i;
@@ -51,7 +51,7 @@ test.describe("Socials per a l'examen", () => {
         });
     }
 
-    test("si falla, la bona i per què; es guarda; l'endemà torna a sortir primer", async ({ page }) => {
+    test("si falla, la bona i per què; torna al final del bloc; es guarda; l'endemà torna a sortir primer", async ({ page }) => {
         const envios = await preparar(page, '2026-11-06');
         await expect.poll(async () => (await pasos(page)).join('|')).toContain('Socials');
         const p = await pasos(page);
@@ -64,8 +64,10 @@ test.describe("Socials per a l'examen", () => {
         await expect(page.locator('#intro-titulo')).toHaveText("Socials per a l'examen");
         await page.click('#btn-intro-vamos');
         let anterior = 'null', fallada = null;
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 9; i++) {
             const t = await seguent(page, anterior);
+            // La fallada torna a sortir al final (una sola vegada)
+            if (i === 8) expect(t.texto).toBe(fallada);
             expect(t.opcions).toHaveLength(3);
             expect(new Set(t.opcions).size).toBe(3);
             expect(t.opcions).toContain(t.esperado);
@@ -82,9 +84,11 @@ test.describe("Socials per a l'examen", () => {
             anterior = JSON.stringify(t);
         }
         const dades = envios.filter(e => e.datos.modulo === 'socials').map(e => e.datos);
-        expect(dades).toHaveLength(8);
+        expect(dades).toHaveLength(9);
         expect(dades.filter(d => !d.correcta)).toHaveLength(1);
         expect(dades[0].detalle.modo).toBe('bloc1');
+        expect(dades[8].detalle.torna).toBe(true);
+        // Bé just després de veure-la: demà torna a sortir igualment
         const st = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_socials')));
         expect(st.falla).toEqual([fallada]);
         // L'endemà, la fallada surt la primera

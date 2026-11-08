@@ -1598,7 +1598,7 @@
                 tema1:   { nombre: 'Tema 1 de mates', icono: '🏛️', instr: "Repàs del tema 1 de mates, per a l'examen. Primer, agafa un full i fes-te la xuleta dels romans, com a l'examen: els números que van de 5 en 5, la lletra de cada un a sota i les parelles que resten, les del 4 i les del 9. Quan l'acabis, ensenya-la al papa perquè te la miri. Després, amb la xuleta al costat: romans, binari i què vol dir additiu i posicional. Al binari, suma només els que tenen un 1. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'XIV ➜ escrius 14', boto: 'El papa ha mirat la xuleta ➜', paso: () => 'Tema 1 de mates' },
                 catala:  { nombre: 'Català: apòstrof i contraccions', icono: '✏️', instr: "Repàs per a l'examen de català de demà. Agafa el full d'apunts de català i posa'l al costat: el fas servir com a l'examen. A cada frase, mira la paraula de després del forat i busca-la al full. Si una no surt, et dic on mirar i ho tornes a provar. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Anem ___ teatre (a + el) ➜ al', paso: () => 'Català: apòstrof i contraccions' },
                 tecno:   { nombre: 'Tecno per a l\'examen', icono: '💻', instr: "Repàs de l'examen de tecno del dijous: on és cada botó del Drive, dels Documents, de les Presentacions i del correu. Llegeixes què vols fer i tries com es fa. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Vull que l\'amiga pugui canviar coses ➜ Editor', paso: () => 'Tecno per a l\'examen' },
-                socials: { nombre: 'Socials per a l\'examen', icono: '🌋', instr: "Socials, per a l'examen de dimarts: el relleu. Llegeixes la pregunta i tries la bona entre tres. Si et va bé, digues la resposta en veu alta abans de tocar-la. Si una no surt, et surt explicada i demà la tornaràs a veure. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'On es nota més un terratrèmol? ➜ A l\'epicentre', paso: () => 'Socials per a l\'examen' },
+                socials: { nombre: 'Socials per a l\'examen', icono: '🌋', instr: "Socials, per a l'examen de dimarts: el relleu. Llegeixes la pregunta i tries la bona entre tres. Si et va bé, digues la resposta en veu alta abans de tocar-la. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'On es nota més un terratrèmol? ➜ A l\'epicentre', paso: () => 'Socials per a l\'examen' },
                 tonica:  { nombre: 'On pica la força?', icono: '🥁', instr: "Ara, paraules en català: on pica la força. Sentiràs una paraula i la veuràs partida en trossos. Digues-la tu en veu alta, ben fort, com si cridessis algú de lluny. El tros que s'allarga és el que pica: toca'l. Si dubtes, torna-la a escoltar. Al teu ritme.", ejemplo: 'ca-mí ➜ toques «mi»', paso: () => 'On pica la força?' },
                 castella: { nombre: 'Castellà per a l\'examen', icono: '💬', instr: "Repàs del control de castellà, com a l'examen: llegeixes un text curt o mires una vinyeta i tries què és. Quina propietat falla, quin tipus de text és, quin pla, quin angle o quina part del còmic. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '«Primero, bate dos huevos…» ➜ Instructivo', paso: () => 'Castellà per a l\'examen' },
                 oral:    { nombre: 'Amb el papa', icono: '🗣️', instr: 'Avui contestes en veu alta. El papa ho apunta a l\'iPad.', ejemplo: '6 × 3 ➜ dius «divuit»', paso: () => 'Multiplicacions en veu alta amb el papa' }
@@ -2415,7 +2415,14 @@
             function leerSocials() {
                 try { return JSON.parse(localStorage.getItem('dojo_socials')) || {}; } catch (e) { return {}; }
             }
+            // La que falla torna a sortir una vegada al final del bloc, després de veure-la explicada (8/11: 2 de 9 al matí)
+            function tornaSocials(it) {
+                if (!sesion || !sesion.fijos || !it.fix || it.fix.torna) return;
+                sesion.fijos.push({ ...it.fix, torna: true });
+                sesion.total = sesion.fijos.length;
+            }
             function anotarSocials(it, ok) {
+                if (ok && it.fix && it.fix.torna) return; // bé just després de veure-la: demà torna a sortir igualment
                 const st = leerSocials();
                 const falla = new Set(st.falla || []);
                 if (ok) falla.delete(it.texto); else falla.add(it.texto);
@@ -3511,12 +3518,17 @@
             // Días en que el entrenamiento se puede hacer dos veces porque la primera falló la app
             // (12/10: los saltos de «Passar pel 10» se preguntaban con la resta a la vista)
             const REPETIR_ENTRENAMENT = ['2026-10-12'];
+            // Días con una segunda misión por la tarde (8/11: la del domingo por la mañana y, por la tarde, otra
+            // antes del examen de Sociales del 10/11). La de la tarde es el entrenamiento normal del día.
+            const SEGONA_MISSIO = ['2026-11-08'];
 
             function misionHechaHoy() {
                 if (PRUEBA_POR_URL) return false;
                 const p = leerPlan();
                 if (REPETIR_ENTRENAMENT.includes(hoy()) && misionActual().id === ENTRENAMENT.id &&
                     p.hechas.filter(h => h.id === ENTRENAMENT.id && h.fecha === hoy()).length === 1) return false;
+                if (SEGONA_MISSIO.includes(hoy()) &&
+                    [...p.hechas, ...(p.extras || [])].filter(h => h.fecha === hoy()).length === 1) return false;
                 const ultimas = [p.hechas[p.hechas.length - 1], (p.extras || [])[(p.extras || []).length - 1]];
                 return ultimas.some(u => u && u.fecha === hoy()) && p.permitirOtra !== hoy();
             }
@@ -4071,7 +4083,7 @@
                 if (tipo === 'socials') {
                     const x = sesion.fijos[sesion.hechos];
                     return { tipo, modo: `bloc${x.bloc}`, texto: x.preg, clave: `socials:${x.preg.slice(0, 30)}`, esperado: x.bona,
-                        preg: 'Quina és la bona?', opcions: shuffle([x.bona, ...x.altres]), solucio: x.bona, explica: x.explica };
+                        preg: 'Quina és la bona?', opcions: shuffle([x.bona, ...x.altres]), solucio: x.bona, explica: x.explica, fix: x };
                 }
                 if (tipo === 'tecno') {
                     const x = sesion.fijos[sesion.hechos];
@@ -4417,9 +4429,9 @@
                 const ms = Math.round(performance.now() - tInicio);
                 const ok = opcio === item.esperado;
                 if (!ok && item.tipo === 'catala' && item.intent === 1) return catalaAlFull(opcio, ms);
-                if (item.tipo === 'socials') anotarSocials(item, ok);
+                if (item.tipo === 'socials') { anotarSocials(item, ok); if (!ok) tornaSocials(item); }
                 if (item.tipo === 'tonica') anotarTonica(item, ok);
-                registrar(item, opcio, ok, ms, item.tipo === 'catala' ? { modo: item.modo, opcions: item.opcions, intent: item.intent } : item.tipo === 'tonica' ? { modo: item.modo, opcions: item.opcions, escoltat: item.escoltat } : { modo: item.modo, opcions: item.opcions });
+                registrar(item, opcio, ok, ms, item.tipo === 'catala' ? { modo: item.modo, opcions: item.opcions, intent: item.intent } : item.tipo === 'tonica' ? { modo: item.modo, opcions: item.opcions, escoltat: item.escoltat } : { modo: item.modo, opcions: item.opcions, ...(item.fix && item.fix.torna ? { torna: true } : {}) });
                 document.getElementById('tema1-panel').hidden = true;
                 if (ok) celebrar();
                 else {
@@ -4789,7 +4801,7 @@
                 if (['tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo)) {
                     registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo, ...(item.nivell !== undefined ? { nivell: item.nivell, pas: item.pas } : {}) });
                     if (item.tipo === 'tema1' && item.modo === 'roma') anotarRoma(item.fix, false);
-                    if (item.tipo === 'socials') anotarSocials(item, false);
+                    if (item.tipo === 'socials') { anotarSocials(item, false); tornaSocials(item); }
                     if (item.tipo === 'tonica') { anotarTonica(item, false); hablar(item.veu); }
                     document.getElementById('tema1-panel').hidden = true;
                     mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', item.solucio, 'Millor això que endevinar. Mira-la bé i seguim.', false);

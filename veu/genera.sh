@@ -1,6 +1,10 @@
 #!/bin/bash
-# Genera con la voz de la Joana (edge-tts, gratis) un MP3 por cada texto que el Dojo dice en voz alta.
-# Los textos que empiezan por «[es] » (palabras de castellano) van con una voz castellana.
+# Genera un MP3 por cada texto que el Dojo dice en voz alta.
+# - Explicaciones e instrucciones en catalán: Matxa-TTS v2 (gratis, en local; veu/matxa.py, desde el 8/11/2026).
+# - Dictados, palabras sueltas y pistas que nombran letras: la Joana (edge-tts). Matxa dice mal las palabras
+#   sueltas («cervell» → «servei») y las vocales sueltas («la e» → «la a»), y en ortografía eso confunde.
+# - Los textos que empiezan por «[es] » (palabras de castellano) van con una voz castellana (Elvira).
+# Sin el venv de Matxa (~/.local/share/matxa-tts/venv), todo con la Joana.
 # Ejecutar después de cambiar cualquier texto hablado: las pruebas fallan si falta alguno.
 # Uso: veu/genera.sh
 set -e
@@ -49,12 +53,26 @@ def para_decir(t):
     t = re.sub(r',\s*([:,.])', r'\1', t)
     return re.sub(r'\s+', ' ', t).strip()
 
+LLETRA = r"(?<![\w'’·-])([bcçdfghjklmnpqrstvwxz]|ce|hac|ve|be|te|erra|essa|esses|ema)(?![\w'’·-])"
+# Las que Matxa dijo mal (comprobado con Whisper el 8/11/2026)
+JOANA_SEMPRE = ("Busca-ho al full d'apunts", 'porta hac: he, has', "l'iPad")
+
+def amb_matxa(t):
+    if not os.path.exists(os.path.expanduser('~/.local/share/matxa-tts/venv/bin/python')): return False
+    if t.startswith('[es] ') or len(t.split()) < 4 or any(x in t for x in JOANA_SEMPRE): return False
+    if re.match(r"^[\wà-ü·'-]+\. ", t): return False  # dictado: «cervell. El cervell treballa molt. cervell.»
+    if re.search(r"\b(amb|de|la|el|una|dues|sempre|primer|després|davant de)\s+[aeiouàèéíòóú]\b", t): return False
+    if re.search(r"(amb|la|una|dues|sempre|primer|després) " + LLETRA, t): return False
+    return True
+
 textos = json.load(open('textos.json'))
-claves = []
+claves, per_matxa = [], []
 for t in textos:
     k = clave(t)
     claves.append(k)
-    if not os.path.exists(f'{k}.mp3'):
+    if not os.path.exists(f'{k}.mp3') and amb_matxa(t):
+        per_matxa.append([k, para_decir(t)])
+    elif not os.path.exists(f'{k}.mp3'):
         # El servicio limita las peticiones: una cada 2 s y, si falla, reintentar con más espera
         for intento in range(4):
             es = t.startswith('[es] ')
@@ -66,6 +84,11 @@ for t in textos:
             if os.path.exists(f'{k}.tmp'): os.remove(f'{k}.tmp')
             raise SystemExit('edge-tts no responde: probar más tarde')
         time.sleep(2)
+if per_matxa:
+    json.dump(per_matxa, open('per-matxa.json', 'w'), ensure_ascii=False)
+    import subprocess
+    subprocess.run([os.path.expanduser('~/.local/share/matxa-tts/venv/bin/python'), '-I', 'matxa.py', 'per-matxa.json'], check=True)
+    os.remove('per-matxa.json')
 for f in os.listdir('.'):
     if f.endswith('.mp3') and f[:-4] not in claves:
         os.remove(f); print('esborrat:', f)
