@@ -1525,7 +1525,8 @@
             const CONTROL = { id: 11, titulo: 'Missió de repàs', bloques: [{ tipo: 'control' }] };
 
             // B · Una multiplicación cada vez, con su truco. «imanes»: resultados equivocados que se le cruzan
-            // con esta (no salen en el mismo bloque). Pasa a la siguiente con 3 días seguidos sin dudar.
+            // con esta (no salen en el mismo bloque). Pasa a la siguiente con 2 días seguidos sin dudar (eran 3 hasta el 8/11:
+            // un despiste lo reiniciaba todo, y 7 × 8 se quedó 3 semanas sabiéndola). 9/11: 3 × 7 justo después de 7 × 8 (la más atascada).
             const SETMANA = [
                 { a: 6, b: 8, pista: '5 vuits són 40, i un vuit més: 48.', diccio: 'sis per vuit, quaranta-vuit', imanes: [24, 42, 54, 64] },
                 { a: 7, b: 8, pista: 'La cançó «Animal» de KATSEYE: set per vuit… cinquanta-sis!', diccio: 'set per vuit, cinquanta-sis', imanes: [48, 54, 64],
@@ -1533,8 +1534,8 @@
                   contraste: [[6, 8], [6, 9], [9, 6]],
                   contrasteText: "També sortiran 6 × 8 i 6 × 9, barrejades: fixa't bé en cada una.",
                   contrasteVeu: "També sortiran sis per vuit i sis per nou, barrejades: fixa't bé en cada una." },
-                { a: 9, b: 9, pista: 'Taula del 9: la desena és un menys (8) i les xifres sumen 9 (8 + 1): 81.', diccio: 'nou per nou, vuitanta-u', imanes: [18, 64, 72] },
                 { a: 3, b: 7, pista: '7 + 7 + 7: 14, 21.', diccio: 'tres per set, vint-i-u', imanes: [12, 24] },
+                { a: 9, b: 9, pista: 'Taula del 9: la desena és un menys (8) i les xifres sumen 9 (8 + 1): 81.', diccio: 'nou per nou, vuitanta-u', imanes: [18, 64, 72] },
                 { a: 6, b: 9, pista: 'Taula del 9: la desena és un menys (5) i les xifres sumen 9 (5 + 4): 54.', diccio: 'sis per nou, cinquanta-quatre', imanes: [27, 45, 48, 56] },
                 { a: 3, b: 6, pista: '6 + 6 + 6: 12, 18.', diccio: 'tres per sis, divuit', imanes: [24, 81] }
             ];
@@ -1545,7 +1546,7 @@
             const SETMANA_CONTRASTE_EN = [2, 5, 8];
             // «Sin dudar»: la primera cifra antes de 4 s. Se cuenta hasta la primera tecla y no hasta el final:
             // a menudo dice el resultado en voz alta, con su entonación, y después lo escribe (papá, 12/10).
-            const SETMANA_MAX_MS = 4000, SETMANA_DIAS = 3;
+            const SETMANA_MAX_MS = 4000, SETMANA_DIAS = 2;
             const sinDudar = r => r.ok && (r.pt ?? r.ms) <= SETMANA_MAX_MS && !r.rectifica;
 
             // A · Restas que cruzan la decena: «resto sumando» (13 − 8: de 8 a 10, 2; de 10 a 13, 3; total, 5).
@@ -3546,6 +3547,10 @@
                         if (!('mezcla' in f.setmana)) f.setmana.mezcla = (f.setmana.dias || []).length || (f.setmana.dominadas || []).length ? f.setmana.idx : null;
                         // Mètode nou (1/11, comptar endavant): torna a començar amb la recta, com a molt el nivell 2
                         if (f.pas10.metode !== 'endavant') f.pas10 = { nivel: Math.min(f.pas10.nivel || 1, 2), buenos: [], metode: 'endavant' };
+                        // 9/11 (papà): 7 × 8 ja la sap (24 de 26 des de l'1/11, a ~2 s), però un despiste reiniciava els dies:
+                        // es dona per dominada i passa a 3 × 7
+                        if (hoy() >= '2026-11-09' && f.setmana.idx === 1 && !(f.setmana.dominadas || []).some(d => d.fet === '7x8'))
+                            f.setmana = { ...f.setmana, idx: 2, dias: [], mezcla: null, dominadas: [...(f.setmana.dominadas || []), { fet: '7x8', fecha: hoy(), papa: true }] };
                         return { setmana: { ...base.setmana, ...f.setmana }, pas10: { ...base.pas10, ...f.pas10 } };
                     }
                 } catch (e) {}

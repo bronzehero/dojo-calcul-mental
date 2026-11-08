@@ -200,12 +200,12 @@ test.describe('Fase 1 · misión entera', () => {
         expect(envios.find(e => e.datos.respuesta_dada === 42).datos.detalle.girada).toBeUndefined();
     });
 
-    test('3 días seguidos sin dudar: pasa a la siguiente multiplicación (7 × 8)', async ({ page }) => {
+    test('2 días seguidos sin dudar: pasa a la siguiente multiplicación (7 × 8)', async ({ page }) => {
         await simularSupabase(page);
         // Un día entre semana: en domingo, después del entrenamiento tocaría el repaso
         await page.clock.setFixedTime(new Date('2026-10-14T17:00:00'));
         await empezarEnMision(page, 7);
-        await prepararFase1(page, { setmana: { idx: 0, dias: ['2026-10-01', '2026-10-02'], dominadas: [] }, pas10: { nivel: 1, buenos: [] } });
+        await prepararFase1(page, { setmana: { idx: 0, dias: ['2026-10-02'], dominadas: [] }, pas10: { nivel: 1, buenos: [] } });
         await page.goto(URL_APP);
         await empezar(page);
         await contestarEntrenamiento(page);
@@ -244,8 +244,19 @@ test.describe('Fase 1 · misión entera', () => {
         const multis = envios.filter(e => e.tabla === 'registros');
         expect(multis.filter(e => e.datos.detalle.contraste === true)).toHaveLength(3);
         expect(multis.filter(e => e.datos.detalle.objetivo === true)).toHaveLength(4);
+        // 2.º día seguido sin dudar: dominada, y la siguiente es 3 × 7
         const f = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_fase1')));
-        expect(f.setmana.dias).toEqual(['2026-10-17', '2026-10-19']);
+        expect(f.setmana.dominadas.map(d => d.fet)).toContain('7x8');
+        expect(f.setmana.idx).toBe(2);
+    });
+
+    test('9/11: 7 × 8 se da por dominada (papá) y la de la semana pasa a 3 × 7', async ({ page }) => {
+        await simularSupabase(page);
+        await page.clock.setFixedTime(new Date('2026-11-09T17:00:00'));
+        await empezarEnMision(page, 7);
+        await prepararFase1(page, { setmana: { idx: 1, dias: [], dominadas: [{ fet: '6x8', fecha: '2026-10-15' }], mezcla: 1 }, pas10: { nivel: 4, buenos: [], metode: 'endavant' } });
+        await page.goto(URL_APP);
+        await expect(page.locator('#mision-pasos li').nth(1)).toHaveText('⭐ La de la setmana: 3 × 7');
     });
 
     test('7 × 8 el primer día: sola, sin contraste', async ({ page }) => {
