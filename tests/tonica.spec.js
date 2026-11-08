@@ -41,7 +41,7 @@ test.describe('On pica la força?', () => {
         });
     }
 
-    test("10 paraules; trossos sense accent i en ordre; si falla, la bona i el truc; la fallada torna primer", async ({ page }) => {
+    test("12 paraules; trossos sense accent i en ordre; si falla, la bona i el truc, torna al final del bloc i l'endemà primer", async ({ page }) => {
         const envios = await preparar(page, '2026-11-10');
         await expect.poll(async () => (await pasos(page)).join('|')).toContain('On pica');
         const p = await pasos(page);
@@ -54,8 +54,10 @@ test.describe('On pica la força?', () => {
         await expect(page.locator('#intro-titulo')).toHaveText('On pica la força?');
         await page.click('#btn-intro-vamos');
         let anterior = 'null', fallada = null;
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 13; i++) {
             const t = await seguent(page, anterior);
+            // La fallada torna a sortir al final (una sola vegada)
+            if (i === 12) expect(JSON.stringify([t.opcions, t.esperado])).toBe(JSON.stringify([fallada.opcions, fallada.esperado]));
             expect(t.opcions.length).toBeGreaterThanOrEqual(2);
             expect(t.opcions.join('')).not.toMatch(/[àèéíòóú]/);
             expect(t.opcions).toContain(t.esperado);
@@ -73,13 +75,15 @@ test.describe('On pica la força?', () => {
             anterior = JSON.stringify(t);
         }
         const dades = envios.filter(e => e.datos.modulo === 'tonica').map(e => e.datos);
-        expect(dades).toHaveLength(10);
+        expect(dades).toHaveLength(13);
         expect(dades.filter(d => !d.correcta)).toHaveLength(1);
+        expect(dades[12].detalle.torna).toBe(true);
+        // Bé just després de sentir-la: demà torna a sortir igualment
         const st = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_tonica')));
         expect(st.falla).toHaveLength(1);
         const dema = await page.evaluate(() => window.__itemsTonica());
         expect(dema[0]).toBe(st.falla[0]);
-        expect(dema).toHaveLength(10);
+        expect(dema).toHaveLength(12);
     });
 
     test('dissabte 7/11: socials amb les fallades de divendres, però les 5 del bloc 2 hi són totes', async ({ page }) => {

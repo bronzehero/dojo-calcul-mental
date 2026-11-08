@@ -2458,15 +2458,25 @@
                 [['por', 'ta'], 0], [['can', 'çó'], 1], [['A', 'bril'], 1], [['plà', 'tan'], 0],
                 [['te', 'lè', 'fon'], 1], [['mú', 'si', 'ca'], 0], [['pà', 'gi', 'na'], 0], [['e', 'xa', 'men'], 1], [['a', 'vi', 'ó'], 2],
                 [['pi', 'lo', 'ta'], 1], [['fi', 'nes', 'tra'], 1], [['a', 'ni', 'mal'], 2], [['es', 'co', 'la'], 1], [['nú', 'me', 'ro'], 0],
-                [['mà', 'qui', 'na'], 0], [['ga', 'le', 'ta'], 1], [['ca', 'ra', 'mel'], 2], [['ca', 'mi', 'ó'], 2]
+                [['mà', 'qui', 'na'], 0], [['ga', 'le', 'ta'], 1], [['ca', 'ra', 'mel'], 2], [['ca', 'mi', 'ó'], 2],
+                // 8/11: on falla és on no hi ha accent escrit (agudes en consonant i planes en vocal): més d'aquestes
+                [['men', 'jar'], 1], [['dor', 'mir'], 1], [['ju', 'gar'], 1], [['co', 'lor'], 1], [['or', 'di', 'na', 'dor'], 3],
+                [['ca', 'mi', 'sa'], 1], [['mo', 'txi', 'lla'], 1], [['ma', 'dui', 'xa'], 1], [['cot', 'xe'], 0], [['sa', 'ma', 'rre', 'ta'], 2]
             ];
-            const TONICA_PER_DIA = 10;
+            const TONICA_PER_DIA = 12;
             const senseAccent = t => t.normalize('NFD').replace(/[\u0300\u0301]/g, '').normalize('NFC');
             const paraulaTonica = ([sil]) => sil.join('');
             function leerTonica() {
                 try { return JSON.parse(localStorage.getItem('dojo_tonica')) || {}; } catch (e) { return {}; }
             }
+            // Com als socials (8/11): la que falla torna una vegada al final del bloc, després de sentir-la explicada
+            function tornaTonica(it) {
+                if (!sesion || !sesion.fijos || !it.fix || it.torna) return;
+                sesion.fijos.push(Object.assign([it.fix[0], it.fix[1]], { torna: true }));
+                sesion.total = sesion.fijos.length;
+            }
             function anotarTonica(it, ok) {
+                if (ok && it.torna) return; // bé just després de sentir-la: demà torna a sortir igualment
                 const st = leerTonica();
                 const falla = new Set(st.falla || []);
                 if (ok) falla.delete(it.paraula); else falla.add(it.paraula);
@@ -4078,7 +4088,7 @@
                     const paraula = paraulaTonica(w);
                     return { tipo, modo: `sil${sil.length}`, paraula, texto: '🎧', html: '<span class="tonica-icona">🎧</span>', clave: `tonica:${paraula}`,
                         esperado: senseAccent(sil[t]), preg: 'On pica la força? Digues-la fort i toca el tros que s\'allarga.',
-                        opcions: sil.map(senseAccent), veu: paraula, escoltat: 0,
+                        opcions: sil.map(senseAccent), veu: paraula, escoltat: 0, fix: w, torna: !!w.torna,
                         solucio: sil.map((x, i) => i === t ? x.toUpperCase() : x).join(' - '),
                         explica: `Crida-la com si cridessis algú de lluny: ${sil.map((x, i) => i === t ? x.toUpperCase().replace(/([AEIOUÀÈÉÍÒÓÚ])(?!.*[AEIOUÀÈÉÍÒÓÚ])/, '$1$1$1') : x).join('-')}! El tros que s'allarga és el que pica.` };
                 }
@@ -4432,8 +4442,8 @@
                 const ok = opcio === item.esperado;
                 if (!ok && item.tipo === 'catala' && item.intent === 1) return catalaAlFull(opcio, ms);
                 if (item.tipo === 'socials') { anotarSocials(item, ok); if (!ok) tornaSocials(item); }
-                if (item.tipo === 'tonica') anotarTonica(item, ok);
-                registrar(item, opcio, ok, ms, item.tipo === 'catala' ? { modo: item.modo, opcions: item.opcions, intent: item.intent } : item.tipo === 'tonica' ? { modo: item.modo, opcions: item.opcions, escoltat: item.escoltat } : { modo: item.modo, opcions: item.opcions, ...(item.fix && item.fix.torna ? { torna: true } : {}) });
+                if (item.tipo === 'tonica') { anotarTonica(item, ok); if (!ok) tornaTonica(item); }
+                registrar(item, opcio, ok, ms, item.tipo === 'catala' ? { modo: item.modo, opcions: item.opcions, intent: item.intent } : item.tipo === 'tonica' ? { modo: item.modo, opcions: item.opcions, escoltat: item.escoltat, ...(item.torna ? { torna: true } : {}) } : { modo: item.modo, opcions: item.opcions, ...(item.fix && item.fix.torna ? { torna: true } : {}) });
                 document.getElementById('tema1-panel').hidden = true;
                 if (ok) celebrar();
                 else {
@@ -4804,7 +4814,7 @@
                     registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo, ...(item.nivell !== undefined ? { nivell: item.nivell, pas: item.pas } : {}) });
                     if (item.tipo === 'tema1' && item.modo === 'roma') anotarRoma(item.fix, false);
                     if (item.tipo === 'socials') { anotarSocials(item, false); tornaSocials(item); }
-                    if (item.tipo === 'tonica') { anotarTonica(item, false); hablar(item.veu); }
+                    if (item.tipo === 'tonica') { anotarTonica(item, false); tornaTonica(item); hablar(item.veu); }
                     document.getElementById('tema1-panel').hidden = true;
                     mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', item.solucio, 'Millor això que endevinar. Mira-la bé i seguim.', false);
                     mostrarPistaCorreccion();
