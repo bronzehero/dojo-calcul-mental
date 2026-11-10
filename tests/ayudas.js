@@ -63,6 +63,12 @@ async function simularSupabase(page, opciones = {}) {
             if (!localStorage.getItem('dojo_socials')) localStorage.setItem('dojo_socials', JSON.stringify({ pausa: true }));
         });
     }
+    // Y con la bio (del 11 al 16/11)
+    if (!opciones.bio) {
+        await page.addInitScript(() => {
+            if (!localStorage.getItem('dojo_bio')) localStorage.setItem('dojo_bio', JSON.stringify({ pausa: true }));
+        });
+    }
     // Y con los acentos en castellano (del 29/10 al 5/11)
     if (!opciones.accent) {
         await page.addInitScript(() => {

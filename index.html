@@ -1667,6 +1667,7 @@
                 tema1:   { nombre: 'Tema 1 de mates', icono: '🏛️', instr: "Repàs del tema 1 de mates, per a l'examen. Primer, agafa un full i fes-te la xuleta dels romans, com a l'examen: els números que van de 5 en 5, la lletra de cada un a sota i les parelles que resten, les del 4 i les del 9. Quan l'acabis, ensenya-la al papa perquè te la miri. Després, amb la xuleta al costat: romans, binari i què vol dir additiu i posicional. Al binari, suma només els que tenen un 1. Si una no surt, et surt explicada: la mires bé i seguim. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'XIV ➜ escrius 14', boto: 'El papa ha mirat la xuleta ➜', paso: () => 'Tema 1 de mates' },
                 catala:  { nombre: 'Català: apòstrof i contraccions', icono: '✏️', instr: "Repàs per a l'examen de català de demà. Agafa el full d'apunts de català i posa'l al costat: el fas servir com a l'examen. A cada frase, mira la paraula de després del forat i busca-la al full. Si una no surt, et dic on mirar i ho tornes a provar. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Anem ___ teatre (a + el) ➜ al', paso: () => 'Català: apòstrof i contraccions' },
                 tecno:   { nombre: 'Tecno per a l\'examen', icono: '💻', instr: "Repàs de l'examen de tecno del dijous: on és cada botó del Drive, dels Documents, de les Presentacions i del correu. Llegeixes què vols fer i tries com es fa. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Vull que l\'amiga pugui canviar coses ➜ Editor', paso: () => 'Tecno per a l\'examen' },
+                bio:     { nombre: 'Bio per a l\'examen', icono: '🔬', instr: "Biologia, per a l'examen de dimarts: com treballen els científics. Llegeixes la pregunta i tries la bona entre tres. Si et va bé, digues la resposta en veu alta abans de tocar-la. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Què és la variable dependent? ➜ El que observem o mesurem', paso: () => 'Bio per a l\'examen' },
                 socials: { nombre: 'Socials per a l\'examen', icono: '🌋', instr: "Socials, per a l'examen de dimarts: el relleu. Llegeixes la pregunta i tries la bona entre tres. Si et va bé, digues la resposta en veu alta abans de tocar-la. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'On es nota més un terratrèmol? ➜ A l\'epicentre', paso: () => 'Socials per a l\'examen' },
                 tonica:  { nombre: 'On pica la força?', icono: '🥁', instr: "Ara, paraules en català: on pica la força. Sentiràs una paraula i la veuràs partida en trossos. Digues-la tu en veu alta, ben fort, com si cridessis algú de lluny. El tros que s'allarga és el que pica: toca'l. Si dubtes, torna-la a escoltar. Al teu ritme.", ejemplo: 'ca-mí ➜ toques «mi»', paso: () => 'On pica la força?' },
                 castella: { nombre: 'Castellà per a l\'examen', icono: '💬', instr: "Repàs del control de castellà, com a l'examen: llegeixes un text curt o mires una vinyeta i tries què és. Quina propietat falla, quin tipus de text és, quin pla, quin angle o quina part del còmic. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '«Primero, bate dos huevos…» ➜ Instructivo', paso: () => 'Castellà per a l\'examen' },
@@ -2553,6 +2554,151 @@
             const socialsPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= SOCIALS_DES_DE && hoy() <= SOCIALS_FINS && !leerSocials().pausa;
             const conSocials = m => ({ ...m, bloques: [...m.bloques, { tipo: 'socials' }] });
 
+            // BIO · examen del tema 1 «Siguem científics i científiques!» el dimarts 17/11. De l'11 al 16/11, després de la tònica.
+            // Com els socials: triar entre 3, totes del material de la profe (el resum, els recursos 1.2-1.9 i l'exemple resolt
+            // de l'1.8). Els 5 punts de l'avís del Classroom (4/11): l'activitat científica, les preguntes, el disseny d'un
+            // experiment, el laboratori i les fonts. Cada dia entra un bloc nou; les que falla tornen primer l'endemà.
+            // Si el mateix dia fa una segona missió (l'11/11), només surten les que ha fallat a la primera.
+            const BIO_DES_DE = '2026-11-11', BIO_FINS = '2026-11-16';
+            const BIO_ETAPES = "Observació → fer-se preguntes → hipòtesi → experimentació → anàlisi dels resultats → conclusions → publicació → noves preguntes.";
+            const BIO_VARIABLES = "Independent = el que CANVIO. Dependent = el que MESURO o observo (depèn del que canvio). Control de variables = tot el que deixo IGUAL.";
+            const BIO_PREGUNTA = "Bona pregunta = es pot comprovar amb un experiment. Forma: «Com afecta… a…?». «M'agrada» o «més bonica» són opinions: no es poden mesurar.";
+            const BIO_PLANTES = "Les plantes: observació = no han crescut igual · pregunta = per què una ha crescut més? · hipòtesi = si…, aleshores… · experimentació = mesurar-les cada dia.";
+            const BIO_HIPOTESI = "Hipòtesi = una possible explicació o resposta a la pregunta. Format: «Si… aleshores…». Si [el que canvio], aleshores [el que passarà amb el que mesuro].";
+            const BIO_MATES = "Música i mates: canvia el tipus de música · es mesura el temps i els exercicis correctes · igual: el tema i la dificultat de les fitxes.";
+            const BIO_LLUM = "Plantes i llum: canvia la llum (persiana oberta o tancada) · es mesura la mida de la planta · igual: el tipus de planta, l'aigua i l'adob.";
+            const BIO_COLACAO = "ColaCao i temperatura: canvia la temperatura de la llet · es mesura com es dissol (els grumolls) · igual: la llet, el ColaCao i el temps que remenem.";
+            const BIO_FONTS = "Per saber si una font és fiable, 5 aspectes: autoria, actualització, objectivitat, tipus de web i correcció. Cap aspecte sol no n'hi ha prou: es miren tots junts.";
+            const BIO_PREGUNTES = [
+                // Bloc 1: l'activitat científica (resum de la profe, recursos 1.3 i 1.4)
+                [1, "Quina és la primera etapa de l'activitat científica?", "L'observació", ['Fer-se preguntes', 'La hipòtesi'], "Primer observo (miro), després pregunto. " + BIO_ETAPES],
+                [1, "Quina etapa va just després de l'observació?", 'Fer-se preguntes', ['La hipòtesi', "L'experimentació"], BIO_ETAPES],
+                [1, "Quina etapa va just després de fer-se preguntes?", 'La hipòtesi', ["L'observació", 'Les conclusions'], BIO_ETAPES],
+                [1, "Quina etapa va just després de l'experimentació?", "L'anàlisi dels resultats", ['Les conclusions', 'La publicació'], "Ho provo (experimentació) → ordeno les mesures (anàlisi) → decideixo (conclusions) → ho explico (publicació)."],
+                [1, "Quina etapa va just després de l'anàlisi dels resultats?", 'Les conclusions', ["L'experimentació", "L'observació"], "Ho provo (experimentació) → ordeno les mesures (anàlisi) → decideixo (conclusions) → ho explico (publicació)."],
+                [1, "Quina etapa va després de la publicació?", 'Fer-se noves preguntes', ['Les conclusions', "L'observació"], "A partir del que s'ha publicat, les persones tornen a fer-se preguntes i comencen nous experiments."],
+                [1, "Què és una hipòtesi?", 'Una possible explicació o resposta a la pregunta', ["El que mesurem a l'experiment", 'El que podem assegurar al final'], BIO_HIPOTESI],
+                [1, "Quin format té una hipòtesi?", '«Si… aleshores…»', ['«Com afecta… a…?»', '«Per què…?»'], BIO_HIPOTESI],
+                [1, "Què és la variable independent?", 'El factor que canviem per veure què passa', ['El que mesurem', 'El que deixem igual'], BIO_VARIABLES],
+                [1, "Què és la variable dependent?", 'El que observem o mesurem', ['El que canviem', 'El que deixem igual'], BIO_VARIABLES],
+                [1, "Què és el control de variables?", 'Que tota la resta sigui igual en totes les proves', ['Canviar moltes coses alhora', "Repetir l'experiment"], BIO_VARIABLES],
+                [1, "Què és una rèplica?", "Cada vegada que repetim l'experiment", ['La resposta a la pregunta', 'Una pregunta nova'], "Rèplica = cada repetició de l'experiment. Amb una sola vegada no n'hi ha prou per demostrar un fet."],
+                [1, "Per què repetim un experiment?", "Perquè amb una sola vegada no n'hi ha prou per demostrar un fet", ['Perquè la primera vegada no compta', 'Per acabar abans'], "Cada repetició és una rèplica. Amb una sola vegada no n'hi ha prou per demostrar un fet."],
+                [1, "Què són les conclusions?", 'El que podem assegurar amb les dades, i si confirmen la hipòtesi', ['Una possible resposta a la pregunta', 'El material que fem servir'], "Conclusions = el que podem assegurar a partir del que hem observat. Diuen si les dades confirmen la hipòtesi o no."],
+                [1, "Què vol dir analitzar les dades?", 'Ordenar-les, agrupar-les i fer-ne gràfics o càlculs', ["Fer l'experiment", 'Fer-se una pregunta nova'], "Analitzar = ordenar, agrupar, representar (gràfics, càlculs) i relacionar amb la hipòtesi."],
+                [1, "Com comparteixen els científics una investigació acabada?", 'En congressos, articles i pòsters', ['No ho expliquen a ningú', 'Només als amics'], "Publicació: oral (congressos) o escrita (articles i pòsters científics)."],
+                [1, "«Les plantes no han crescut igual.» Quina etapa és?", "L'observació", ['La hipòtesi', 'Les conclusions'], BIO_PLANTES],
+                [1, "«Per què una planta ha crescut més que l'altra?» Quina etapa és?", 'Fer-se preguntes', ['La hipòtesi', "L'experimentació"], BIO_PLANTES],
+                [1, "«Si una planta rep la llum del sol, aleshores creixerà més de pressa.» Quina etapa és?", 'La hipòtesi', ["L'observació", 'Fer-se preguntes'], BIO_PLANTES],
+                [1, "«Durant un mes, cada dia mesura les dues plantes.» Quina etapa és?", "L'experimentació", ["L'observació", 'La publicació'], BIO_PLANTES],
+                [1, "Els científics intenten ser objectius. Què vol dir?", 'Veure les coses tal com són, sense les seves opinions', ['Treballar sempre sols', 'Fer-ho molt de pressa'], "Objectius = conèixer la realitat tal com és, sense deixar-se portar per les emocions o les opinions."],
+                [1, "El coneixement científic pot canviar?", 'Sí, si es troben nous resultats', ['No, mai', 'Només si ho diu el professor'], "El coneixement científic sempre està obert a noves descobertes: si hi ha nous resultats, pot canviar."],
+                [1, "Seguim sempre les etapes en el mateix ordre?", 'No: de vegades tornem enrere i canviem idees', ['Sí, sempre igual', 'Només fem la primera'], "Les etapes no són una recepta: de vegades tornem enrere, canviem una idea o ens fem una pregunta nova."],
+                [1, "Per què s'han d'escriure bé el material i els passos de l'experiment?", "Perquè tothom el pugui repetir", ['Perquè quedi bonic', 'Per acabar abans'], "Material i passos clars i precisos: així algú altre pot repetir l'experiment exactament igual."],
+                [1, "Mentre fem l'experiment, on anotem les mesures?", 'En una taula', ['Enlloc: les recordem', 'A la hipòtesi'], "Mentre es fa l'experiment, s'anoten totes les mesures i resultats, si pot ser en una taula."],
+                // Bloc 2: les preguntes científiques i el disseny d'un experiment (recursos 1.4, 1.6 i 1.8)
+                [2, "Plantes: quina és una bona pregunta científica?", 'Com afecta la quantitat de llum al creixement d\'una planta?', ['Per què m\'agrada tant la música?', 'Quina és la planta més bonica?'], BIO_PREGUNTA],
+                [2, "ColaCao: quina és una bona pregunta científica?", 'Com afecta la temperatura de la llet a la dissolució del ColaCao?', ['Per què m\'agrada el ColaCao?', 'Quin és el cacau més bo?'], BIO_PREGUNTA],
+                [2, "Nesquik: quina és una bona pregunta científica?", 'Com afecta el tipus de beguda a la dissolució del Nesquik?', ['Quina beguda és la més bona?', 'Per què ens agrada la llet?'], BIO_PREGUNTA],
+                [2, "Quina forma té una bona pregunta per investigar?", '«Com afecta… a…?»', ['«Si… aleshores…»', '«Quina és la més bonica?»'], BIO_PREGUNTA],
+                [2, "Per què «Quina és la planta més bonica?» no és una bona pregunta científica?", "Perquè és una opinió i no es pot mesurar", ['Perquè és massa curta', 'Perquè parla de plantes'], BIO_PREGUNTA],
+                [2, "Plantes: una amb la persiana oberta i una altra amb la persiana tancada. Què canvia (variable independent)?", 'La llum que rep', ['La mida de la planta', 'El tipus de planta'], BIO_LLUM],
+                [2, "Plantes: una amb la persiana oberta i una altra amb la persiana tancada. Què es mesura (variable dependent)?", 'La mida de la planta', ['La llum que rep', "La quantitat d'aigua"], BIO_LLUM],
+                [2, "Plantes: una amb la persiana oberta i una altra amb la persiana tancada. Què es deixa igual?", "El tipus de planta, l'aigua i l'adob", ['La llum que rep', 'La mida de la planta'], BIO_LLUM],
+                [2, "Fitxes de mates amb música clàssica, pop, rap o en silenci. Què canvia (variable independent)?", 'El tipus de música', ['El temps que triga', 'El tema de les fitxes'], BIO_MATES],
+                [2, "Fitxes de mates amb música clàssica, pop, rap o en silenci. Què es mesura (variable dependent)?", 'El temps que triga i els exercicis correctes', ['El tipus de música', 'La dificultat de les fitxes'], BIO_MATES],
+                [2, "Fitxes de mates amb música clàssica, pop, rap o en silenci. Què es deixa igual?", 'El tema i la dificultat de les fitxes', ['El tipus de música', 'El temps que triga'], BIO_MATES],
+                [2, "Com afecta la temperatura de la llet a la dissolució del ColaCao? Què canvia (variable independent)?", 'La temperatura de la llet', ['Com es dissol el ColaCao', 'La quantitat de ColaCao'], BIO_COLACAO],
+                [2, "Com afecta la temperatura de la llet a la dissolució del ColaCao? Què es mesura (variable dependent)?", 'Com es dissol el ColaCao (els grumolls)', ['La temperatura de la llet', 'La quantitat de llet'], BIO_COLACAO],
+                [2, "Com afecta la temperatura de la llet a la dissolució del ColaCao? Què es deixa igual?", 'La llet, el ColaCao i el temps que remenem', ['La temperatura de la llet', 'Com es dissol el ColaCao'], BIO_COLACAO],
+                [2, "Com afecta el temps que remenem a la dissolució del ColaCao? Què canvia (variable independent)?", 'El temps que remenem', ['Els grumolls que queden', 'El tipus de llet'], "Exemple 1 de la profe: canvia el temps que remenem · es mesura el nombre de grumolls · igual: la llet de vaca i el ColaCao."],
+                [2, "Com afecta el temps que remenem a la dissolució del ColaCao? Què es mesura (variable dependent)?", 'El nombre de grumolls que queden', ['El temps que remenem', 'La quantitat de llet'], "Exemple 1 de la profe: canvia el temps que remenem · es mesura el nombre de grumolls · igual: la llet de vaca i el ColaCao."],
+                [2, "Llet de vaca o beguda de soja: el cacau es dissol igual? Què canvia (variable independent)?", 'El tipus de beguda', ['Els grumolls que queden', 'El temps que remenem'], "Exemple 2 de la profe: canvia el tipus de beguda · es mesura la quantitat de grumolls · igual: la beguda, el producte i el temps que remenem."],
+                [2, "Quina és una hipòtesi per a «Com afecta la temperatura de la llet a la dissolució del ColaCao?»", 'Si la llet està calenta, aleshores el ColaCao es dissoldrà millor', ['Com afecta la llet al ColaCao?', 'El ColaCao és molt bo'], "La pregunta, la hipòtesi i les variables parlen de les mateixes dues coses: la temperatura de la llet i com es dissol el ColaCao."],
+                [2, "A la hipòtesi «Si… aleshores…», què hi va després del «Si»?", 'La variable independent (el que canvio)', ['La variable dependent (el que mesuro)', 'La conclusió'], "Si [variable independent], aleshores [variable dependent]. Exemple: si la llet està calenta, aleshores el ColaCao es dissoldrà millor."],
+                [2, "Al gràfic, quina variable va a l'eix horitzontal (X)?", 'La variable independent (el que canviem)', ['La variable dependent (el que mesurem)', 'La hipòtesi'], "Eix X (horitzontal) = la independent, el que canviem. Eix Y (vertical) = la dependent, el que mesurem."],
+                [2, "Al gràfic, quina variable va a l'eix vertical (Y)?", 'La variable dependent (el que mesurem)', ['La variable independent (el que canviem)', 'Les conclusions'], "Eix X (horitzontal) = la independent, el que canviem. Eix Y (vertical) = la dependent, el que mesurem."],
+                [2, "Per què a l'experiment de les plantes només canvia una cosa?", 'Per saber segur què és el que fa créixer més la planta', ['Perquè és més ràpid', 'Perquè no hi ha més plantes'], "Si només canvia una cosa i la resta és igual (control de variables), sabem que el resultat és per aquella cosa."],
+                // Bloc 3: les normes del laboratori (recurs 1.5, la història de l'Òscar) i el material (pista del recurs 1.5)
+                [3, "Al laboratori, es pot tastar o olorar un producte?", 'No, mai', ['Sí, si el professor no hi és', 'Només una mica'], "L'Òscar obre el flascó, l'olora i el tasta: no s'ha de fer mai."],
+                [3, "Si et cau un producte a sobre, què has de fer?", 'Avisar el professor de seguida', ['Res, ja s\'assecarà', 'Amagar-ho'], "A l'Òscar li cau el líquid als pantalons i no diu res: s'ha d'avisar sempre el professor."],
+                [3, "Si et cremes o et fas mal al laboratori, què has de fer?", 'Dir-ho al professor de seguida', ['No dir res', 'Continuar treballant'], "L'Òscar es crema i no diu res per por: s'ha de dir sempre, de seguida."],
+                [3, "Com s'agafa un vas de precipitats calent?", 'Amb unes pinces', ['Amb les mans', 'Amb un paper'], "L'Òscar el treu amb les mans i es crema. Les coses calentes, amb pinces."],
+                [3, "Es pot agafar un producte de la taula del professor?", 'No: només el material que et diuen', ['Sí, si tens curiositat', 'Sí, si el professor ha sortit'], "L'Òscar agafa el flascó de la taula del profe quan ha sortit: no s'ha de fer."],
+                [3, "Quan acabes la pràctica, què fas amb el material?", 'Netejar-lo i deixar-lo endreçat', ['Deixar-lo de qualsevol manera a la pica', 'Llençar-ho tot a la paperera'], "L'Òscar deixa els estris de qualsevol manera i llença el cor a la paperera: el material es neteja i s'endreça."],
+                [3, "Al laboratori, es pot córrer?", "No: s'hi va caminant", ['Sí, si tens pressa', 'Només al final'], "L'Òscar se'n va corrents: al laboratori no es corre."],
+                [3, "Abans de començar la pràctica, què has de tenir clar?", 'Què has de fer i quin material necessites', ['On seuen els amics', "A quina hora s'acaba"], "L'Òscar no sap què li toca fer ni quin material necessita: cal escoltar l'explicació i llegir el guió."],
+                // El material: els 8 dibuixos del recurs 1.5 (placa, proveta, tub d'assaig, vas de precipitats, portaobjectes,
+                // cobreobjectes, comptagotes, espàtula). La funció, la de sempre (la profe els va fer buscar a internet).
+                [3, "Amb què es mesura el volum d'un líquid?", 'Amb la proveta', ["Amb el tub d'assaig", "Amb l'espàtula"], "Proveta = el tub alt amb ratlles i peu: per mesurar el volum d'un líquid."],
+                [3, "Com es diu el got ample, amb ratlles i un broc per abocar?", 'El vas de precipitats', ['La proveta', "El tub d'assaig"], "Vas de precipitats = el got ample amb broc: per posar, barrejar i escalfar líquids."],
+                [3, "Com es diu el tub prim de vidre, sense ratlles, per fer proves petites?", "El tub d'assaig", ['La proveta', 'El comptagotes'], "Tub d'assaig = tub prim, sense ratlles ni peu: per fer proves amb poca quantitat. La proveta té ratlles i peu."],
+                [3, "Amb què es posa un líquid gota a gota?", 'Amb el comptagotes (pipeta Pasteur)', ['Amb la proveta', "Amb l'espàtula"], "Comptagotes o pipeta Pasteur = agafar un líquid i posar-lo gota a gota."],
+                [3, "Amb què s'agafa una mica de producte en pols?", "Amb l'espàtula", ['Amb el comptagotes', 'Amb la proveta'], "Espàtula = agafar una mica de producte sòlid (pols)."],
+                [3, "On es posa la mostra per mirar-la al microscopi?", 'Al portaobjectes', ["Al tub d'assaig", 'Al vas de precipitats'], "Portaobjectes = la làmina de vidre on va la mostra. Cobreobjectes = el vidre petit que la tapa."],
+                [3, "Amb què es tapa la mostra, a sobre del portaobjectes?", 'Amb el cobreobjectes', ["Amb l'espàtula", 'Amb la placa calefactora'], "Portaobjectes = a sota, la mostra. Cobreobjectes = a sobre, el vidre petit que la tapa."],
+                [3, "Amb què s'escalfa al laboratori?", 'Amb la placa calefactora', ['Amb el cobreobjectes', 'Amb el comptagotes'], "Placa calefactora = escalfar. A sobre, el vas de precipitats."],
+                // Bloc 4: les fonts d'informació (recursos 1.2 i 1.9, la taula de credibilitat)
+                [4, "Quan és fiable una font d'informació?", 'Quan podem confiar en la informació que presenta', ['Quan té moltes fotos', 'Quan surt la primera a internet'], "Fiable = podem confiar en la informació. Per saber-ho: qui l'ha publicada, com la presenta i si està ben fonamentada."],
+                [4, "Autoria: quina font és més fiable?", 'Un expert o una institució coneguda (una universitat)', ['Un blog personal', 'Un fòrum on no se sap qui escriu'], BIO_FONTS],
+                [4, "Actualització: quina pàgina és més fiable?", 'Una de recent, amb enllaços que funcionen', ['Una d\'antiga, amb enllaços que no funcionen', 'Una sense data'], BIO_FONTS],
+                [4, "Objectivitat: quina pàgina és més fiable?", 'Una que dona dades concretes o cita estudis científics', ['Una que només dona opinions', 'Una que et vol vendre alguna cosa'], BIO_FONTS],
+                [4, "Si l'autor d'una pàgina vol vendre o convèncer, la font és…", 'Poc fiable', ['Molt fiable', 'Sempre certa'], "Fiable si el propòsit és informar. Poc fiable si el propòsit és vendre o convèncer."],
+                [4, "Tipus de web: quin és més fiable?", 'Un web educatiu o del govern (.edu, .org, .gov)', ['Un domini desconegut', 'Un web comercial (de botiga)'], BIO_FONTS],
+                [4, "Correcció: què fa més fiable una pàgina?", 'Que la informació surti en altres webs fiables i tingui bibliografia', ['Que tingui molts colors', 'Que sigui molt llarga'], BIO_FONTS],
+                [4, "Una pàgina ben presentada sempre és fiable?", 'No: cal mirar tots els aspectes junts', ['Sí, sempre', 'Sí, si té fotos'], "Cap aspecte sol no garanteix que una font sigui fiable. Una pàgina ben presentada també pot tenir informació que no és certa."],
+                [4, "Quins són els 5 aspectes per saber si una font és fiable?", 'Autoria, actualització, objectivitat, tipus de web i correcció', ['Colors, fotos, llargada, títol i lletra', 'Observació, pregunta, hipòtesi, experiment i conclusions'], BIO_FONTS],
+                [4, "Per què les notícies falses s'escampen tan de pressa?", 'Per les xarxes socials, i perquè fan sorpresa, por o ràbia', ['Perquè són més curtes', 'Perquè les fan els científics'], "La informació circula molt ràpid per les xarxes socials, i la que fa sorpresa, por, ràbia o polèmica es comparteix molt."]
+            ];
+            // Quantes de cada bloc surten cada dia (blocs 1 a 4). Les que va fallar surten primer i es descompten dels blocs vells.
+            const BIO_PER_DIA = { '2026-11-11': [8, 0, 0, 0], '2026-11-12': [3, 6, 0, 0], '2026-11-13': [2, 3, 5, 0], '2026-11-14': [2, 2, 2, 5] };
+            function leerBio() {
+                try { return JSON.parse(localStorage.getItem('dojo_bio')) || {}; } catch (e) { return {}; }
+            }
+            function guardarBio(st) {
+                try { localStorage.setItem('dojo_bio', JSON.stringify(st)); } catch (e) { /* sense memòria, segueix igual */ }
+            }
+            // Com als socials: la que falla torna una vegada al final del bloc, després de veure-la explicada
+            function tornaBio(it) {
+                if (!sesion || !sesion.fijos || !it.fix || it.fix.torna) return;
+                sesion.fijos.push({ ...it.fix, torna: true });
+                sesion.total = sesion.fijos.length;
+            }
+            function anotarBio(it, ok) {
+                if (ok && it.fix && it.fix.torna) return; // bé just després de veure-la: demà torna a sortir igualment
+                const st = leerBio();
+                const falla = new Set(st.falla || []);
+                if (ok) falla.delete(it.texto); else falla.add(it.texto);
+                guardarBio({ ...st, falla: [...falla] });
+            }
+            const fitxaBio = ([bloc, preg, bona, altres, explica]) => ({ bloc, preg, bona, altres, explica });
+            function itemsBio() {
+                const st = leerBio();
+                // Segona missió del mateix dia: només les que havia fallat a la primera (la llista es guarda en acabar-la)
+                if (st.fet === hoy()) return shuffle(BIO_PREGUNTES.filter(p => (st.repetir || []).includes(p[1]))).map(fitxaBio);
+                const quants = BIO_PER_DIA[hoy()] || [3, 3, 3, 3];
+                const falla = new Set(st.falla || []);
+                const finsBloc = Math.max(...[1, 2, 3, 4].filter(b => quants[b - 1] > 0));
+                const repeteix = shuffle(BIO_PREGUNTES.filter(p => falla.has(p[1]) && p[0] <= finsBloc));
+                const ja = new Set(repeteix.map(p => p[1]));
+                let descompte = repeteix.length;
+                const noves = [1, 2, 3, 4].flatMap(b => {
+                    let n = quants[b - 1];
+                    if (b < finsBloc) { const treu = Math.min(n, descompte); n -= treu; descompte -= treu; }
+                    return shuffle(BIO_PREGUNTES.filter(p => p[0] === b && !ja.has(p[1]))).slice(0, n);
+                });
+                return [...repeteix, ...noves].map(fitxaBio);
+            }
+            // En acabar la missió: feta per avui, i el que ha fallat avui, per si en fa una segona
+            function tancarBio() {
+                if (enPrueba()) return;
+                const st = leerBio();
+                guardarBio({ ...st, fet: hoy(), repetir: st.fet === hoy() ? [] : [...(st.falla || [])] });
+            }
+            const bioPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= BIO_DES_DE && hoy() <= BIO_FINS && !leerBio().pausa &&
+                itemsBio().length > 0;
+            const conBio = m => ({ ...m, bloques: [...m.bloques, { tipo: 'bio' }] });
+
             // TÒNICA · català: identificar la síl·laba que pica (6/11: als accents de català, 3 de 8; sense la tònica cau tota la regla).
             // Del 7 al 13/11 (examen d'accents probable ~13/11). Sent la paraula, la veu partida en trossos (sense accents gràfics,
             // perquè no li donin la resposta) i toca el tros fort. Si falla: la bona en majúscules i el truc de cridar-la.
@@ -3303,6 +3449,8 @@
             window.__labParaules = () => LAB_PARAULES.map(w => ({ id: w.id, paraula: w.paraula, idioma: w.idioma, frase2: w.frase2 }));
             window.__paraulaActual = () => item && item.tipo === 'paraules' ? { id: item.w.id, paraula: item.paraula, fase: item.fase, etapa: item.etapa } : null;
             window.__itemsXifresProva = () => itemsXifra();
+            window.__bioPreguntes = () => BIO_PREGUNTES;
+            window.__itemsBio = () => itemsBio().map(x => ({ bloc: x.bloc, preg: x.preg }));
             window.__itemsSocials = () => itemsSocials().map(x => ({ bloc: x.bloc, preg: x.preg, ...(x.previa ? { previa: true } : {}) }));
             window.__idMisio = () => misionMostrada().id;
             window.__itemsTonica = () => itemsTonica().map(w => paraulaTonica(w));
@@ -3310,7 +3458,7 @@
             window.__parensActual = () => item && item.tipo === 'parens' ? { n: item.idx, modo: item.modo, esperado: item.esperado, format: item.format || null, opcions: item.opcions || null } : null;
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
-            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
+            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'tonica'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 ROMANS_ESCALA.forEach(e => t.add(e.veu));
@@ -3393,6 +3541,11 @@
                     SETMANA.forEach(f => t.add(fraseMision(ambX(ambL(ambP(conAccent(conSocials(ENTRENAMENT))))), f)));
                     t.add(fraseMision(ambX(ambL(ambP(conAccent(conSocials(CONTROL)))))));
                 })));
+                // De l'11 al 16/11, la bio després de la tònica i abans dels accents (amb o sense tònica, paraules, laboratori i xifres)
+                [conTonica, m => m].forEach(ambT => [m => m, conLab].forEach(ambL => [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
+                    SETMANA.forEach(f => t.add(fraseMision(ambX(ambL(ambP(conAccent(conBio(ambT(ENTRENAMENT)))))), f)));
+                    t.add(fraseMision(ambX(ambL(ambP(conAccent(conBio(ambT(CONTROL))))))));
+                }))));
                 // Des del 6/11, els accents sense el tema 1 (fins al 20/11), amb o sense paraules i laboratori
                 [m => m, conLab].forEach(ambL => [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
                     SETMANA.forEach(f => t.add(fraseMision(ambX(ambL(ambP(conAccent(ENTRENAMENT)))), f)));
@@ -3594,6 +3747,7 @@
                 if (tecnoPendent(m)) t = conTecno(t);
                 if (socialsPendent(m)) t = conSocials(t);
                 if (tonicaPendent(m)) t = conTonica(t);
+                if (bioPendent(m)) t = conBio(t);
                 if (accentPendent(m)) t = conAccent(t);
                 if (paraulesPendents(m)) t = conParaules(t);
                 return labPendent(m) ? conLab(t) : t;
@@ -3834,6 +3988,8 @@
                     sesion.fijos = itemsTecno();
                 } else if (b.tipo === 'socials') {
                     sesion.fijos = itemsSocials();
+                } else if (b.tipo === 'bio') {
+                    sesion.fijos = itemsBio();
                 } else if (b.tipo === 'tonica') {
                     sesion.fijos = itemsTonica();
                 } else {
@@ -3890,6 +4046,7 @@
                 if (p.enCurso && p.enCurso.id === sesion.mision.id) delete p.enCurso;
                 guardarPlan(p);
                 guardarEvento({ modulo: 'mision', item: String(sesion.mision.id), detalle: { titulo: sesion.mision.titulo } });
+                if (sesion.mision.bloques.some(b => b.tipo === 'bio')) tancarBio();
                 if (sesion.mision.id === ENTRENAMENT.id) actualizarFase1();
                 const enc = provaEncadenada(sesion.mision);
                 if (enc) {
@@ -4224,6 +4381,11 @@
                         solucio: sil.map((x, i) => i === t ? x.toUpperCase() : x).join(' - '),
                         explica: `Crida-la com si cridessis algú de lluny: ${sil.map((x, i) => i === t ? x.toUpperCase().replace(/([AEIOUÀÈÉÍÒÓÚ])(?!.*[AEIOUÀÈÉÍÒÓÚ])/, '$1$1$1') : x).join('-')}! El tros que s'allarga és el que pica.` };
                 }
+                if (tipo === 'bio') {
+                    const x = sesion.fijos[sesion.hechos];
+                    return { tipo, modo: `bloc${x.bloc}`, texto: x.preg, clave: `bio:${x.preg.slice(0, 40)}`, esperado: x.bona,
+                        preg: 'Quina és la bona?', opcions: shuffle([x.bona, ...x.altres]), solucio: x.bona, explica: x.explica, fix: x };
+                }
                 if (tipo === 'socials') {
                     const x = sesion.fijos[sesion.hechos];
                     if (x.previa) return { tipo, modo: 'previa', previa: true, texto: x.preg, clave: `previa:${x.preg.slice(0, 30)}`, esperado: x.bona,
@@ -4274,7 +4436,7 @@
                 teclas = [];
                 oralRespuesta = null;
 
-                const ambPreg = ['tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica', 'parens'].includes(item.tipo);
+                const ambPreg = ['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'tonica', 'parens'].includes(item.tipo);
                 const ambOpcions = ambPreg && !!item.opcions;
                 const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo) || (item.tipo === 'tema1' && !ambOpcions) ||
                     (item.tipo === 'parens' && !!item.maxXifres);
@@ -4297,7 +4459,7 @@
                     hablar(PAS10_DITS);
                 }
                 opCardEl.classList.toggle('op-tema1-clau', item.modo === 'concepte');
-                opCardEl.classList.toggle('op-cast-text', ['castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo) && !item.html);
+                opCardEl.classList.toggle('op-cast-text', ['castella', 'catala', 'tecno', 'socials', 'bio', 'tonica'].includes(item.tipo) && !item.html);
                 opCardEl.classList.toggle('op-cast-dibuix', ['castella', 'tecno'].includes(item.tipo) && !!item.html);
                 document.getElementById('tema1-panel').hidden = !ambOpcions;
                 document.getElementById('tema1-opcions').classList.toggle('sil', item.tipo === 'tonica');
@@ -4340,7 +4502,7 @@
                 keypad.style.display = numerico ? 'grid' : 'none';
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
-                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica', 'parens'].includes(item.tipo);
+                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'tonica', 'parens'].includes(item.tipo);
                 if (item.tipo === 'paraules') pintarParaula();
                 if (item.tipo === 'lab') pintarLab();
                 document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
@@ -4592,7 +4754,7 @@
                 const el = document.getElementById('correction-pista');
                 let txt = '';
                 if (item.tipo === 'pas10' && item.clase === 'nou') txt = trucPas10(item);
-                if (['tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo)) txt = item.explica;
+                if (['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'tonica'].includes(item.tipo)) txt = item.explica;
                 if (item.objetivo) { txt = `Truc: ${fetSetmana().pista}`; hablar(fetSetmana().diccio); }
                 if (item.dificil) { txt = `Truc: ${dificilDe(item).pista}`; hablar(dificilDe(item).diccio); }
                 if (item.contraste) {
@@ -4622,12 +4784,13 @@
             // Tema 1 y castellano, elegir: si no es la buena, la solución explicada (como en las demás, se para en la primera que falla)
             function responderTema1(opcio) {
                 if (item && item.tipo === 'parens') return responderParens(opcio);
-                if (isEvaluating || !item || !['tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo) || !item.opcions) return;
+                if (isEvaluating || !item || !['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'tonica'].includes(item.tipo) || !item.opcions) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 const ok = opcio === item.esperado;
                 if (!ok && item.tipo === 'catala' && item.intent === 1) return catalaAlFull(opcio, ms);
                 if (item.tipo === 'socials') { anotarSocials(item, ok); if (!ok) tornaSocials(item); }
+                if (item.tipo === 'bio') { anotarBio(item, ok); if (!ok) tornaBio(item); }
                 if (item.tipo === 'tonica') { anotarTonica(item, ok); if (!ok) tornaTonica(item); }
                 registrar(item, opcio, ok, ms, item.tipo === 'catala' ? { modo: item.modo, opcions: item.opcions, intent: item.intent } : item.tipo === 'tonica' ? { modo: item.modo, opcions: item.opcions, escoltat: item.escoltat, ...(item.torna ? { torna: true } : {}) } : { modo: item.modo, opcions: item.opcions, ...(item.fix && item.fix.torna ? { torna: true } : {}) });
                 document.getElementById('tema1-panel').hidden = true;
@@ -4982,7 +5145,7 @@
                 if (item && item.tipo === 'paraules') return evaluarParaula(null);
                 if (item && item.tipo === 'lab') return evaluarLab(null);
                 if (item && item.tipo === 'parens') return responderParens(null);
-                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo)) return;
+                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'tonica'].includes(item.tipo)) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 if (item.tipo === 'catala' && item.intent === 1) return catalaAlFull(null, ms);
@@ -4996,10 +5159,11 @@
                     hablar(CATALA_VEU_PAPA);
                     return;
                 }
-                if (['tema1', 'castella', 'catala', 'tecno', 'socials', 'tonica'].includes(item.tipo)) {
+                if (['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'tonica'].includes(item.tipo)) {
                     registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo, ...(item.nivell !== undefined ? { nivell: item.nivell, pas: item.pas } : {}) });
                     if (item.tipo === 'tema1' && item.modo === 'roma') anotarRoma(item.fix, false);
                     if (item.tipo === 'socials') { anotarSocials(item, false); tornaSocials(item); }
+                    if (item.tipo === 'bio') { anotarBio(item, false); tornaBio(item); }
                     if (item.tipo === 'tonica') { anotarTonica(item, false); tornaTonica(item); hablar(item.veu); }
                     document.getElementById('tema1-panel').hidden = true;
                     mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', item.solucio, 'Millor això que endevinar. Mira-la bé i seguim.', false);
