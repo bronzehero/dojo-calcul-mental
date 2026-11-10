@@ -43,6 +43,18 @@ test.describe('Les difícils', () => {
         }
     });
 
+    test("si avui ja ha fet un entrenament (11/11, dos al dia), a la segona no n'hi ha: màxim 3 al dia", async ({ page }) => {
+        await simularSupabase(page);
+        await page.clock.setFixedTime(new Date('2026-11-11T19:00:00'));
+        await empezarEnMision(page, 7, { hechas: [1, 2, 3, 4, 5, 6].map(id => ({ id, fecha: '2026-01-01' })).concat([{ id: 10, fecha: '2026-11-11' }]) });
+        await page.addInitScript(e => localStorage.setItem('dojo_fase1', JSON.stringify(e)), SETMANA_3x7);
+        await page.goto(URL_APP);
+        await expect(page.locator('#btn-start-game')).toBeVisible();
+        const items = await page.evaluate(() => window.__itemsSetmana());
+        expect(items).toHaveLength(12);
+        expect(items.some(x => x.dificil)).toBe(false);
+    });
+
     test('quan passa a 9 × 9, entra 3 × 8 i surt 3 × 6 (el 18 li fa d\'imant); 3 × 7, a la cua', async ({ page }) => {
         await preparar(page, '2026-11-12', { ...SETMANA_3x7, setmana: { ...SETMANA_3x7.setmana, idx: 3, mezcla: 3 } });
         const items = await page.evaluate(() => window.__itemsSetmana());

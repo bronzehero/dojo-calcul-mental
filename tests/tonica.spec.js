@@ -26,7 +26,7 @@ const pasos = page => page.locator('#mision-pasos li').allTextContents();
 const TONICA = '🥁 On pica la força?';
 
 test.describe('On pica la força?', () => {
-    for (const [dia, hi, abans] of [['2026-11-06', false], ['2026-11-07', true, 'Socials'], ['2026-11-10', true, null], ['2026-11-13', true, null], ['2026-11-14', false]]) {
+    for (const [dia, hi, abans] of [['2026-11-06', false], ['2026-11-07', true, 'Socials'], ['2026-11-10', true, null], ['2026-11-13', true, null], ['2026-11-16', true, null], ['2026-11-17', false]]) {
         test(`el ${dia}, ${hi ? 'hi és, abans dels accents' : 'no hi és'}`, async ({ page }) => {
             await preparar(page, dia, { accent: true, socials: true });
             await expect.poll(async () => (await pasos(page)).length).toBeGreaterThan(1);

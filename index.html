@@ -1602,6 +1602,8 @@
             const DIFICIL_VEU_DIR = "Digues-la en veu alta, de les dues maneres.";
             function dificilsDelDia(f = fetSetmana()) {
                 if (hoy() < DIFICILS_DESDE) return [];
+                // Si avui ja ha fet un entrenament (dies amb dos), a la segona no: màxim 3 al dia
+                if (leerPlan().hechas.some(h => h.id === ENTRENAMENT.id && h.fecha === hoy())) return [];
                 const mateixa = d => (d.a === f.a && d.b === f.b) || (d.a === f.b && d.b === f.a);
                 return DIFICILS.filter(d => !mateixa(d) && !f.imanes.includes(d.a * d.b) && d.a * d.b !== f.a * f.b).slice(0, DIFICILS_N);
             }
@@ -2555,7 +2557,8 @@
             // Del 7 al 13/11 (examen d'accents probable ~13/11). Sent la paraula, la veu partida en trossos (sense accents gràfics,
             // perquè no li donin la resposta) i toca el tros fort. Si falla: la bona en majúscules i el truc de cridar-la.
             // Les fallades tornen primer l'endemà.
-            const TONICA_DES_DE = '2026-11-07', TONICA_FINS = '2026-11-13';
+            // 10/11: fins al dilluns 16/11 (examen d'accents)
+            const TONICA_DES_DE = '2026-11-07', TONICA_FINS = '2026-11-16';
             const TONICA_PARAULES = [
                 [['ca', 'sa'], 0], [['ca', 'mí'], 1], [['can', 'tar'], 1], [['lli', 'bre'], 0], [['ca', 'fè'], 1], [['so', 'fà'], 1],
                 [['ma', 're'], 0], [['sor', 'tir'], 1], [['an', 'glès'], 1], [['fà', 'cil'], 0], [['mò', 'bil'], 0], [['a', 'mic'], 1],
@@ -3642,9 +3645,10 @@
                 return e.length === 2 && e[0] !== e[1] && r === e[1] + e[0];
             }
 
-            // Días en que el entrenamiento se puede hacer dos veces porque la primera falló la app
-            // (12/10: los saltos de «Passar pel 10» se preguntaban con la resta a la vista)
-            const REPETIR_ENTRENAMENT = ['2026-10-12'];
+            // Días en que el entrenamiento se puede hacer dos veces
+            // (12/10: la primera falló la app, los saltos de «Passar pel 10» se preguntaban con la resta a la vista;
+            // 11/11: huelga, en casa todo el día: uno por la mañana y otro por la tarde-noche)
+            const REPETIR_ENTRENAMENT = ['2026-10-12', '2026-11-11'];
             // Días con una segunda misión por la tarde (8/11: el repaso del domingo por la mañana y, por la tarde, el
             // entrenamiento normal, antes del examen de Sociales del 10/11). Solo si la de la mañana fue el repaso.
             const SEGONA_MISSIO = ['2026-11-08'];
