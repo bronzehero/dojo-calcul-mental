@@ -86,6 +86,53 @@ test.describe('On pica la força?', () => {
         expect(dema).toHaveLength(12);
     });
 
+    test("des de l'11/11: les fallades, primer «quina sona bé?» (dita de diverses maneres) i just després partida", async ({ page }) => {
+        const envios = await simularSupabase(page, { tonica: true }).then(x => x.envios);
+        await page.clock.setFixedTime(new Date('2026-11-11T19:00:00'));
+        await page.addInitScript(p => {
+            if (sessionStorage.getItem('plan-preparado')) return;
+            sessionStorage.setItem('plan-preparado', '1');
+            localStorage.setItem('dojo_plan', JSON.stringify(p));
+            localStorage.setItem('dojo_tonica', JSON.stringify({ falla: ['color', 'amic'] }));
+        }, { hechas: PLAN_ACABAT, extras: EXTRES_FETES });
+        await page.goto(URL_APP);
+        const items = await page.evaluate(() => window.__itemsTonicaV());
+        expect(items).toHaveLength(12);
+        expect(items.slice(0, 4).map(x => x.versions)).toEqual([true, false, true, false]);
+        expect(items[0].paraula).toBe(items[1].paraula);
+        expect(items.slice(4).every(x => !x.versions)).toBe(true);
+        // La veu les diu amb la força a cada tros: l'accent escrit a la vocal d'aquell tros
+        expect(await page.evaluate(() => window.__veuVersions('color'))).toBe('Quina sona bé? Primera: còlor. Segona: color.');
+        expect(await page.evaluate(() => window.__veuVersions('amic'))).toBe('Quina sona bé? Primera: àmic. Segona: amic.');
+        expect(await page.evaluate(() => window.__veuVersions('telèfon'))).toBe('Quina sona bé? Primera: tèlefon. Segona: telèfon. Tercera: telefòn.');
+        expect(await page.evaluate(() => window.__veuVersions('avió'))).toBe('Quina sona bé? Primera: àvio. Segona: avío. Tercera: avió.');
+        // A la pantalla: botons 1 i 2; si s'equivoca, la bona i on pica; no canvia les fallades
+        await expect.poll(async () => (await pasos(page)).join('|')).toContain('On pica');
+        const p = await pasos(page);
+        await page.evaluate(i => {
+            const plan = JSON.parse(localStorage.getItem('dojo_plan'));
+            localStorage.setItem('dojo_plan', JSON.stringify({ ...plan, enCurso: { id: window.__idMisio(), bloque: i, fecha: '2026-11-11' } }));
+        }, p.indexOf(TONICA));
+        await page.reload();
+        await page.click('#btn-start-game');
+        await page.click('#btn-intro-vamos');
+        const t = await seguent(page, 'null');
+        expect(t.modo).toBe('versions');
+        expect(t.opcions.length).toBeGreaterThanOrEqual(2);
+        await expect(page.locator('#btn-escoltar-tonica')).toBeVisible();
+        await page.click(`#tema1-opcions button:not([data-opcio="${t.esperado}"]) >> nth=0`);
+        await expect(page.locator('#gentle-correction-box')).toBeVisible();
+        await expect(page.locator('#correction-pista')).toContainText('digues-la de les dues maneres');
+        expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
+        await page.click('#btn-correction-continue');
+        const t2 = await seguent(page, JSON.stringify(t));
+        expect(t2.modo).toMatch(/^sil/);
+        const st = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_tonica')));
+        expect(st.falla.sort()).toEqual(['amic', 'color']);
+        const dades = envios.filter(e => e.datos.modulo === 'tonica').map(e => e.datos);
+        expect(dades[0].detalle.modo).toBe('versions');
+    });
+
     test('dissabte 7/11: socials amb les fallades de divendres, però les 5 del bloc 2 hi són totes', async ({ page }) => {
         await simularSupabase(page, { socials: true });
         await page.clock.setFixedTime(new Date('2026-11-07T17:00:00'));

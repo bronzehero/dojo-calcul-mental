@@ -2735,11 +2735,35 @@
                 if (ok) falla.delete(it.paraula); else falla.add(it.paraula);
                 try { localStorage.setItem('dojo_tonica', JSON.stringify({ ...st, falla: [...falla] })); } catch (e) { /* sense memòria, segueix igual */ }
             }
+            // 11/11 (papà: «sigue sin saber dónde está la tónica»; al matí 6 de 12, i a les agudes sense accent escrit
+            // toca sempre el primer tros: CO-lor, A-mic, A-bril, TE-lèfon). Partida en trossos no ho sent. Des d'ara, les que
+            // falla surten primer DITES DE DIVERSES MANERES (la força a cada tros: «còlor», «color») i tria quina sona bé
+            // —això sí que ho sap, coneix com sonen les paraules—, i just després la mateixa paraula partida: toca el tros
+            // que pica. És l'estratègia per a l'examen: dir-la fluixet de les dues maneres i quedar-se amb la bona.
+            const TONICA_VERSIONS_DES_DE = '2026-11-11';
+            const ACCENT_FORCAT = { a: 'à', e: 'è', i: 'í', o: 'ò', u: 'ú' };
+            // La paraula amb la força al tros «i» (s'escriu l'accent a la vocal d'aquell tros perquè la veu la digui així)
+            function versioTonica([sil, t], i) {
+                if (i === t) return paraulaTonica([sil, t]);
+                return sil.map((x, k) => {
+                    const s = senseAccent(x);
+                    if (k !== i) return s;
+                    const m = s.match(/^(.*?)([aeiouAEIOU])([^aeiouAEIOU]*)$/) || s.match(/^(.*)([aeiouAEIOU])(.*)$/);
+                    if (!m) return s;
+                    const v = ACCENT_FORCAT[m[2].toLowerCase()];
+                    return m[1] + (m[2] === m[2].toUpperCase() ? v.toUpperCase() : v) + m[3];
+                }).join('');
+            }
+            const ORDINALS = ['Primera', 'Segona', 'Tercera', 'Quarta'];
+            const veuVersions = w => 'Quina sona bé? ' + w[0].map((_, i) => `${ORDINALS[i]}: ${versioTonica(w, i)}.`).join(' ');
             function itemsTonica() {
                 const falla = new Set(leerTonica().falla || []);
                 const primer = shuffle(TONICA_PARAULES.filter(w => falla.has(paraulaTonica(w))));
                 const resta = shuffle(TONICA_PARAULES.filter(w => !falla.has(paraulaTonica(w))));
-                return [...primer, ...resta].slice(0, Math.max(TONICA_PER_DIA, primer.length));
+                if (hoy() < TONICA_VERSIONS_DES_DE) return [...primer, ...resta].slice(0, Math.max(TONICA_PER_DIA, primer.length));
+                // Les fallades: primer «quina sona bé?» i després la mateixa partida. Es completa fins a 12 amb les altres
+                const parells = primer.flatMap(w => [Object.assign([w[0], w[1]], { versions: true }), w]);
+                return [...parells, ...resta].slice(0, Math.max(TONICA_PER_DIA, parells.length));
             }
             const tonicaPendent = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= TONICA_DES_DE && hoy() <= TONICA_FINS && !leerTonica().pausa;
             const conTonica = m => ({ ...m, bloques: [...m.bloques, { tipo: 'tonica' }] });
@@ -3450,6 +3474,8 @@
             window.__paraulaActual = () => item && item.tipo === 'paraules' ? { id: item.w.id, paraula: item.paraula, fase: item.fase, etapa: item.etapa } : null;
             window.__itemsXifresProva = () => itemsXifra();
             window.__bioPreguntes = () => BIO_PREGUNTES;
+            window.__itemsTonicaV = () => itemsTonica().map(w => ({ paraula: paraulaTonica(w), versions: !!w.versions }));
+            window.__veuVersions = p => veuVersions(TONICA_PARAULES.find(w => paraulaTonica(w) === p));
             window.__itemsBio = () => itemsBio().map(x => ({ bloc: x.bloc, preg: x.preg }));
             window.__itemsSocials = () => itemsSocials().map(x => ({ bloc: x.bloc, preg: x.preg, ...(x.previa ? { previa: true } : {}) }));
             window.__idMisio = () => misionMostrada().id;
@@ -3531,7 +3557,7 @@
                     t.add(fraseMision(ambX(conLab(ambP(ambT(CONTROL))))));
                 })));
                 // Del 7 al 13/11, la tònica després dels socials (fins al 9/11) i abans dels accents; amb o sense paraules, laboratori i xifres
-                TONICA_PARAULES.forEach(w => t.add(paraulaTonica(w)));
+                TONICA_PARAULES.forEach(w => { t.add(paraulaTonica(w)); t.add(veuVersions(w)); });
                 [conSocials, m => m].forEach(ambS => [m => m, conLab].forEach(ambL => [m => m, conParaules].forEach(ambP => [m => m, ambXifres].forEach(ambX => {
                     SETMANA.forEach(f => t.add(fraseMision(ambX(ambL(ambP(conAccent(conTonica(ambS(ENTRENAMENT)))))), f)));
                     t.add(fraseMision(ambX(ambL(ambP(conAccent(conTonica(ambS(CONTROL))))))));
@@ -4371,6 +4397,17 @@
                     return { ...base, texto: '', html: svgElemento(x.bona), clave: `elemento:${x.bona}`, preg: '¿Cómo se llama lo que señala la flecha?',
                         opcions: ambAltres(x.bona, Object.keys(ELEMENTOS)), explica: ELEMENTOS[x.bona] };
                 }
+                if (tipo === 'tonica' && sesion.fijos[sesion.hechos].versions) {
+                    const w = sesion.fijos[sesion.hechos];
+                    const [sil, t] = w;
+                    const paraula = paraulaTonica(w);
+                    const forta = sil.map((x, i) => i === t ? x.toUpperCase() : x).join(' - ');
+                    return { tipo, modo: 'versions', paraula, texto: '🎧', html: '<span class="tonica-icona">🎧</span>', clave: `versions:${paraula}`,
+                        esperado: String(t + 1), preg: `Te la dic de ${sil.length} maneres. Digues-les tu també, fluixet. Quina sona bé?`,
+                        opcions: sil.map((_, i) => String(i + 1)), veu: veuVersions(w), escoltat: 0, fix: w, versions: true,
+                        solucio: `La ${ORDINALS[t].toLowerCase()}: ${forta}`,
+                        explica: `La bona és la ${ORDINALS[t].toLowerCase()}, amb la força a «${sil[t].toUpperCase()}». Quan dubtis, digues-la de les dues maneres i queda't amb la que sona bé.` };
+                }
                 if (tipo === 'tonica') {
                     const w = sesion.fijos[sesion.hechos];
                     const [sil, t] = w;
@@ -4791,7 +4828,7 @@
                 if (!ok && item.tipo === 'catala' && item.intent === 1) return catalaAlFull(opcio, ms);
                 if (item.tipo === 'socials') { anotarSocials(item, ok); if (!ok) tornaSocials(item); }
                 if (item.tipo === 'bio') { anotarBio(item, ok); if (!ok) tornaBio(item); }
-                if (item.tipo === 'tonica') { anotarTonica(item, ok); if (!ok) tornaTonica(item); }
+                if (item.tipo === 'tonica' && !item.versions) { anotarTonica(item, ok); if (!ok) tornaTonica(item); }
                 registrar(item, opcio, ok, ms, item.tipo === 'catala' ? { modo: item.modo, opcions: item.opcions, intent: item.intent } : item.tipo === 'tonica' ? { modo: item.modo, opcions: item.opcions, escoltat: item.escoltat, ...(item.torna ? { torna: true } : {}) } : { modo: item.modo, opcions: item.opcions, ...(item.fix && item.fix.torna ? { torna: true } : {}) });
                 document.getElementById('tema1-panel').hidden = true;
                 if (ok) celebrar();
@@ -4799,7 +4836,7 @@
                     opFeedbackEl.innerHTML = '';
                     mostrarCorreccion('🌸 Gairebé! Fixa-t\'hi bé:', item.solucio, `Tu has triat: ${opcio}`);
                     mostrarPistaCorreccion();
-                    if (item.tipo === 'tonica') hablar(item.veu);
+                    if (item.tipo === 'tonica') hablar(item.versions ? item.paraula : item.veu);
                 }
             }
 
@@ -5164,7 +5201,7 @@
                     if (item.tipo === 'tema1' && item.modo === 'roma') anotarRoma(item.fix, false);
                     if (item.tipo === 'socials') { anotarSocials(item, false); tornaSocials(item); }
                     if (item.tipo === 'bio') { anotarBio(item, false); tornaBio(item); }
-                    if (item.tipo === 'tonica') { anotarTonica(item, false); tornaTonica(item); hablar(item.veu); }
+                    if (item.tipo === 'tonica') { if (!item.versions) { anotarTonica(item, false); tornaTonica(item); } hablar(item.versions ? item.paraula : item.veu); }
                     document.getElementById('tema1-panel').hidden = true;
                     mostrarCorreccion('Cap problema! 🌸 Fixa-t\'hi:', item.solucio, 'Millor això que endevinar. Mira-la bé i seguim.', false);
                     mostrarPistaCorreccion();
