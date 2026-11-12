@@ -110,6 +110,8 @@ async function empezarEnMision(page, numero, extra = {}) {
         // Con el plan acabado, el dictado de partida y las xifres ya hechos (si no, a partir del 16/10 saldría el dictado
         // en vez del entrenamiento, y desde el 17/10 las xifres irían añadidas al final)
         const extras = n >= 7 ? [{ id: 102, fecha: '2026-01-01' }, { id: 103, fecha: '2026-01-01' }] : undefined;
+        // Un enCurso sense data és d'avui (l'app només continua la missió si va parar el mateix dia)
+        if (ex.enCurso && !ex.enCurso.fecha) ex.enCurso.fecha = new Date().toLocaleDateString('sv-SE');
         localStorage.setItem('dojo_plan', JSON.stringify({ hechas, extras, ...ex }));
     }, [numero, extra]);
 }
@@ -158,7 +160,7 @@ async function irAlUltimoBloque(page, idMision) {
         const p = JSON.parse(localStorage.getItem('dojo_plan') || '{"hechas":[]}');
         const hechas = [];
         for (let i = 1; i < id; i++) hechas.push(p.hechas[i - 1] || { id: i, fecha: '2026-01-01' });
-        localStorage.setItem('dojo_plan', JSON.stringify({ hechas, enCurso: { id, bloque: 1 }, permitirOtra: new Date().toLocaleDateString('sv-SE') }));
+        localStorage.setItem('dojo_plan', JSON.stringify({ hechas, enCurso: { id, bloque: 1, fecha: new Date().toLocaleDateString('sv-SE') }, permitirOtra: new Date().toLocaleDateString('sv-SE') }));
     }, idMision);
     await page.reload();
 }

@@ -3920,7 +3920,8 @@
             // ==========================================
             function bloqueGuardado(m) {
                 const p = leerPlan();
-                return p.enCurso && p.enCurso.id === m.id ? p.enCurso.bloque : 0;
+                // Només si va parar avui: una missió d'un altre dia (amb uns altres blocs) torna a començar pel principi
+                return p.enCurso && p.enCurso.id === m.id && p.enCurso.fecha === hoy() ? p.enCurso.bloque : 0;
             }
 
             function empezarMision() {

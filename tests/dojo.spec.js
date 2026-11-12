@@ -93,6 +93,16 @@ test.describe('Parar a medias', () => {
         await expect(page.locator('#intro-titulo')).toHaveText('Multiplicacions');
     });
 
+    test('si va parar un altre dia, la missió torna a començar pel primer bloc', async ({ page }) => {
+        // 12/11: la missió del dia va seguir pel bloc on s'havia quedat la de la nit abans i es va saltar els primers
+        await simularSupabase(page);
+        await empezarEnMision(page, 1, { enCurso: { id: 1, bloque: 1, fecha: '2026-01-01' } });
+        await page.goto(URL_APP);
+        await expect(page.locator('#mision-pasos li').first()).not.toHaveClass('hecho');
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).not.toHaveText('Multiplicacions');
+    });
+
     test('si para en mitad de un bloque, ese bloque se repite entero', async ({ page }) => {
         await simularSupabase(page);
         await page.goto(URL_APP);
