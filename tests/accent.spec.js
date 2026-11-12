@@ -29,8 +29,8 @@ async function seguent(page, anterior) {
 }
 
 test.describe('Accents en castellà', () => {
-    // Fins al 5/11, després del tema 1; des del 6/11 (ja sense tema 1) continua fins al 20/11 (papà, 4/11)
-    for (const [dia, hi] of [['2026-10-28', false], ['2026-10-29', true], ['2026-11-05', true], ['2026-11-06', true], ['2026-11-20', true], ['2026-11-21', false]]) {
+    // Fins al 5/11, després del tema 1; des del 6/11 (ja sense tema 1) continuava fins al 20/11 (papà, 4/11); des del 13/11, fora (papà, 12/11)
+    for (const [dia, hi] of [['2026-10-28', false], ['2026-10-29', true], ['2026-11-05', true], ['2026-11-06', true], ['2026-11-12', true], ['2026-11-13', false], ['2026-11-20', false]]) {
         test(`el ${dia}, ${hi ? 'hi és' : 'no hi és'}`, async ({ page }) => {
             await preparar(page, dia);
             await expect(page.locator('#mision-titulo')).toHaveText('Entrenament');

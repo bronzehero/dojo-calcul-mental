@@ -3,7 +3,8 @@
 # - Explicaciones e instrucciones en catalán: Matxa-TTS v2 (gratis, en local; veu/matxa.py, desde el 8/11/2026).
 # - Dictados, palabras sueltas y pistas que nombran letras: la Joana (edge-tts). Matxa dice mal las palabras
 #   sueltas («cervell» → «servei») y las vocales sueltas («la e» → «la a»), y en ortografía eso confunde.
-# - Los textos que empiezan por «[es] » (palabras de castellano) van con una voz castellana (Elvira).
+# - Los textos que empiezan por «[es] » (palabras de castellano) van con una voz castellana (Elvira),
+#   y los que empiezan por «[en] » (frases de inglés, desde el 12/11), con una inglesa (Sonia).
 # Sin el venv de Matxa (~/.local/share/matxa-tts/venv), todo con la Joana.
 # Ejecutar después de cambiar cualquier texto hablado: las pruebas fallan si falta alguno.
 # Uso: veu/genera.sh
@@ -59,7 +60,7 @@ JOANA_SEMPRE = ("Busca-ho al full d'apunts", 'porta hac: he, has', "l'iPad")
 
 def amb_matxa(t):
     if not os.path.exists(os.path.expanduser('~/.local/share/matxa-tts/venv/bin/python')): return False
-    if t.startswith('[es] ') or len(t.split()) < 4 or any(x in t for x in JOANA_SEMPRE): return False
+    if t.startswith('[es] ') or t.startswith('[en] ') or len(t.split()) < 4 or any(x in t for x in JOANA_SEMPRE): return False
     if re.match(r"^[\wà-ü·'-]+\. ", t): return False  # dictado: «cervell. El cervell treballa molt. cervell.»
     if re.search(r"\b(amb|de|la|el|una|dues|sempre|primer|després|davant de)\s+[aeiouàèéíòóú]\b", t): return False
     if re.search(r"(amb|la|una|dues|sempre|primer|després) " + LLETRA, t): return False
@@ -75,9 +76,9 @@ for t in textos:
     elif not os.path.exists(f'{k}.mp3'):
         # El servicio limita las peticiones: una cada 2 s y, si falla, reintentar con más espera
         for intento in range(4):
-            es = t.startswith('[es] ')
-            voz = 'es-ES-ElviraNeural' if es else 'ca-ES-JoanaNeural'
-            if sintetiza(para_decir(t[5:] if es else t), f'{k}.tmp', voz) and os.path.getsize(f'{k}.tmp') > 1000:
+            es = t.startswith('[es] ') or t.startswith('[en] ')
+            voz = 'es-ES-ElviraNeural' if t.startswith('[es] ') else 'en-GB-SoniaNeural' if t.startswith('[en] ') else 'ca-ES-JoanaNeural'
+            if sintetiza(t[5:] if t.startswith('[en] ') else para_decir(t[5:] if es else t), f'{k}.tmp', voz) and os.path.getsize(f'{k}.tmp') > 1000:
                 os.replace(f'{k}.tmp', f'{k}.mp3'); print('nou:', k, t[:60]); break
             time.sleep(30 * (intento + 1))
         else:

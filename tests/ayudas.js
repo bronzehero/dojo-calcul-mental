@@ -63,6 +63,14 @@ async function simularSupabase(page, opciones = {}) {
             if (!localStorage.getItem('dojo_socials')) localStorage.setItem('dojo_socials', JSON.stringify({ pausa: true }));
         });
     }
+    // Y con los múltiplos y divisores (SA2) y el inglés (desde el 13/11)
+    for (const c of ['sa2', 'angles']) {
+        if (!opciones[c]) {
+            await page.addInitScript(c => {
+                if (!localStorage.getItem('dojo_' + c)) localStorage.setItem('dojo_' + c, JSON.stringify({ pausa: true }));
+            }, c);
+        }
+    }
     // Y con la bio (del 11 al 16/11)
     if (!opciones.bio) {
         await page.addInitScript(() => {

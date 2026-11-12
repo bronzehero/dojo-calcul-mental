@@ -29,12 +29,14 @@ test.describe('On pica la força?', () => {
     for (const [dia, hi, abans] of [['2026-11-06', false], ['2026-11-07', true, 'Socials'], ['2026-11-10', true, null], ['2026-11-13', true, null], ['2026-11-16', true, null], ['2026-11-17', false]]) {
         test(`el ${dia}, ${hi ? 'hi és, abans dels accents' : 'no hi és'}`, async ({ page }) => {
             await preparar(page, dia, { accent: true, socials: true });
-            await expect.poll(async () => (await pasos(page)).length).toBeGreaterThan(1);
+            await expect(page.locator('#mision-titulo')).toHaveText(/./);
+            if (hi) await expect.poll(async () => (await pasos(page)).includes(TONICA)).toBe(true);
             const p = await pasos(page);
             if (hi) {
                 const i = p.indexOf(TONICA);
-                expect(i).toBeGreaterThan(0);
-                expect(p[i + 1]).toContain('Accents');
+                // Fins al 12/11, entre el pas10/la de la setmana i els accents; des del 13/11 (sense accents), on toqui
+                if (dia < '2026-11-13') { expect(i).toBeGreaterThan(0); expect(p[i + 1]).toContain('Accents'); }
+                else expect(p.join(' ')).not.toContain('Accents');
                 if (abans) expect(p[i - 1]).toContain(abans);
                 else expect(p.join(' ')).not.toContain('Socials');
             } else expect(p.join(' ')).not.toContain('On pica');

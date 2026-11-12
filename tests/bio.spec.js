@@ -31,19 +31,22 @@ test.describe("Bio per a l'examen", () => {
     for (const [dia, hi] of [['2026-11-10', false], ['2026-11-11', true], ['2026-11-16', true], ['2026-11-17', false]]) {
         test(`el ${dia}, ${hi ? 'hi és, després de la tònica i abans dels accents' : 'no hi és'}`, async ({ page }) => {
             await preparar(page, dia, { accent: true, tonica: true });
-            await expect.poll(async () => (await pasos(page)).length).toBeGreaterThan(1);
+            await expect(page.locator('#mision-titulo')).toHaveText(/./);
+            if (hi) await expect.poll(async () => (await pasos(page)).includes(BIO)).toBe(true);
             const p = await pasos(page);
             if (hi) {
                 const i = p.indexOf(BIO);
                 expect(i).toBeGreaterThan(0);
                 expect(p[i - 1]).toContain('On pica la força');
-                expect(p[i + 1]).toContain('Accents');
+                // Fins al 12/11, després venien els accents; des del 13/11 ja no hi són
+                if (dia < '2026-11-13') expect(p[i + 1]).toContain('Accents');
+                else expect(p.join(' ')).not.toContain('Accents');
             } else expect(p.join(' ')).not.toContain('Bio');
         });
     }
 
-    for (const [dia, blocs] of [['2026-11-11', { bloc1: 8 }], ['2026-11-12', { bloc1: 3, bloc2: 6 }], ['2026-11-13', { bloc1: 2, bloc2: 3, bloc3: 5 }],
-        ['2026-11-14', { bloc1: 2, bloc2: 2, bloc3: 2, bloc4: 5 }], ['2026-11-16', { bloc1: 3, bloc2: 3, bloc3: 3, bloc4: 3 }]]) {
+    for (const [dia, blocs] of [['2026-11-11', { bloc1: 8 }], ['2026-11-12', { bloc1: 3, bloc2: 6 }], ['2026-11-13', { bloc1: 4, bloc2: 6, bloc3: 1, bloc4: 1 }],
+        ['2026-11-14', { bloc1: 4, bloc2: 6, bloc3: 1, bloc4: 1 }], ['2026-11-16', { bloc1: 4, bloc2: 6, bloc3: 1, bloc4: 1 }]]) {
         test(`el ${dia}, els blocs que toquen: ${JSON.stringify(blocs)}`, async ({ page }) => {
             await preparar(page, dia);
             const items = await page.evaluate(() => window.__itemsBio());
