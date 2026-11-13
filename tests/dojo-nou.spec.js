@@ -57,8 +57,8 @@ test.describe('El Dojo des del 13/11', () => {
         expect(p).not.toContain('Accents');
     });
 
-    test('el diumenge 15/11 tampoc hi ha el repàs de multiplicacions; i, encara que sigui un dia de molta feina, les paraules del dictat de castellà', async ({ page }) => {
-        await preparar(page, '2026-11-15');
+    test('el dissabte 14/11, encara que sigui un dia de molta feina, les paraules del dictat de castellà (les 8, noves)', async ({ page }) => {
+        await preparar(page, '2026-11-14');
         await expect.poll(async () => (await pasos(page)).length).toBe(5);
         const p = await pasos(page);
         expect(p[0]).toContain('Múltiples i divisors');
@@ -70,7 +70,26 @@ test.describe('El Dojo des del 13/11', () => {
         expect(items.every(x => x.id.startsWith('es-d2-'))).toBe(true);
     });
 
-    test('el 14/11 i el 16/11, les paraules del dictat no hi són', async ({ page }) => {
+    test('el diumenge 15/11 (Port Aventura): només la tònica i les paraules del dictat que encara no domina; res del dissabte a mitges', async ({ page }) => {
+        const BLOCS = [{ tipo: 'sa2' }, { tipo: 'tonica' }, { tipo: 'bio' }, { tipo: 'angles' }, { tipo: 'paraules' }];
+        const D2 = ['inteligencia', 'conocimiento', 'verdadero', 'signo', 'imaginacion', 'haciendo', 'vez', 'exito'];
+        const w = Object.fromEntries(D2.map(x => [`es-d2-${x}`, { intro: '2026-11-14', ultima: '2026-11-14', dominada: !['inteligencia', 'vez'].includes(x) }]));
+        await preparar(page, '2026-11-15', TOTS, {
+            plan: { hechas: PLAN_ACABAT, extras: EXTRES_FETES, enCurso: { id: 10, bloque: 2, fecha: '2026-11-14', bloques: BLOCS } },
+            paraules: { w } });
+        await expect.poll(async () => (await pasos(page)).length).toBeGreaterThan(0);
+        const p = await pasos(page);
+        expect(p.join(' | ')).not.toMatch(/Múltiples|Bio|English|Laboratori/);
+        expect(p.some(x => x.includes('On pica la força'))).toBe(true);
+        expect(p.some(x => x.includes('Paraules'))).toBe(true);
+        const items = await page.evaluate(() => window.__itemsParaules());
+        expect(items.map(x => x.id).sort()).toEqual(['es-d2-inteligencia', 'es-d2-vez']);
+        expect(items.every(x => x.fase === 'recorda')).toBe(true);
+    });
+
+    test('el 13/11 i el 16/11, les paraules del dictat no hi són', async ({ page }) => {
+        await preparar(page, '2026-11-13');
+        expect((await page.evaluate(() => window.__itemsParaules())).some(x => x.id.startsWith('es-d2-'))).toBe(false);
         await preparar(page, '2026-11-16');
         const items = await page.evaluate(() => window.__itemsParaules());
         expect(items.some(x => x.id.startsWith('es-d2-'))).toBe(false);
@@ -79,8 +98,8 @@ test.describe('El Dojo des del 13/11', () => {
 
 test.describe('Missió a mitges (papà, 12/11): l\'endemà primer acaba el que va quedar', () => {
     const BLOCS = [{ tipo: 'sa2' }, { tipo: 'tonica' }, { tipo: 'bio' }, { tipo: 'angles' }];
-    test('va parar el 13/11 després de 2 blocs: el 14/11, primer la bio i l\'anglès d\'ahir i després la missió sencera', async ({ page }) => {
-        await preparar(page, '2026-11-14', TOTS, { plan: { hechas: PLAN_ACABAT, extras: EXTRES_FETES, enCurso: { id: 10, bloque: 2, fecha: '2026-11-13', bloques: BLOCS } } });
+    test('va parar després de 2 blocs: l\'endemà (16/11), primer la bio i l\'anglès que van quedar i després la missió sencera', async ({ page }) => {
+        await preparar(page, '2026-11-16', TOTS, { plan: { hechas: PLAN_ACABAT, extras: EXTRES_FETES, enCurso: { id: 10, bloque: 2, fecha: '2026-11-13', bloques: BLOCS } } });
         await expect.poll(async () => (await pasos(page)).length).toBe(6);
         const p = await pasos(page);
         expect(p[0]).toContain('Bio');
@@ -93,7 +112,7 @@ test.describe('Missió a mitges (papà, 12/11): l\'endemà primer acaba el que v
         await expect(page.locator('#intro-titulo')).toHaveText("Bio per a l'examen");
         // Si torna a parar avui, la mateixa llista (amb el d'ahir) continua guardada
         const ec = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_plan')).enCurso);
-        expect(ec.fecha).toBe('2026-11-14');
+        expect(ec.fecha).toBe('2026-11-16');
         expect(ec.bloques).toHaveLength(6);
         await page.reload();
         await expect.poll(async () => (await pasos(page)).length).toBe(6);
@@ -178,8 +197,8 @@ test.describe('Anglès', () => {
         items.forEach(x => expect(x.veu.startsWith('[en] ')).toBe(true));
     });
 
-    test('des del 15/11, l\'email senzill (10) i 3 de vocabulari; les negatives fallades d\'abans ja no tornen', async ({ page }) => {
-        await preparar(page, '2026-11-15');
+    test('des del 14/11, l\'email senzill (10) i 3 de vocabulari; les negatives fallades d\'abans ja no tornen', async ({ page }) => {
+        await preparar(page, '2026-11-14');
         await page.evaluate(() => localStorage.setItem('dojo_angles', JSON.stringify({ falla: [
             { bloc: 1, preg: 'it is not = ?', bona: 'it isn\'t', altres: ['it amn\'t', 'it not is'], explica: 'x', veu: '[en] It isn\'t.' },
             { bloc: 5, preg: 'nom', bona: 'name', altres: ['neim', 'nam'], explica: 'x', veu: '[en] My name is Alice.' }] })));
@@ -204,15 +223,17 @@ test.describe('Anglès', () => {
     });
 
     test('si falla: la bona explicada, la frase en anglès i torna al final; queda guardada per a l\'endemà', async ({ page }) => {
-        const envios = await preparar(page, '2026-11-13', { angles: true });
+        // El 14/11 (13 preguntes) i l'endemà de feina, el 16/11: tots dos amb l'email senzill
+        const envios = await preparar(page, '2026-11-14', { angles: true });
+        const n = (await page.evaluate(() => window.__itemsAngles())).length;
         await page.evaluate(() => { window.__dites = []; window.speechSynthesis.speak = u => window.__dites.push(u.lang); });
         await page.click('#btn-start-game');
         await expect(page.locator('#intro-titulo')).toHaveText('English');
         await page.click('#btn-intro-vamos');
         let anterior = 'null', fallada = null;
-        for (let i = 0; i < 13; i++) {
+        for (let i = 0; i <= n; i++) {
             const t = await seguent(page, anterior);
-            if (i === 12) expect(t.texto).toBe(fallada);
+            if (i === n) expect(t.texto).toBe(fallada);
             if (i === 0) {
                 fallada = t.texto;
                 await page.click(`#tema1-opcions button:not([data-opcio="${t.esperado.replace(/"/g, '\\"')}"]) >> nth=0`);
@@ -223,10 +244,10 @@ test.describe('Anglès', () => {
             anterior = JSON.stringify(t);
         }
         const dades = envios.filter(e => e.datos.modulo === 'angles').map(e => e.datos);
-        expect(dades).toHaveLength(13);
+        expect(dades).toHaveLength(n + 1);
         const st = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_angles')));
         expect(st.falla.map(f => f.preg)).toEqual([fallada]);
-        await page.clock.setFixedTime(new Date('2026-11-14T17:00:00'));
+        await page.clock.setFixedTime(new Date('2026-11-16T17:00:00'));
         expect((await page.evaluate(() => window.__itemsAngles()))[0].preg).toBe(fallada);
     });
 });

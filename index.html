@@ -2679,9 +2679,10 @@
             // Quantes de cada bloc surten cada dia (blocs 1 a 4). Les que va fallar surten primer i es descompten dels blocs vells.
             // 12/11: el test en paper (13 de 21) falla les variables, l'ordre de les etapes, les conclusions, la forma de la pregunta i l'eix X;
             // el laboratori i les fonts, perfectes. I el 12/11 el Dojo es va saltar la bio. Fins a l'examen, sobretot blocs 1 i 2.
-            const BIO_PER_DIA = { '2026-11-11': [8, 0, 0, 0], '2026-11-12': [3, 6, 0, 0], '2026-11-13': [4, 6, 1, 1], '2026-11-14': [4, 6, 1, 1],
-                // 13/11, examen de prova: lab i fonts perfectes; fallen les fases (sense observació s'hi perd), variables, eixos, rèpliques i passos
-                '2026-11-15': [1, 3, 0, 0, 8], '2026-11-16': [1, 3, 0, 0, 8] };
+            const BIO_PER_DIA = { '2026-11-11': [8, 0, 0, 0], '2026-11-12': [3, 6, 0, 0], '2026-11-13': [4, 6, 1, 1], 
+                // 13/11, examen de prova: lab i fonts perfectes; fallen les fases (sense observació s'hi perd), variables, eixos, rèpliques i passos.
+                // 14/11 (papà): el diumenge van a Port Aventura; el que tocava el diumenge es fa el dissabte, i el diumenge sense bio.
+                '2026-11-14': [1, 3, 0, 0, 8], '2026-11-16': [1, 3, 0, 0, 8] };
             function leerBio() {
                 try { return JSON.parse(localStorage.getItem('dojo_bio')) || {}; } catch (e) { return {}; }
             }
@@ -2911,8 +2912,8 @@
                 [5, 'ballar', 'dance', ['dens', 'dans'], 'dance: d-a-n-c-e.', 'I like dancing.'],
                 [5, 'saltar', 'jump', ['jamp', 'yump'], 'jump: j-u-m-p (sona «jamp»).', 'I like jumping.']
             ];
-            // Des del 15/11, el bloc 5 (l'email senzill) i una mica de vocabulari; fora les negatives i les formes llargues
-            const ANGLES_SENZILL_DES_DE = '2026-11-15';
+            // Des del 14/11, el bloc 5 (l'email senzill) i una mica de vocabulari; fora les negatives i les formes llargues
+            const ANGLES_SENZILL_DES_DE = '2026-11-14';
             const anglesPerDia = () => hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10] : [3, 3, 4, 2, 0];
             const veuAngles = frase => `[en] ${frase}`;
             const fitxaAngles = ([bloc, preg, bona, altres, explica, frase]) => ({ bloc, preg, bona, altres, explica, veu: veuAngles(frase) });
@@ -3049,8 +3050,9 @@
             // El control de castellano fue el 26/10: desde el 29/10 de castellano solo quedan coherencia y cohesión,
             // para medir si funciona un método nuevo
             const PARAULES_ES_FINS = '2026-10-28', PARAULES_ES_QUEDEN = ['es-coherencia', 'es-cohesion'];
-            // Dictado 2 de castellano: el domingo 15/11 (el sábado no se trabaja), solo esas palabras, todas nuevas, aunque sea un día de mucha feina
-            const DICTAT2_DES_DE = '2026-11-15', DICTAT2_FINS = '2026-11-15';
+            // Dictado 2 de castellano (examen el lunes 16/11): el sábado 14/11 las 8 nuevas, aunque sea un día de mucha feina;
+            // el domingo 15/11, de memoria las que aún no domina
+            const DICTAT2_DES_DE = '2026-11-14', DICTAT2_FINS = '2026-11-15';
             const enDictat2 = d => d >= DICTAT2_DES_DE && d <= DICTAT2_FINS;
             const paraulaActiva = (w, d) => w.dictat2 ? enDictat2(d) : !enDictat2(d) && !(d >= LAB_DES_DE && LAB_DE_PARAULES.includes(w.id)) &&
                 (w.idioma !== 'es' || d <= PARAULES_ES_FINS || PARAULES_ES_QUEDEN.includes(w.id));
@@ -4035,10 +4037,15 @@
                 if (anglesPendent(m)) t = conAngles(t);
                 // Des del 13/11, el laboratori i les paraules només els dies amb poca feina (menys de 3 blocs d'examen)
                 const pocaFeina = !dojoNou(m) || t.bloques.filter(b => BLOCS_EXAMEN.includes(b.tipo)).length < 3;
-                // El 15/11, les paraules del dictat de castellà (examen el 16/11) hi van sempre
+                // 14-15/11, les paraules del dictat de castellà (examen el 16/11) hi van sempre
                 if ((pocaFeina || enDictat2(hoy())) && paraulesPendents(m)) t = conParaules(t);
-                return pocaFeina && labPendent(m) ? conLab(t) : t;
+                return nomesExamenDema(m, pocaFeina && labPendent(m) ? conLab(t) : t);
             };
+            // 14/11 (papà): diumenge 15/11 a Port Aventura, sense temps ni energia: només el que té examen el dilluns
+            // (accents de català i dictat de castellà). El que quedi a mitges del dissabte tampoc hi passa.
+            const NOMES_EXAMEN_DEMA = { '2026-11-15': ['tonica', 'paraules'] };
+            const nomesExamenDema = (m, t) => dojoNou(m) && NOMES_EXAMEN_DEMA[hoy()]
+                ? { ...t, bloques: t.bloques.filter(b => NOMES_EXAMEN_DEMA[hoy()].includes(b.tipo)) } : t;
 
             // 12/11 (papà): si un dia la missió es queda a mitges, l'endemà primer acaba el que va quedar i després fa la del dia;
             // si tampoc l'acaba, es va acumulant. Per això, des del 13/11, la llista de blocs es guarda en començar la missió.
@@ -4049,7 +4056,7 @@
                 if (!ec || ec.id !== m.id || !Array.isArray(ec.bloques) || !ec.bloques.length) return base;
                 if (ec.fecha === hoy()) return { ...base, bloques: ec.bloques };
                 const resta = ec.bloques.slice(ec.bloque || 0).map(b => ({ ...b, ahir: true }));
-                return { ...base, bloques: [...resta, ...base.bloques] };
+                return nomesExamenDema(m, { ...base, bloques: [...resta, ...base.bloques] });
             }
 
             // ¿Toca encadenar les xifres al acabar esta misión?
