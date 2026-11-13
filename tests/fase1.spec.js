@@ -4,7 +4,11 @@ const {
 } = require('./ayudas');
 
 const PROHIBIDO_EN_PANTALLA = /segons|cronòmetre|errades|errors|fallades|fallos|\d+\s*\/\s*\d+/i;
-const hoy = () => new Date().toLocaleDateString('sv-SE');
+// La fase 1 (pas10 + la de la setmana) es la misión hasta el 12/11; desde el 13/11 el Dojo es otro (dojo-nou.spec.js).
+// Las pruebas que no fijan su día van con el 12/11, para que no dependan de la fecha real.
+const DIA_FASE1 = '2026-11-12';
+const hoy = () => DIA_FASE1;
+test.beforeEach(async ({ page }) => { await page.clock.setFixedTime(new Date(`${DIA_FASE1}T17:00:00`)); });
 
 /** Deja el estado de la fase 1 en el iPad antes de cargar la página. */
 async function prepararFase1(page, estado) {

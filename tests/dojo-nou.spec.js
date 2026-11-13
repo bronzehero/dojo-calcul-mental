@@ -57,10 +57,23 @@ test.describe('El Dojo des del 13/11', () => {
         expect(p).not.toContain('Accents');
     });
 
-    test('el diumenge 15/11 tampoc hi ha el repàs de multiplicacions: la mateixa missió', async ({ page }) => {
+    test('el diumenge 15/11 tampoc hi ha el repàs de multiplicacions; i, encara que sigui un dia de molta feina, les paraules del dictat de castellà', async ({ page }) => {
         await preparar(page, '2026-11-15');
-        await expect.poll(async () => (await pasos(page)).length).toBe(4);
-        expect((await pasos(page))[0]).toContain('Múltiples i divisors');
+        await expect.poll(async () => (await pasos(page)).length).toBe(5);
+        const p = await pasos(page);
+        expect(p[0]).toContain('Múltiples i divisors');
+        expect(p[4]).toContain('Paraules');
+        const items = await page.evaluate(() => window.__itemsParaules());
+        const noves = items.filter(x => x.fase === 'nova').map(x => x.id);
+        expect(noves).toHaveLength(8);
+        noves.forEach(id => expect(id.startsWith('es-d2-')).toBe(true));
+        expect(items.every(x => x.id.startsWith('es-d2-'))).toBe(true);
+    });
+
+    test('el 14/11 i el 16/11, les paraules del dictat no hi són', async ({ page }) => {
+        await preparar(page, '2026-11-16');
+        const items = await page.evaluate(() => window.__itemsParaules());
+        expect(items.some(x => x.id.startsWith('es-d2-'))).toBe(false);
     });
 });
 
@@ -163,6 +176,20 @@ test.describe('Anglès', () => {
         expect(compte).toEqual({ 1: 3, 2: 3, 3: 4, 4: 2 });
         expect(new Set(items.map(x => x.preg)).size).toBe(12);
         items.forEach(x => expect(x.veu.startsWith('[en] ')).toBe(true));
+    });
+
+    test('des del 15/11, l\'email senzill (10) i 3 de vocabulari; les negatives fallades d\'abans ja no tornen', async ({ page }) => {
+        await preparar(page, '2026-11-15');
+        await page.evaluate(() => localStorage.setItem('dojo_angles', JSON.stringify({ falla: [
+            { bloc: 1, preg: 'it is not = ?', bona: 'it isn\'t', altres: ['it amn\'t', 'it not is'], explica: 'x', veu: '[en] It isn\'t.' },
+            { bloc: 5, preg: 'nom', bona: 'name', altres: ['neim', 'nam'], explica: 'x', veu: '[en] My name is Alice.' }] })));
+        const items = await page.evaluate(() => window.__itemsAngles());
+        expect(items.some(x => x.preg === 'it is not = ?')).toBe(false);
+        expect(items[0].preg).toBe('nom');
+        const compte = {};
+        items.forEach(x => { compte[x.bloc] = (compte[x.bloc] || 0) + 1; });
+        expect(compte).toEqual({ 3: 3, 5: 10 });
+        expect(new Set(items.map(x => x.preg)).size).toBe(items.length);
     });
 
     test('totes les preguntes tenen 3 opcions diferents i la bona hi és una sola vegada', async ({ page }) => {

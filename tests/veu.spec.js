@@ -11,6 +11,7 @@ function claveVeu(t) {
 }
 
 test('si el texto tiene MP3, lo pide a veu/ (la Joana) en vez de usar la voz del iPad', async ({ page }) => {
+    await page.clock.setFixedTime(new Date('2026-11-12T17:00:00')); // la misión con «Passar pel 10» (hasta el 12/11)
     await simularSupabase(page);
     await page.addInitScript(() => {
         const clau = t => { let h = 0x811c9dc5; for (const ch of t) h = Math.imul(h ^ ch.codePointAt(0), 0x01000193) >>> 0; return h.toString(16).padStart(8, '0'); };

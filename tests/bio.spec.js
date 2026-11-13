@@ -46,7 +46,9 @@ test.describe("Bio per a l'examen", () => {
     }
 
     for (const [dia, blocs] of [['2026-11-11', { bloc1: 8 }], ['2026-11-12', { bloc1: 3, bloc2: 6 }], ['2026-11-13', { bloc1: 4, bloc2: 6, bloc3: 1, bloc4: 1 }],
-        ['2026-11-14', { bloc1: 4, bloc2: 6, bloc3: 1, bloc4: 1 }], ['2026-11-16', { bloc1: 4, bloc2: 6, bloc3: 1, bloc4: 1 }]]) {
+        ['2026-11-14', { bloc1: 4, bloc2: 6, bloc3: 1, bloc4: 1 }],
+        // Des del 15/11, el bloc 5: el que va fallar a l'examen de prova del 13/11 (fases de la profe, variables, eixos, rèpliques)
+        ['2026-11-15', { bloc1: 1, bloc2: 3, bloc5: 8 }], ['2026-11-16', { bloc1: 1, bloc2: 3, bloc5: 8 }]]) {
         test(`el ${dia}, els blocs que toquen: ${JSON.stringify(blocs)}`, async ({ page }) => {
             await preparar(page, dia);
             const items = await page.evaluate(() => window.__itemsBio());
@@ -115,7 +117,7 @@ test.describe("Bio per a l'examen", () => {
         const totes = await page.evaluate(() => window.__bioPreguntes());
         expect(totes.length).toBeGreaterThan(60);
         for (const [bloc, preg, bona, altres, explica] of totes) {
-            expect([1, 2, 3, 4]).toContain(bloc);
+            expect([1, 2, 3, 4, 5]).toContain(bloc);
             expect(new Set([bona, ...altres]).size).toBe(3);
             [preg, bona, ...altres, explica].forEach(x => expect(x).not.toMatch(PROHIBIDO_EN_PANTALLA));
             [bona, ...altres].forEach(x => expect(x.length).toBeLessThanOrEqual(75));

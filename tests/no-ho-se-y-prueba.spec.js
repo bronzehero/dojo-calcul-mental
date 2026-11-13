@@ -96,6 +96,7 @@ test.describe('Modo prueba de papá', () => {
     });
 
     test('desde la Zona Papá: la misión entera como la verá ella, sin guardar ni enviar nada', async ({ page }) => {
+        await page.clock.setFixedTime(new Date('2026-11-12T17:00:00')); // la misión de antes del 13/11
         const { envios } = await simularSupabase(page);
         await empezarEnMision(page, 2);
         await page.goto(URL_APP);

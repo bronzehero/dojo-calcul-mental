@@ -2570,6 +2570,9 @@
             const BIO_MATES = "Música i mates: canvia el tipus de música · es mesura el temps i els exercicis correctes · igual: el tema i la dificultat de les fitxes.";
             const BIO_LLUM = "Plantes i llum: canvia la llum (persiana oberta o tancada) · es mesura la mida de la planta · igual: el tipus de planta, l'aigua i l'adob.";
             const BIO_COLACAO = "ColaCao i temperatura: canvia la temperatura de la llet · es mesura com es dissol (els grumolls) · igual: la llet, el ColaCao i el temps que remenem.";
+            const BIO_FASES6 = "Les 6 de l'examen: fer-se preguntes → formular hipòtesi → experimentació → anàlisi de resultats → elaborar conclusions → comunicar les conclusions. L'observació va abans de tot, però a l'examen no hi surt.";
+            const BIO_TRUC = "La pregunta ja diu les variables: «Com afecta [la independent, el que canvio] a [la dependent, el que mesuro]?».";
+            const BIO_EIXOS = "Eix X (horitzontal) = la independent, la que va primer a la pregunta. Eix Y (vertical) = la dependent, el que mesuro.";
             const BIO_FONTS = "Per saber si una font és fiable, 5 aspectes: autoria, actualització, objectivitat, tipus de web i correcció. Cap aspecte sol no n'hi ha prou: es miren tots junts.";
             const BIO_PREGUNTES = [
                 // Bloc 1: l'activitat científica (resum de la profe, recursos 1.3 i 1.4)
@@ -2650,13 +2653,35 @@
                 [4, "Correcció: què fa més fiable una pàgina?", 'Que la informació surti en altres webs fiables i tingui bibliografia', ['Que tingui molts colors', 'Que sigui molt llarga'], BIO_FONTS],
                 [4, "Una pàgina ben presentada sempre és fiable?", 'No: cal mirar tots els aspectes junts', ['Sí, sempre', 'Sí, si té fotos'], "Cap aspecte sol no garanteix que una font sigui fiable. Una pàgina ben presentada també pot tenir informació que no és certa."],
                 [4, "Quins són els 5 aspectes per saber si una font és fiable?", 'Autoria, actualització, objectivitat, tipus de web i correcció', ['Colors, fotos, llargada, títol i lletra', 'Observació, pregunta, hipòtesi, experiment i conclusions'], BIO_FONTS],
-                [4, "Per què les notícies falses s'escampen tan de pressa?", 'Per les xarxes socials, i perquè fan sorpresa, por o ràbia', ['Perquè són més curtes', 'Perquè les fan els científics'], "La informació circula molt ràpid per les xarxes socials, i la que fa sorpresa, por, ràbia o polèmica es comparteix molt."]
+                [4, "Per què les notícies falses s'escampen tan de pressa?", 'Per les xarxes socials, i perquè fan sorpresa, por o ràbia', ['Perquè són més curtes', 'Perquè les fan els científics'], "La informació circula molt ràpid per les xarxes socials, i la que fa sorpresa, por, ràbia o polèmica es comparteix molt."],
+                // Bloc 5 (des del 15/11): el que va fallar a l'examen de prova del 13/11 i al Dojo del 13/11.
+                // Les 6 fases de l'examen de la profe (Prova 1 del 9/10: sense observació, amb el còmic numerat); la pregunta
+                // «Com afecta [independent] a [dependent]?» ja diu les variables; terra i aigua = a controlar; eixos; rèpliques; passos.
+                [5, "A l'examen de la profe hi ha 6 fases, sense l'observació. Quina va primer?", 'Fer-se preguntes', ['Formular hipòtesi', 'Anàlisi de resultats'], BIO_FASES6],
+                [5, "De les 6 fases de l'examen, quina va just després de fer-se preguntes?", 'Formular hipòtesi', ['Experimentació', 'Elaborar conclusions'], BIO_FASES6],
+                [5, "De les 6 fases de l'examen, quina va just després de formular hipòtesi?", 'Experimentació', ['Elaborar conclusions', 'Fer-se preguntes'], BIO_FASES6],
+                [5, "De les 6 fases de l'examen, quina va just després de l'experimentació?", 'Anàlisi de resultats', ['Comunicar les conclusions', 'Formular hipòtesi'], BIO_FASES6],
+                [5, "De les 6 fases de l'examen, quina va just després de l'anàlisi de resultats?", 'Elaborar conclusions', ['Experimentació', 'Fer-se preguntes'], BIO_FASES6],
+                [5, "De les 6 fases de l'examen, quina és l'última?", 'Comunicar les conclusions', ['Elaborar conclusions', 'Anàlisi de resultats'], BIO_FASES6],
+                [5, "«Com afecta la quantitat de llum al creixement d'una planta?» Quina és la variable independent?", 'La quantitat de llum', ['El creixement de la planta', 'La terra'], BIO_TRUC],
+                [5, "«Com afecta la quantitat de llum al creixement d'una planta?» Quina és la variable dependent?", 'El creixement de la planta', ['La quantitat de llum', "L'aigua"], BIO_TRUC],
+                [5, "Plantes a la finestra i a l'armari. La terra i l'aigua, iguals per a totes. Què són?", 'Variables a controlar', ['La variable independent', 'La variable dependent'], "La terra i l'aigua són iguals a totes les plantes: són variables a controlar. El que canvio és la llum; el que mesuro, el creixement."],
+                [5, "«Com afecta la temperatura de l'aigua al temps que triga a dissoldre's el sucre?» Variable independent?", "La temperatura de l'aigua", ["El temps que triga a dissoldre's", 'La quantitat de sucre'], BIO_TRUC],
+                [5, "«Com afecta la temperatura de l'aigua al temps que triga a dissoldre's el sucre?» Variable dependent?", "El temps que triga a dissoldre's", ["La temperatura de l'aigua", 'El got'], BIO_TRUC],
+                [5, "«Com afecta la quantitat de llum al creixement d'una planta?» Al gràfic, què va a l'eix X?", 'La quantitat de llum', ['El creixement (cm)', 'Les conclusions'], BIO_EIXOS],
+                [5, "«Com afecta la quantitat de llum al creixement d'una planta?» Al gràfic, què va a l'eix Y?", 'El creixement (cm)', ['La quantitat de llum', 'La terra'], BIO_EIXOS],
+                [5, "Per què posem 3 plantes a la finestra i 3 a l'armari, i no una a cada lloc?", "Són rèpliques: amb una sola planta no n'hi ha prou", ['Per comprovar idees diferents', 'Per acabar abans'], "Rèpliques = repetir el mateix experiment. Amb una sola planta no n'hi ha prou: si estava malalta, ens enganyaria."],
+                [5, "Experiment de les plantes: què fas abans de posar-les a la finestra i a l'armari?", 'Mesurar-les amb el regle i apuntar-ho', ['Mirar quina ha crescut més', 'Treure la conclusió'], "Per saber quant ha crescut cada planta, la mesuro al principi i al final, i ho apunto en una taula."],
+                [5, "«Si una planta rep més llum, aleshores creixerà més.» On va?", 'A la hipòtesi', ['A la pregunta', 'A les conclusions'], "Pregunta = «Com afecta…?», amb interrogant. Hipòtesi = «Si…, aleshores…»."],
+                [5, "«Com afecta la quantitat de llum al creixement d'una planta?» On va?", 'A la pregunta', ['A la hipòtesi', 'A les conclusions'], "Pregunta = «Com afecta…?», amb interrogant. Hipòtesi = «Si…, aleshores…»."],
+                [5, "Les plantes de la finestra han crescut més. Què dius a la conclusió?", 'Que la hipòtesi es confirma', ['Quin material he fet servir', 'Una pregunta nova'], "Conclusió = si les dades confirmen la hipòtesi o no."]
             ];
             // Quantes de cada bloc surten cada dia (blocs 1 a 4). Les que va fallar surten primer i es descompten dels blocs vells.
             // 12/11: el test en paper (13 de 21) falla les variables, l'ordre de les etapes, les conclusions, la forma de la pregunta i l'eix X;
             // el laboratori i les fonts, perfectes. I el 12/11 el Dojo es va saltar la bio. Fins a l'examen, sobretot blocs 1 i 2.
             const BIO_PER_DIA = { '2026-11-11': [8, 0, 0, 0], '2026-11-12': [3, 6, 0, 0], '2026-11-13': [4, 6, 1, 1], '2026-11-14': [4, 6, 1, 1],
-                '2026-11-15': [4, 6, 1, 1], '2026-11-16': [4, 6, 1, 1] };
+                // 13/11, examen de prova: lab i fonts perfectes; fallen les fases (sense observació s'hi perd), variables, eixos, rèpliques i passos
+                '2026-11-15': [1, 3, 0, 0, 8], '2026-11-16': [1, 3, 0, 0, 8] };
             function leerBio() {
                 try { return JSON.parse(localStorage.getItem('dojo_bio')) || {}; } catch (e) { return {}; }
             }
@@ -2683,12 +2708,12 @@
                 if (st.fet === hoy()) return shuffle(BIO_PREGUNTES.filter(p => (st.repetir || []).includes(p[1]))).map(fitxaBio);
                 const quants = BIO_PER_DIA[hoy()] || [3, 3, 3, 3];
                 const falla = new Set(st.falla || []);
-                const finsBloc = Math.max(...[1, 2, 3, 4].filter(b => quants[b - 1] > 0));
+                const finsBloc = Math.max(...[1, 2, 3, 4, 5].filter(b => quants[b - 1] > 0));
                 const repeteix = shuffle(BIO_PREGUNTES.filter(p => falla.has(p[1]) && p[0] <= finsBloc));
                 const ja = new Set(repeteix.map(p => p[1]));
                 let descompte = repeteix.length;
-                const noves = [1, 2, 3, 4].flatMap(b => {
-                    let n = quants[b - 1];
+                const noves = [1, 2, 3, 4, 5].flatMap(b => {
+                    let n = quants[b - 1] || 0;
                     if (b < finsBloc) { const treu = Math.min(n, descompte); n -= treu; descompte -= treu; }
                     return shuffle(BIO_PREGUNTES.filter(p => p[0] === b && !ja.has(p[1]))).slice(0, n);
                 });
@@ -2740,10 +2765,10 @@
                 guardarTria(clau, { ...st, fet: hoy(), repetir: st.fet === hoy() ? [] : (st.falla || []) });
             }
             // Les que va fallar primer (fins a la meitat), i la resta noves
-            function itemsTria(clau, noves, quantes) {
+            function itemsTria(clau, noves, quantes, valen = () => true) {
                 const st = leerTria(clau);
-                if (st.fet === hoy()) return shuffle(st.repetir || []);
-                const vells = shuffle(st.falla || []).slice(0, Math.ceil(quantes / 2));
+                if (st.fet === hoy()) return shuffle((st.repetir || []).filter(valen));
+                const vells = shuffle((st.falla || []).filter(valen)).slice(0, Math.ceil(quantes / 2));
                 const ja = new Set(vells.map(f => f.preg));
                 return [...vells, ...noves.filter(f => !ja.has(f.preg)).slice(0, quantes - vells.length)];
             }
@@ -2866,14 +2891,37 @@
                 [4, 'Per preguntar-li:', 'Have you got a favourite singer?', ['You have got a favourite singer?', 'Has you got a favourite singer?'],
                     'Per preguntar, HAVE va davant: Have you got…?', 'Have you got a favourite singer?'],
                 [4, 'El teu preferit:', 'My favourite sport is basketball.', ['My favourite sport are basketball.', 'Mine favourite sport is basketball.'],
-                    'My favourite … IS …', 'My favourite sport is basketball.']
+                    'My favourite … IS …', 'My favourite sport is basketball.'],
+                // 5 · des del 15/11 (papà, 13/11): primer, dominar l'email senzill, una frase per cosa; les floritures, després.
+                // L'email del 13/11: «dens», «Jump», «I'm with mi Pepa»; al Dojo del 13/11 fallava les negatives (isn't, haven't).
+                [5, 'Per començar l\'email:', 'Hi Louise,', ['Bye Louise,', 'Dear Sir,'], 'Per començar: Hi… Per acabar: Bye…', 'Hi Louise,'],
+                [5, 'Per dir com et dius:', 'My name is Alice.', ['My name Alice.', 'I name is Alice.'], 'My name IS…', 'My name is Alice.'],
+                [5, 'Per dir l\'edat:', 'I\'m twelve.', ['I have twelve.', 'I twelve.'], 'L\'edat va amb I\'m (I am): I\'m twelve.', 'I\'m twelve.'],
+                [5, 'Per dir on vius:', 'I live in Barcelona.', ['I live at Barcelona.', 'I lives in Barcelona.'], 'I live IN… (a la ciutat).', 'I live in Barcelona.'],
+                [5, 'Per dir com ets d\'alta:', 'I\'m tall.', ['I\'ve got tall.', 'I tall.'], 'Alt o baix va amb I\'m: I\'m tall, I\'m short.', 'I\'m tall.'],
+                [5, 'Per dir com tens els cabells:', 'I\'ve got brown hair.', ['I\'m brown hair.', 'I\'ve got hair brown.'], 'Cabells i ulls van amb I\'ve got, i el color va davant: brown hair.', 'I\'ve got brown hair.'],
+                [5, 'Per dir com tens els ulls:', 'I\'ve got blue eyes.', ['I\'m blue eyes.', 'I\'ve got eyes blue.'], 'I\'ve got + color + eyes: blue eyes.', 'I\'ve got blue eyes.'],
+                [5, 'Per dir què t\'agrada:', 'I like music.', ['I likes music.', 'I am like music.'], 'Amb I: I like (sense -s i sense am).', 'I like music.'],
+                [5, 'Per dir que t\'agrada ballar:', 'I like dancing.', ['I like dens.', 'I like dancings.'], 'ballar = dance; m\'agrada ballar = I like dancing.', 'I like dancing.'],
+                [5, 'Per acabar l\'email:', 'Bye, Alice', ['Hi, Alice', 'Dear, Alice'], 'Per acabar: Bye… (o See you soon!).', 'Bye, Alice'],
+                [5, 'dotze', 'twelve', ['twelf', 'tuelve'], 'twelve: t-w-e-l-v-e.', 'I\'m twelve.'],
+                [5, 'nom', 'name', ['neim', 'nam'], 'name: n-a-m-e (sona «neim»).', 'My name is Alice.'],
+                [5, 'viure (jo visc)', 'live', ['liv', 'lif'], 'live: l-i-v-e.', 'I live in Barcelona.'],
+                [5, 'agradar (m\'agrada)', 'like', ['laik', 'lik'], 'like: l-i-k-e (sona «laik»).', 'I like music.'],
+                [5, 'ballar', 'dance', ['dens', 'dans'], 'dance: d-a-n-c-e.', 'I like dancing.'],
+                [5, 'saltar', 'jump', ['jamp', 'yump'], 'jump: j-u-m-p (sona «jamp»).', 'I like jumping.']
             ];
-            const ANGLES_PER_DIA = [3, 3, 4, 2];
+            // Des del 15/11, el bloc 5 (l'email senzill) i una mica de vocabulari; fora les negatives i les formes llargues
+            const ANGLES_SENZILL_DES_DE = '2026-11-15';
+            const anglesPerDia = () => hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10] : [3, 3, 4, 2, 0];
             const veuAngles = frase => `[en] ${frase}`;
             const fitxaAngles = ([bloc, preg, bona, altres, explica, frase]) => ({ bloc, preg, bona, altres, explica, veu: veuAngles(frase) });
             function itemsAngles() {
-                const noves = [1, 2, 3, 4].flatMap(b => shuffle(ANGLES_PREGUNTES.filter(p => p[0] === b)).slice(0, ANGLES_PER_DIA[b - 1])).map(fitxaAngles);
-                return itemsTria('angles', noves, ANGLES_PER_DIA.reduce((a, b) => a + b, 0));
+                const perDia = anglesPerDia();
+                const noves = [1, 2, 3, 4, 5].flatMap(b => shuffle(ANGLES_PREGUNTES.filter(p => p[0] === b)).slice(0, perDia[b - 1])).map(fitxaAngles);
+                // Les fallades d'abans, només si són dels blocs d'avui (el 15/11 ja no tornen les negatives)
+                const blocsAvui = new Set(ANGLES_PREGUNTES.filter(p => perDia[p[0] - 1] > 0).map(p => p[1]));
+                return itemsTria('angles', noves, perDia.reduce((a, b) => a + b, 0), f => blocsAvui.has(f.preg));
             }
             const anglesPendent = m => dojoNou(m) && hoy() >= ANGLES_DES_DE && !leerTria('angles').pausa && itemsAngles().length > 0;
             const conAngles = m => ({ ...m, bloques: [...m.bloques, { tipo: 'angles' }] });
@@ -2979,14 +3027,32 @@
                 { id: 'ca-historia', idioma: 'ca', marca: '[h]ist[ò]ria', frase: "M'agrada la història.", truc: 'Amb h, com en castellà. I la o porta accent: història.' },
                 { id: 'ca-ciencies', idioma: 'ca', marca: '[c]i[è]n[c]i[e]s', frase: 'Demà tinc examen de ciències.', truc: 'Amb c, com en castellà. En català acaba en ies: ciències.' },
                 { id: 'ca-anar', idioma: 'ca', marca: 'ana[r]', frase: 'Vull anar al cine.', truc: 'Els verbs acaben amb r, encara que no soni: anar, menjar, jugar.' },
-                { id: 'ca-principi', idioma: 'ca', marca: 'prin[c]i[p]i', frase: 'Al principi no ho entenia.', truc: 'Amb c, com principio en castellà: principi.' }
+                { id: 'ca-principi', idioma: 'ca', marca: 'prin[c]i[p]i', frase: 'Al principi no ho entenia.', truc: 'Amb c, com principio en castellà: principi.' },
+                // Dictado 2 de castellano (examen lun 16/11): las que falló en papel el 13/11, solo el domingo 15/11.
+                // inteligencia es la palabra central (sale 4 veces); los nombres de los autores, no (papá).
+                { id: 'es-d2-inteligencia', idioma: 'es', dictat2: true, marca: 'inteli[g]en[c]ia', frase: 'La inteligencia emocional representa el ochenta por ciento del éxito en la vida.',
+                  truc: 'Inteli-GEN-CIA: g como en genio y c como en ciencia. Sin tilde.', catala: { ca: 'intel·li[g][è]n[c]ia', es: 'inteli[g]en[c]ia' } },
+                { id: 'es-d2-conocimiento', idioma: 'es', dictat2: true, marca: 'cono[c]imiento', frase: 'El verdadero signo de la inteligencia no es el conocimiento, sino la imaginación.',
+                  truc: 'Viene de conocer: co, no, ci, mien, to. Sin s.' },
+                { id: 'es-d2-verdadero', idioma: 'es', dictat2: true, marca: '[v]erdadero', frase: 'He aquí el verdadero saber.', truc: 'Viene de verdad: con V de Verdad.' },
+                { id: 'es-d2-signo', idioma: 'es', dictat2: true, marca: 'si[g]no', frase: 'El verdadero signo de la inteligencia.', truc: 'Sig, no. Con g, como significar.' },
+                { id: 'es-d2-imaginacion', idioma: 'es', dictat2: true, marca: 'imaginaci[ó]n', frase: 'No es el conocimiento, sino la imaginación.',
+                  truc: 'Viene de imagen: sin h. Y acaba en ción con tilde.', catala: { ca: 'imaginació', es: 'imaginació[n]' } },
+                { id: 'es-d2-haciendo', idioma: 'es', dictat2: true, marca: '[h]a[c]iendo', frase: 'Haciendo el trabajo bien a la primera vez.', truc: 'Del verbo hacer, con h y con c.',
+                  familia: { verb: 'hacer', serie: ['hago', 'hace', 'hacer', 'haciendo', 'hecho'], veu: 'Viene del verbo hacer, y toda la familia lleva hache: hago, hace, hacer, haciendo, hecho. Escribe la que falta.' } },
+                { id: 'es-d2-vez', idioma: 'es', dictat2: true, marca: '[v]e[z]', frase: 'Bien a la primera vez.', truc: 'V de Vez y z al final: una vez, dos veces.' },
+                { id: 'es-d2-exito', idioma: 'es', dictat2: true, marca: '[é][x]ito', frase: 'El ochenta por ciento del éxito en la vida.',
+                  truc: 'É, xi, to: la fuerza va delante y lleva tilde. Con x.', catala: { ca: '[è]xit', es: '[é]xito' } }
             ].map(w => ({ ...w, paraula: w.marca.replace(/[\[\]]/g, '') }));
             const PARAULES_DES_DE = '2026-10-18';
             const PARAULES_DIES_DOMINADA = 3, PARAULES_REPAS_CADA = 7;
             // El control de castellano fue el 26/10: desde el 29/10 de castellano solo quedan coherencia y cohesión,
             // para medir si funciona un método nuevo
             const PARAULES_ES_FINS = '2026-10-28', PARAULES_ES_QUEDEN = ['es-coherencia', 'es-cohesion'];
-            const paraulaActiva = (w, d) => !(d >= LAB_DES_DE && LAB_DE_PARAULES.includes(w.id)) &&
+            // Dictado 2 de castellano: el domingo 15/11 (el sábado no se trabaja), solo esas palabras, todas nuevas, aunque sea un día de mucha feina
+            const DICTAT2_DES_DE = '2026-11-15', DICTAT2_FINS = '2026-11-15';
+            const enDictat2 = d => d >= DICTAT2_DES_DE && d <= DICTAT2_FINS;
+            const paraulaActiva = (w, d) => w.dictat2 ? enDictat2(d) : !enDictat2(d) && !(d >= LAB_DES_DE && LAB_DE_PARAULES.includes(w.id)) &&
                 (w.idioma !== 'es' || d <= PARAULES_ES_FINS || PARAULES_ES_QUEDEN.includes(w.id));
             // Días con la misión corta (29/10: examen de tecno y vóley): solo las que ya ha visto, ninguna nueva
             const PARAULES_SENSE_NOVES = ['2026-10-29'];
@@ -3936,7 +4002,7 @@
                 const vistes = actives.filter(w => e(w) && e(w).intro < d);
                 const pendents = vistes.filter(w => !e(w).dominada).slice(0, 8);
                 const repas = vistes.filter(w => e(w).dominada && diesEntre(e(w).ultima, d) >= PARAULES_REPAS_CADA).slice(0, 2);
-                const quantes = PARAULES_SENSE_NOVES.includes(d) || pendents.length >= 8 ? 0 : pendents.length >= 5 ? 2 : 4;
+                const quantes = enDictat2(d) ? 8 : PARAULES_SENSE_NOVES.includes(d) || pendents.length >= 8 ? 0 : pendents.length >= 5 ? 2 : 4;
                 const noves = actives.filter(w => !e(w) || e(w).intro === d).slice(0, quantes);
                 const recorda = shuffle([...pendents, ...repas]);
                 let final = shuffle(noves);
@@ -3969,7 +4035,8 @@
                 if (anglesPendent(m)) t = conAngles(t);
                 // Des del 13/11, el laboratori i les paraules només els dies amb poca feina (menys de 3 blocs d'examen)
                 const pocaFeina = !dojoNou(m) || t.bloques.filter(b => BLOCS_EXAMEN.includes(b.tipo)).length < 3;
-                if (pocaFeina && paraulesPendents(m)) t = conParaules(t);
+                // El 15/11, les paraules del dictat de castellà (examen el 16/11) hi van sempre
+                if ((pocaFeina || enDictat2(hoy())) && paraulesPendents(m)) t = conParaules(t);
                 return pocaFeina && labPendent(m) ? conLab(t) : t;
             };
 
@@ -4646,7 +4713,8 @@
                 if (tipo === 'sa2' || tipo === 'angles') {
                     const x = sesion.fijos[sesion.hechos];
                     return { tipo, modo: `bloc${x.bloc}`, texto: x.preg, clave: `${tipo}:${x.preg.slice(0, 40)}`, esperado: x.bona,
-                        preg: tipo === 'angles' && x.bloc === 3 ? 'Com s\'escriu en anglès?' : tipo === 'angles' && x.bloc === 4 ? 'Quina està bé?' : 'Quina és la bona?',
+                        preg: tipo === 'angles' && (x.bloc === 3 || (x.bloc === 5 && !x.preg.endsWith(':'))) ? 'Com s\'escriu en anglès?'
+                            : tipo === 'angles' && x.bloc >= 4 ? 'Quina està bé?' : 'Quina és la bona?',
                         opcions: shuffle([x.bona, ...x.altres]), solucio: x.bona, explica: x.explica, veu: x.veu, fix: x };
                 }
                 if (tipo === 'bio') {
