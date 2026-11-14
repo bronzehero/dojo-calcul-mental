@@ -83,8 +83,19 @@ test.describe('El Dojo des del 13/11', () => {
         expect(p.some(x => x.includes('On pica la força'))).toBe(true);
         expect(p.some(x => x.includes('Paraules'))).toBe(true);
         const items = await page.evaluate(() => window.__itemsParaules());
-        expect(items.map(x => x.id).sort()).toEqual(['es-d2-inteligencia', 'es-d2-vez']);
-        expect(items.every(x => x.fase === 'recorda')).toBe(true);
+        // De memòria: les que no domina i les que va fallar en paper el 14/11 encara que el Dojo les doni per dominades
+        expect(items.filter(x => x.fase === 'recorda').map(x => x.id).sort())
+            .toEqual(['es-d2-conocimiento', 'es-d2-haciendo', 'es-d2-inteligencia', 'es-d2-signo', 'es-d2-vez']);
+        // Noves: les que va fallar en paper el 14/11 i no eren al Dojo
+        expect(items.filter(x => x.fase === 'nova').map(x => x.id).sort())
+            .toEqual(['es-d2-he-aqui', 'es-d2-mas', 'es-d2-practica', 'es-d2-prueba']);
+        expect(items.some(x => ['es-d2-verdadero', 'es-d2-exito', 'es-d2-imaginacion'].includes(x.id))).toBe(false);
+    });
+
+    test('les noves del diumenge (prueba, más, práctica, he aquí) no surten el dissabte 14/11', async ({ page }) => {
+        await preparar(page, '2026-11-14');
+        const items = await page.evaluate(() => window.__itemsParaules());
+        expect(items.some(x => ['es-d2-prueba', 'es-d2-mas', 'es-d2-practica', 'es-d2-he-aqui'].includes(x.id))).toBe(false);
     });
 
     test('el 13/11 i el 16/11, les paraules del dictat no hi són', async ({ page }) => {

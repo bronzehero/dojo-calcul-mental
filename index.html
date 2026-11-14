@@ -3033,13 +3033,22 @@
                 // inteligencia es la palabra central (sale 4 veces); los nombres de los autores, no (papá).
                 { id: 'es-d2-inteligencia', idioma: 'es', dictat2: true, marca: 'inteli[g]en[c]ia', frase: 'La inteligencia emocional representa el ochenta por ciento del éxito en la vida.',
                   truc: 'Inteli-GEN-CIA: g como en genio y c como en ciencia. Sin tilde.', catala: { ca: 'intel·li[g][è]n[c]ia', es: 'inteli[g]en[c]ia' } },
-                { id: 'es-d2-conocimiento', idioma: 'es', dictat2: true, marca: 'cono[c]imiento', frase: 'El verdadero signo de la inteligencia no es el conocimiento, sino la imaginación.',
+                // 14/11, en papel (los trocitos del dictado): fallan prueba, más, práctica y he aquí. Entran el domingo, nuevas
+                { id: 'es-d2-prueba', idioma: 'es', dictat2: true, desDe: '2026-11-15', marca: 'prue[b]a', frase: 'La prueba más clara de la inteligencia.',
+                  truc: 'Viene de probar: con b. Sin tilde: la fuerza está en prue.' },
+                { id: 'es-d2-mas', idioma: 'es', dictat2: true, desDe: '2026-11-15', marca: 'm[á]s', frase: 'La prueba más clara de la inteligencia.',
+                  truc: 'Más de cantidad, más grande, más clara: con tilde. Como en catalán, més.', catala: { ca: 'm[é]s', es: 'm[á]s' } },
+                { id: 'es-d2-practica', idioma: 'es', dictat2: true, desDe: '2026-11-15', marca: 'pr[á]ctica', frase: 'Aplicar los conocimientos en la práctica.',
+                  truc: 'PRÁC, ti, ca: la fuerza en la primera de tres. Siempre tilde.', catala: { ca: 'pr[à]ctica', es: 'pr[á]ctica' } },
+                { id: 'es-d2-he-aqui', idioma: 'es', dictat2: true, desDe: '2026-11-15', marca: '[h]e aqu[í]', frase: 'He aquí el verdadero saber.',
+                  truc: 'He, del verbo haber, con h: he, has, ha. Y aquí, con tilde al final.' },
+                { id: 'es-d2-conocimiento', idioma: 'es', dictat2: true, repetirEl: '2026-11-15', marca: 'cono[c]imiento', frase: 'El verdadero signo de la inteligencia no es el conocimiento, sino la imaginación.',
                   truc: 'Viene de conocer: co, no, ci, mien, to. Sin s.' },
                 { id: 'es-d2-verdadero', idioma: 'es', dictat2: true, marca: '[v]erdadero', frase: 'He aquí el verdadero saber.', truc: 'Viene de verdad: con V de Verdad.' },
-                { id: 'es-d2-signo', idioma: 'es', dictat2: true, marca: 'si[g]no', frase: 'El verdadero signo de la inteligencia.', truc: 'Sig, no. Con g, como significar.' },
+                { id: 'es-d2-signo', idioma: 'es', dictat2: true, repetirEl: '2026-11-15', marca: 'si[g]no', frase: 'El verdadero signo de la inteligencia.', truc: 'Sig, no. Con g, como significar.' },
                 { id: 'es-d2-imaginacion', idioma: 'es', dictat2: true, marca: 'imaginaci[ó]n', frase: 'No es el conocimiento, sino la imaginación.',
                   truc: 'Viene de imagen: sin h. Y acaba en ción con tilde.', catala: { ca: 'imaginació', es: 'imaginació[n]' } },
-                { id: 'es-d2-haciendo', idioma: 'es', dictat2: true, marca: '[h]a[c]iendo', frase: 'Haciendo el trabajo bien a la primera vez.', truc: 'Del verbo hacer, con h y con c.',
+                { id: 'es-d2-haciendo', idioma: 'es', dictat2: true, repetirEl: '2026-11-15', marca: '[h]a[c]iendo', frase: 'Haciendo el trabajo bien a la primera vez.', truc: 'Del verbo hacer, con h y con c.',
                   familia: { verb: 'hacer', serie: ['hago', 'hace', 'hacer', 'haciendo', 'hecho'], veu: 'Viene del verbo hacer, y toda la familia lleva hache: hago, hace, hacer, haciendo, hecho. Escribe la que falta.' } },
                 { id: 'es-d2-vez', idioma: 'es', dictat2: true, marca: '[v]e[z]', frase: 'Bien a la primera vez.', truc: 'V de Vez y z al final: una vez, dos veces.' },
                 { id: 'es-d2-exito', idioma: 'es', dictat2: true, marca: '[é][x]ito', frase: 'El ochenta por ciento del éxito en la vida.',
@@ -3054,7 +3063,8 @@
             // el domingo 15/11, de memoria las que aún no domina
             const DICTAT2_DES_DE = '2026-11-14', DICTAT2_FINS = '2026-11-15';
             const enDictat2 = d => d >= DICTAT2_DES_DE && d <= DICTAT2_FINS;
-            const paraulaActiva = (w, d) => w.dictat2 ? enDictat2(d) : !enDictat2(d) && !(d >= LAB_DES_DE && LAB_DE_PARAULES.includes(w.id)) &&
+            // desDe: la palabra entra ese día. repetirEl: ese día vuelve aunque el Dojo la dé por dominada (la falló en papel)
+            const paraulaActiva = (w, d) => w.dictat2 ? enDictat2(d) && (!w.desDe || d >= w.desDe) :!enDictat2(d) && !(d >= LAB_DES_DE && LAB_DE_PARAULES.includes(w.id)) &&
                 (w.idioma !== 'es' || d <= PARAULES_ES_FINS || PARAULES_ES_QUEDEN.includes(w.id));
             // Días con la misión corta (29/10: examen de tecno y vóley): solo las que ya ha visto, ninguna nueva
             const PARAULES_SENSE_NOVES = ['2026-10-29'];
@@ -4002,9 +4012,9 @@
                 const e = w => st.w[w.id];
                 const actives = PARAULES.filter(w => paraulaActiva(w, d));
                 const vistes = actives.filter(w => e(w) && e(w).intro < d);
-                const pendents = vistes.filter(w => !e(w).dominada).slice(0, 8);
-                const repas = vistes.filter(w => e(w).dominada && diesEntre(e(w).ultima, d) >= PARAULES_REPAS_CADA).slice(0, 2);
-                const quantes = enDictat2(d) ? 8 : PARAULES_SENSE_NOVES.includes(d) || pendents.length >= 8 ? 0 : pendents.length >= 5 ? 2 : 4;
+                const pendents = vistes.filter(w => !e(w).dominada || w.repetirEl === d).slice(0, enDictat2(d) ? 12 : 8);
+                const repas = vistes.filter(w => e(w).dominada && w.repetirEl !== d && diesEntre(e(w).ultima, d) >= PARAULES_REPAS_CADA).slice(0, 2);
+                const quantes = enDictat2(d) ? 12 :PARAULES_SENSE_NOVES.includes(d) || pendents.length >= 8 ? 0 : pendents.length >= 5 ? 2 : 4;
                 const noves = actives.filter(w => !e(w) || e(w).intro === d).slice(0, quantes);
                 const recorda = shuffle([...pendents, ...repas]);
                 let final = shuffle(noves);
