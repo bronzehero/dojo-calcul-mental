@@ -2910,16 +2910,21 @@
                 [5, 'viure (jo visc)', 'live', ['liv', 'lif'], 'live: l-i-v-e.', 'I live in Barcelona.'],
                 [5, 'agradar (m\'agrada)', 'like', ['laik', 'lik'], 'like: l-i-k-e (sona «laik»).', 'I like music.'],
                 [5, 'ballar', 'dance', ['dens', 'dans'], 'dance: d-a-n-c-e.', 'I like dancing.'],
-                [5, 'saltar', 'jump', ['jamp', 'yump'], 'jump: j-u-m-p (sona «jamp»).', 'I like jumping.']
+                [5, 'saltar', 'jump', ['jamp', 'yump'], 'jump: j-u-m-p (sona «jamp»).', 'I like jumping.'],
+                // 6 · el 14/11, de memòria, «Ay live en Sabadell» dues vegades (la resta de paraules, a Paraules el 16/11)
+                [6, 'jo', 'I', ['Ay', 'Ai'], 'Jo = I: una sola lletra, i sempre en majúscula, encara que soni «ai».', 'I live in Sabadell.'],
+                [6, 'I live ___ Sabadell.', 'in', ['en', 'im'], 'A la ciutat = IN, amb i (no amb e): I live in Sabadell.', 'I live in Sabadell.']
             ];
-            // Des del 14/11, el bloc 5 (l'email senzill) i una mica de vocabulari; fora les negatives i les formes llargues
+            // Des del 14/11, el bloc 5 (l'email senzill) i una mica de vocabulari; fora les negatives i les formes llargues.
+            // 16/11 (redacció el 17/11): l'email i el bloc 6; com s'escriuen les paraules, a Paraules (escrites de memòria)
             const ANGLES_SENZILL_DES_DE = '2026-11-14';
-            const anglesPerDia = () => hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10] : [3, 3, 4, 2, 0];
+            const ANGLES_PER_DIA = { '2026-11-16': [0, 0, 0, 0, 8, 2] };
+            const anglesPerDia = () => ANGLES_PER_DIA[hoy()] || (hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10, 0] : [3, 3, 4, 2, 0, 0]);
             const veuAngles = frase => `[en] ${frase}`;
             const fitxaAngles = ([bloc, preg, bona, altres, explica, frase]) => ({ bloc, preg, bona, altres, explica, veu: veuAngles(frase) });
             function itemsAngles() {
                 const perDia = anglesPerDia();
-                const noves = [1, 2, 3, 4, 5].flatMap(b => shuffle(ANGLES_PREGUNTES.filter(p => p[0] === b)).slice(0, perDia[b - 1])).map(fitxaAngles);
+                const noves = [1, 2, 3, 4, 5, 6].flatMap(b => shuffle(ANGLES_PREGUNTES.filter(p => p[0] === b)).slice(0, perDia[b - 1])).map(fitxaAngles);
                 // Les fallades d'abans, només si són dels blocs d'avui (el 15/11 ja no tornen les negatives)
                 const blocsAvui = new Set(ANGLES_PREGUNTES.filter(p => perDia[p[0] - 1] > 0).map(p => p[1]));
                 return itemsTria('angles', noves, perDia.reduce((a, b) => a + b, 0), f => blocsAvui.has(f.preg));
@@ -2932,7 +2937,8 @@
             // perquè no li donin la resposta) i toca el tros fort. Si falla: la bona en majúscules i el truc de cridar-la.
             // Les fallades tornen primer l'endemà.
             // 10/11: fins al dilluns 16/11 (examen d'accents)
-            const TONICA_DES_DE = '2026-11-07', TONICA_FINS = '2026-11-16';
+            // 16/11 (papà): l'examen és el mateix dilluns, al matí; a la tarda ja no cal
+            const TONICA_DES_DE = '2026-11-07', TONICA_FINS = '2026-11-15';
             const TONICA_PARAULES = [
                 [['ca', 'sa'], 0], [['ca', 'mí'], 1], [['can', 'tar'], 1], [['lli', 'bre'], 0], [['ca', 'fè'], 1], [['so', 'fà'], 1],
                 [['ma', 're'], 0], [['sor', 'tir'], 1], [['an', 'glès'], 1], [['fà', 'cil'], 0], [['mò', 'bil'], 0], [['a', 'mic'], 1],
@@ -3052,8 +3058,22 @@
                   familia: { verb: 'hacer', serie: ['hago', 'hace', 'hacer', 'haciendo', 'hecho'], veu: 'Viene del verbo hacer, y toda la familia lleva hache: hago, hace, hacer, haciendo, hecho. Escribe la que falta.' } },
                 { id: 'es-d2-vez', idioma: 'es', dictat2: true, marca: '[v]e[z]', frase: 'Bien a la primera vez.', truc: 'V de Vez y z al final: una vez, dos veces.' },
                 { id: 'es-d2-exito', idioma: 'es', dictat2: true, marca: '[é][x]ito', frase: 'El ochenta por ciento del éxito en la vida.',
-                  truc: 'É, xi, to: la fuerza va delante y lleva tilde. Con x.', catala: { ca: '[è]xit', es: '[é]xito' } }
-            ].map(w => ({ ...w, paraula: w.marca.replace(/[\[\]]/g, '') }));
+                  truc: 'É, xi, to: la fuerza va delante y lleva tilde. Con x.', catala: { ca: '[è]xit', es: '[é]xito' } },
+                // Anglès (redacció del dimarts 17/11): el 14/11, l'email de memòria, dues vegades, amb els mateixos errors, escrits com sonen:
+                // «en», «end», «brawn/braun», «ayers/ayrs», «ser/heir», «lake», «miusic». Copiant, bé. Només el dilluns 16/11.
+                // La I (va escriure «ay») no hi és: el teclat no té majúscules; va al bloc 6 de l'anglès.
+                // La veu: la paraula i la frase en anglès i, després, el truc en català.
+                { id: 'en-in', idioma: 'en', tanda: 'angles', marca: '[i]n', frase: 'I live in Sabadell.', truc: 'Amb i, no amb e: a dins, com interior.' },
+                { id: 'en-and', idioma: 'en', tanda: 'angles', marca: '[a]nd', frase: "I've got brown hair and brown eyes.",
+                  truc: "Comença amb a, encara que sona e. Per escriure-la, digues-la com s'escriu: a, n, d." },
+                { id: 'en-brown', idioma: 'en', tanda: 'angles', marca: 'br[o][w]n', frase: "I've got brown hair.", truc: 'Al mig, o i ve doble: b, r, o, w, n.' },
+                { id: 'en-eyes', idioma: 'en', tanda: 'angles', marca: '[e][y][e]s', frase: "I've got brown eyes.",
+                  truc: 'Sembla una cara: les dues e són els ulls i la i grega és el nas. I una essa al final, perquè en són dos.' },
+                { id: 'en-hair', idioma: 'en', tanda: 'angles', marca: '[h][air]', frase: "I've got brown hair.",
+                  truc: "Comença amb hac, i després air, l'aire: els cabells es mouen amb l'aire." },
+                { id: 'en-like', idioma: 'en', tanda: 'angles', marca: 'l[i]k[e]', frase: 'I like music.', truc: 'Amb i, i una e al final que no sona. Si hi poses a, és un llac.' },
+                { id: 'en-music', idioma: 'en', tanda: 'angles', marca: 'm[u]sic', frase: 'I like music.', truc: 'Com música, però sense accent i sense la a del final. La u, sola, sense i al davant.' }
+            ].map(w => ({ ...w, tanda: w.dictat2 ? 'dictat2' : w.tanda, paraula: w.marca.replace(/[\[\]]/g, '') }));
             const PARAULES_DES_DE = '2026-10-18';
             const PARAULES_DIES_DOMINADA = 3, PARAULES_REPAS_CADA = 7;
             // El control de castellano fue el 26/10: desde el 29/10 de castellano solo quedan coherencia y cohesión,
@@ -3062,17 +3082,21 @@
             // Dictado 2 de castellano (examen el lunes 16/11): el sábado 14/11 las 8 nuevas, aunque sea un día de mucha feina;
             // el domingo 15/11, de memoria las que aún no domina
             const DICTAT2_DES_DE = '2026-11-14', DICTAT2_FINS = '2026-11-15';
-            const enDictat2 = d => d >= DICTAT2_DES_DE && d <= DICTAT2_FINS;
+            // Tandas: palabras de un examen concreto que solo salen esos días (y esos días, solo ellas, hasta 12 nuevas)
+            const TANDES = { dictat2: [DICTAT2_DES_DE, DICTAT2_FINS], angles: ['2026-11-16', '2026-11-16'] };
+            const enTanda = (t, d) => d >= TANDES[t][0] && d <= TANDES[t][1];
+            const tandaAvui = d => Object.keys(TANDES).some(t => enTanda(t, d));
             // desDe: la palabra entra ese día. repetirEl: ese día vuelve aunque el Dojo la dé por dominada (la falló en papel)
-            const paraulaActiva = (w, d) => w.dictat2 ? enDictat2(d) && (!w.desDe || d >= w.desDe) :!enDictat2(d) && !(d >= LAB_DES_DE && LAB_DE_PARAULES.includes(w.id)) &&
+            const paraulaActiva = (w, d) => w.tanda ? enTanda(w.tanda, d) && (!w.desDe || d >= w.desDe) :!tandaAvui(d) && !(d >= LAB_DES_DE && LAB_DE_PARAULES.includes(w.id)) &&
                 (w.idioma !== 'es' || d <= PARAULES_ES_FINS || PARAULES_ES_QUEDEN.includes(w.id));
             // Días con la misión corta (29/10: examen de tecno y vóley): solo las que ya ha visto, ninguna nueva
             const PARAULES_SENSE_NOVES = ['2026-10-29'];
-            const NOM_IDIOMA = { es: 'castellà', ca: 'català' };
-            // Lo que dice la voz. Las de castellano llevan «[es] » delante: otra voz (y el iPad, en castellano si no hay MP3)
-            const ambIdioma = (w, t) => (w.idioma === 'es' ? '[es] ' : '') + t;
+            const NOM_IDIOMA = { es: 'castellà', ca: 'català', en: 'anglès' };
+            // Lo que dice la voz. Las de castellano llevan «[es] » delante: otra voz (y el iPad, en castellano si no hay MP3); las de inglés, «[en] »
+            const ambIdioma = (w, t) => ({ es: '[es] ', en: '[en] ' }[w.idioma] || '') + t;
             const veuDicta = w => ambIdioma(w, `${w.paraula}. ${w.frase} ${w.paraula}.`);
-            const veuMira = w => ambIdioma(w, `${w.paraula}. ${w.frase} ${w.paraula}. ${w.truc}`);
+            // En inglés, el truco (en catalán) va aparte, después: hablarMira()
+            const veuMira = w => ambIdioma(w, `${w.paraula}. ${w.frase} ${w.paraula}.` + (w.idioma === 'en' ? '' : ` ${w.truc}`));
             // Les de la h d'un verb (hemos, hicimos…): si no surt de memòria, abans de tornar-la a mirar, l'escriu dins de la seva família
             const veuFamilia = w => ambIdioma(w, w.familia.veu);
             const htmlMarca = m => escaparHtml(m).replace(/\[([^\]]+)\]/g, '<span class="clau">$1</span>');
@@ -3711,6 +3735,14 @@
                 }
                 vozSistema(texto);
             }
+            // Dos textos seguidos (inglés y después el truco en catalán): el segundo, cuando acaba el primero
+            async function hablarSeguit(textos) {
+                const [primer, ...resta] = textos;
+                await hablar(primer);
+                const torn = veuTorn, src = veuSonant;
+                if (resta.length && src) src.onended = () => { if (torn === veuTorn) hablarSeguit(resta); };
+            }
+            const hablarMira = w => w.idioma === 'en' ? hablarSeguit([veuMira(w), w.truc]) : hablar(veuMira(w));
 
             // Todo lo que puede decir en voz alta (para generar los MP3 y comprobar en las pruebas que no falta ninguno)
             // Per a les proves: la paraula del dictat que hi ha a la pantalla (no es mostra enlloc)
@@ -3815,7 +3847,7 @@
                         }
                 t.add(CATALA_VEU_FULL);
                 t.add(CATALA_VEU_PAPA);
-                PARAULES.forEach(w => { t.add(veuDicta(w)); t.add(veuMira(w)); if (w.familia) t.add(veuFamilia(w)); });
+                PARAULES.forEach(w => { t.add(veuDicta(w)); t.add(veuMira(w)); if (w.familia) t.add(veuFamilia(w)); if (w.idioma === 'en') t.add(w.truc); });
                 // Des del 7/11, el laboratori de paraules al final (amb o sense tema 1, paraules i xifres)
                 t.add(LAB_INFO_PROVA.instr);
                 [LAB_VEU_COMPARA, LAB_VEU_REVISA].forEach(x => t.add(x));
@@ -4012,9 +4044,9 @@
                 const e = w => st.w[w.id];
                 const actives = PARAULES.filter(w => paraulaActiva(w, d));
                 const vistes = actives.filter(w => e(w) && e(w).intro < d);
-                const pendents = vistes.filter(w => !e(w).dominada || w.repetirEl === d).slice(0, enDictat2(d) ? 12 : 8);
+                const pendents = vistes.filter(w => !e(w).dominada || w.repetirEl === d).slice(0, tandaAvui(d) ? 12 : 8);
                 const repas = vistes.filter(w => e(w).dominada && w.repetirEl !== d && diesEntre(e(w).ultima, d) >= PARAULES_REPAS_CADA).slice(0, 2);
-                const quantes = enDictat2(d) ? 12 :PARAULES_SENSE_NOVES.includes(d) || pendents.length >= 8 ? 0 : pendents.length >= 5 ? 2 : 4;
+                const quantes = tandaAvui(d) ? 12 :PARAULES_SENSE_NOVES.includes(d) || pendents.length >= 8 ? 0 : pendents.length >= 5 ? 2 : 4;
                 const noves = actives.filter(w => !e(w) || e(w).intro === d).slice(0, quantes);
                 const recorda = shuffle([...pendents, ...repas]);
                 let final = shuffle(noves);
@@ -4047,8 +4079,8 @@
                 if (anglesPendent(m)) t = conAngles(t);
                 // Des del 13/11, el laboratori i les paraules només els dies amb poca feina (menys de 3 blocs d'examen)
                 const pocaFeina = !dojoNou(m) || t.bloques.filter(b => BLOCS_EXAMEN.includes(b.tipo)).length < 3;
-                // 14-15/11, les paraules del dictat de castellà (examen el 16/11) hi van sempre
-                if ((pocaFeina || enDictat2(hoy())) && paraulesPendents(m)) t = conParaules(t);
+                // 14-15/11, les paraules del dictat de castellà (examen el 16/11) hi van sempre; el 16/11, les de l'anglès (redacció el 17/11)
+                if ((pocaFeina || tandaAvui(hoy())) && paraulesPendents(m)) t = conParaules(t);
                 return nomesExamenDema(m, pocaFeina && labPendent(m) ? conLab(t) : t);
             };
             // 14/11 (papà): diumenge 15/11 a Port Aventura, sense temps ni energia: només el que té examen el dilluns
@@ -5362,7 +5394,7 @@
                 const boto = document.getElementById('btn-paraula-seguir');
                 boto.textContent = item.etapa === 'mira' ? 'Ja la tinc! Tapa-la 🙈' : item.intent > 3 ? 'Seguim ➜' : 'La torno a escriure ✍️';
                 item.tMira = performance.now();
-                hablar(veuMira(w));
+                hablarMira(w);
             }
 
             // La família amb la h (o la lletra que costi) de color; la paraula que toca, un forat
@@ -6723,7 +6755,7 @@
             document.getElementById('btn-escoltar-paraula').addEventListener('click', () => {
                 if (!item || item.tipo !== 'paraules' || item.etapa === 'escriu') return;
                 item.escoltat++;
-                hablar(veuMira(item.w));
+                hablarMira(item.w);
             });
 
             // Panel de papá (oral)

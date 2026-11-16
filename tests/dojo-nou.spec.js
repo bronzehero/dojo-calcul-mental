@@ -98,6 +98,23 @@ test.describe('El Dojo des del 13/11', () => {
         expect(items.some(x => ['es-d2-prueba', 'es-d2-mas', 'es-d2-practica', 'es-d2-he-aqui'].includes(x.id))).toBe(false);
     });
 
+    test('el dilluns 16/11 (redacció d\'anglès el 17/11): sense tònica; bio, anglès i les paraules de l\'email (noves, en anglès)', async ({ page }) => {
+        await preparar(page, '2026-11-16');
+        await expect.poll(async () => (await pasos(page)).length).toBeGreaterThan(2);
+        const p = (await pasos(page)).join(' | ');
+        expect(p).toContain('Múltiples i divisors');
+        expect(p).toContain('Bio');
+        expect(p).toContain('English');
+        expect(p).toContain('Paraules');
+        expect(p).not.toContain('On pica');
+        const items = await page.evaluate(() => window.__itemsParaules());
+        expect(items.filter(x => x.fase === 'nova').map(x => x.id).sort())
+            .toEqual(['en-and', 'en-brown', 'en-eyes', 'en-hair', 'en-in', 'en-like', 'en-music']);
+        expect(items.every(x => x.id.startsWith('en-'))).toBe(true);
+        await preparar(page, '2026-11-17');
+        expect((await page.evaluate(() => window.__itemsParaules())).some(x => x.id.startsWith('en-'))).toBe(false);
+    });
+
     test('el 13/11 i el 16/11, les paraules del dictat no hi són', async ({ page }) => {
         await preparar(page, '2026-11-13');
         expect((await page.evaluate(() => window.__itemsParaules())).some(x => x.id.startsWith('es-d2-'))).toBe(false);
@@ -258,7 +275,7 @@ test.describe('Anglès', () => {
         expect(dades).toHaveLength(n + 1);
         const st = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_angles')));
         expect(st.falla.map(f => f.preg)).toEqual([fallada]);
-        await page.clock.setFixedTime(new Date('2026-11-16T17:00:00'));
+        await page.clock.setFixedTime(new Date('2026-11-17T17:00:00'));
         expect((await page.evaluate(() => window.__itemsAngles()))[0].preg).toBe(fallada);
     });
 });

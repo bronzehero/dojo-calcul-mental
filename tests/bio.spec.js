@@ -28,7 +28,7 @@ const pasos = page => page.locator('#mision-pasos li').allTextContents();
 const BIO = "🔬 Bio per a l'examen";
 
 test.describe("Bio per a l'examen", () => {
-    for (const [dia, hi] of [['2026-11-10', false], ['2026-11-11', true], ['2026-11-16', true], ['2026-11-17', false]]) {
+    for (const [dia, hi] of [['2026-11-10', false], ['2026-11-11', true], ['2026-11-14', true], ['2026-11-17', false]]) {
         test(`el ${dia}, ${hi ? 'hi és, després de la tònica i abans dels accents' : 'no hi és'}`, async ({ page }) => {
             await preparar(page, dia, { accent: true, tonica: true });
             await expect(page.locator('#mision-titulo')).toHaveText(/./);
