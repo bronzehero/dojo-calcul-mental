@@ -290,12 +290,12 @@ test.describe('Anglès', () => {
         expect(compte).toEqual({ 1: 3, 2: 3, 3: 4, 5: 2 });
     });
 
-    test('des del 18/11: 5 de there is / there are (a, an, some, any), 2 de be, 2 de have got, 2 de vocabulari i 1 de l\'email', async ({ page }) => {
+    test('des del 18/11 (papà, més anglès): 6 de there is / there are, 3 de be, 4 de have got, 3 de vocabulari i 1 de l\'email', async ({ page }) => {
         await preparar(page, '2026-11-18');
         const items = await page.evaluate(() => window.__itemsAngles());
         const compte = {};
         items.forEach(x => { compte[x.bloc] = (compte[x.bloc] || 0) + 1; });
-        expect(compte).toEqual({ 1: 2, 2: 2, 3: 2, 5: 1, 7: 5 });
+        expect(compte).toEqual({ 1: 3, 2: 4, 3: 3, 5: 1, 7: 6 });
     });
 
     test('totes les preguntes tenen 3 opcions diferents i la bona hi és una sola vegada', async ({ page }) => {
@@ -336,5 +336,53 @@ test.describe('Anglès', () => {
         expect(st.falla.map(f => f.preg)).toEqual([fallada]);
         await page.clock.setFixedTime(new Date('2026-11-15T17:00:00'));
         expect((await page.evaluate(() => window.__itemsAngles()))[0].preg).toBe(fallada);
+    });
+});
+
+test.describe('Des del 18/11: música (examen 27/11) i castellà de la U2 (per si de cas, fins al 22/11), papà 17/11', () => {
+    const AMB = { ...TOTS, musica: true, castu2: true };
+    test('el 18/11 la missió porta múltiples, castellà, anglès i música, en aquest ordre', async ({ page }) => {
+        await preparar(page, '2026-11-18', AMB);
+        await expect.poll(async () => (await pasos(page)).length).toBeGreaterThan(3);
+        const p = (await pasos(page)).join(' | ');
+        const ordre = ['Múltiples', 'Castellà: la unitat 2', 'English', 'Música per a l\'examen'].map(x => p.indexOf(x));
+        ordre.forEach(i => expect(i).toBeGreaterThanOrEqual(0));
+        expect([...ordre].sort((a, b) => a - b)).toEqual(ordre);
+    });
+    test('el 17/11 encara no; el castellà s\'acaba el 22/11 i la música el 26/11', async ({ page }) => {
+        for (const [dia, cast, mus] of [['2026-11-17', false, false], ['2026-11-22', true, true], ['2026-11-23', false, true], ['2026-11-27', false, false]]) {
+            await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); }).catch(() => {});
+            await preparar(page, dia, AMB);
+            await expect.poll(async () => (await pasos(page)).length).toBeGreaterThan(0);
+            const p = (await pasos(page)).join(' | ');
+            expect(p.includes('Castellà: la unitat 2'), dia).toBe(cast);
+            expect(p.includes('Música per a l\'examen'), dia).toBe(mus);
+        }
+    });
+    test('10 de música i 6 de castellà al dia, de tots els blocs, sense repetir; preguntes amb 2 o 3 opcions diferents', async ({ page }) => {
+        await preparar(page, '2026-11-18', AMB);
+        const mus = await page.evaluate(() => window.__itemsMusica());
+        expect(mus.length).toBe(10);
+        expect(new Set(mus.map(x => x.preg)).size).toBe(10);
+        expect(new Set(mus.map(x => x.bloc))).toEqual(new Set([1, 2, 3, 4, 5, 6]));
+        const cas = await page.evaluate(() => window.__itemsCastu2());
+        expect(cas.length).toBe(6);
+        expect(new Set(cas.map(x => x.bloc))).toEqual(new Set([1, 2, 3]));
+        const totes = await page.evaluate(() => window.__preguntesTria());
+        for (const p of [...totes.musica, ...totes.castu2, ...totes.angles]) {
+            expect(new Set([p[2], ...p[3]]).size, p[1]).toBe(1 + p[3].length);
+            expect(p[3].length).toBeGreaterThanOrEqual(1);
+        }
+    });
+    test('una de música que falla torna al final i l\'endemà surt primer', async ({ page }) => {
+        await preparar(page, '2026-11-18', { musica: true });
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toContainText('Música');
+        await page.click('#btn-intro-vamos');
+        const primera = await seguent(page, 'null');
+        await page.click('#btn-no-ho-se');
+        await page.click('#btn-correction-continue');
+        const st = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_musica')));
+        expect(st.falla.map(f => f.preg)).toContain(primera.texto);
     });
 });

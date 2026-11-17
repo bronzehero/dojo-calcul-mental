@@ -33,6 +33,14 @@ async function simularSupabase(page, opciones = {}) {
             if (!localStorage.getItem('dojo_frases')) localStorage.setItem('dojo_frases', JSON.stringify({ pausa: true }));
         });
     }
+    // Y la música (examen 27/11) y el castellano de la U2 (desde el 18/11)
+    for (const clau of ['musica', 'castu2']) {
+        if (!opciones[clau]) {
+            await page.addInitScript(c => {
+                if (!localStorage.getItem('dojo_' + c)) localStorage.setItem('dojo_' + c, JSON.stringify({ pausa: true }));
+            }, clau);
+        }
+    }
     // Lo mismo con el tema 1 de mates (desde el 22/10)
     if (!opciones.tema1) {
         await page.addInitScript(() => {
