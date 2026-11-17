@@ -3484,8 +3484,10 @@
                     ...frases.map(w => ({ w, fase: 'revisa' }))
                 ];
             }
+            // 17/11 (papà i ella): en lloc del laboratori (paraules de castellà i català, sense examen), més anglès
+            const LAB_FINS = '2026-11-17';
             const labPendent = m => {
-                if (![ENTRENAMENT.id, CONTROL.id].includes(m.id) || hoy() < LAB_DES_DE) return false;
+                if (![ENTRENAMENT.id, CONTROL.id].includes(m.id) || hoy() < LAB_DES_DE || hoy() > LAB_FINS) return false;
                 const st = leerLab();
                 return !st.pausa && st.fet !== hoy() && itemsLab().length > 0;
             };
@@ -4303,7 +4305,7 @@
                 const ec = leerPlan().enCurso;
                 if (!ec || ec.id !== m.id || !Array.isArray(ec.bloques) || !ec.bloques.length) return base;
                 if (ec.fecha === hoy()) return { ...base, bloques: ec.bloques };
-                const resta = ec.bloques.slice(ec.bloque || 0).map(b => ({ ...b, ahir: true }));
+                const resta = ec.bloques.slice(ec.bloque || 0).filter(b => b.tipo !== 'lab' || hoy() <= LAB_FINS).map(b => ({ ...b, ahir: true }));
                 return nomesExamenDema(m, { ...base, bloques: [...resta, ...base.bloques] });
             }
 

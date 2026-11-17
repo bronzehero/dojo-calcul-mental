@@ -156,6 +156,17 @@ test.describe('El Dojo des del 13/11', () => {
     });
 });
 
+test.describe('Des del 18/11, més anglès en lloc del laboratori (papà i ella, 17/11)', () => {
+    test('el 18/11 no hi ha laboratori, ni tan sols el que va quedar a mitges del 17/11', async ({ page }) => {
+        await preparar(page, '2026-11-18', TOTS, { plan: { hechas: PLAN_ACABAT, extras: EXTRES_FETES,
+            enCurso: { id: 10, bloque: 3, fecha: '2026-11-17', bloques: [{ tipo: 'sa2' }, { tipo: 'angles' }, { tipo: 'paraules' }, { tipo: 'lab' }] } } });
+        await expect.poll(async () => (await pasos(page)).length).toBeGreaterThan(1);
+        const p = (await pasos(page)).join(' | ');
+        expect(p).not.toContain('Laboratori');
+        expect(p).toContain('English');
+    });
+});
+
 test.describe('Missió a mitges (papà, 12/11): l\'endemà primer acaba el que va quedar', () => {
     const BLOCS = [{ tipo: 'sa2' }, { tipo: 'tonica' }, { tipo: 'bio' }, { tipo: 'angles' }];
     test('va parar després de 2 blocs: l\'endemà (16/11), primer la bio i l\'anglès que van quedar i després la missió sencera', async ({ page }) => {
