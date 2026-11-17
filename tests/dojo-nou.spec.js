@@ -115,8 +115,36 @@ test.describe('El Dojo des del 13/11', () => {
         const repas = await page.evaluate(() => window.__itemsParaules());
         expect(repas.length).toBeGreaterThan(0);
         expect(repas.every(x => x.id.startsWith('en-'))).toBe(true);
-        await preparar(page, '2026-11-18');
+        await preparar(page, '2026-11-28');
         expect((await page.evaluate(() => window.__itemsParaules())).some(x => x.id.startsWith('en-'))).toBe(false);
+    });
+
+    test('des del 18/11 (papà: anglès cada dia, examen de la Unit 1 ~26/11): cada dia entren les paraules d\'anglès del dia, i només d\'anglès', async ({ page }) => {
+        const DIES = { '2026-11-18': ['short', 'long', 'curly', 'straight', 'grey', 'green'], '2026-11-19': ['glasses', 'freckles', 'wall', 'floor', 'mirror', 'window'],
+            '2026-11-20': ['shelves', 'wardrobe', 'curtains', 'posters', 'blonde', 'tall'], '2026-11-21': ['family', 'people', 'small', 'has', 'my'],
+            '2026-11-22': ['braces', 'height', 'dark', 'blue'] };
+        await preparar(page, '2026-11-18');
+        expect((await pasos(page)).join(' | ')).toContain('Paraules');
+        for (const [dia, paraules] of Object.entries(DIES)) {
+            expect(paraules.length).toBeLessThanOrEqual(6);
+            await preparar(page, dia);
+            // les 7 de l'email ja les va fer el 16/11 i el 17/11, i ja les domina
+            await page.evaluate(() => {
+                const w = {};
+                ['in', 'and', 'brown', 'eyes', 'hair', 'like', 'music'].forEach(p => { w[`en-${p}`] = { intro: '2026-11-16', ultima: '2026-11-17', dies: ['2026-11-16', '2026-11-17'], racha: 3, dominada: true }; });
+                localStorage.setItem('dojo_paraules', JSON.stringify({ w }));
+            });
+            const items = await page.evaluate(() => window.__itemsParaules());
+            expect(items.every(x => x.id.startsWith('en-'))).toBe(true);
+            const ids = items.filter(x => x.fase === 'nova').map(x => x.id);
+            // sense historial, també hi surten les dels dies d'abans; les del dia, segur
+            if (dia === '2026-11-18') paraules.forEach(p => expect(ids).toContain(`en-${p}`));
+        }
+        await preparar(page, '2026-11-17');
+        const ids17 = (await page.evaluate(() => window.__itemsParaules())).map(x => x.id);
+        Object.values(DIES).flat().forEach(p => expect(ids17).not.toContain(`en-${p}`));
+        const totes = await page.evaluate(() => window.__paraules ? window.__paraules() : null);
+        if (totes) expect(totes.filter(w => w.id.startsWith('en-') && w.desDe).length).toBe(Object.values(DIES).flat().length);
     });
 
     test('el 13/11 i el 16/11, les paraules del dictat no hi són', async ({ page }) => {
@@ -249,6 +277,14 @@ test.describe('Anglès', () => {
         const compte = {};
         items.forEach(x => { compte[x.bloc] = (compte[x.bloc] || 0) + 1; });
         expect(compte).toEqual({ 1: 3, 2: 3, 3: 4, 5: 2 });
+    });
+
+    test('des del 18/11: 5 de there is / there are (a, an, some, any), 2 de be, 2 de have got, 2 de vocabulari i 1 de l\'email', async ({ page }) => {
+        await preparar(page, '2026-11-18');
+        const items = await page.evaluate(() => window.__itemsAngles());
+        const compte = {};
+        items.forEach(x => { compte[x.bloc] = (compte[x.bloc] || 0) + 1; });
+        expect(compte).toEqual({ 1: 2, 2: 2, 3: 2, 5: 1, 7: 5 });
     });
 
     test('totes les preguntes tenen 3 opcions diferents i la bona hi és una sola vegada', async ({ page }) => {

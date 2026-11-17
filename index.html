@@ -2913,7 +2913,20 @@
                 [5, 'saltar', 'jump', ['jamp', 'yump'], 'jump: j-u-m-p (sona «jamp»).', 'I like jumping.'],
                 // 6 · el 14/11, de memòria, «Ay live en Sabadell» dues vegades (la resta de paraules, a Paraules el 16/11)
                 [6, 'jo', 'I', ['Ay', 'Ai'], 'Jo = I: una sola lletra, i sempre en majúscula, encara que soni «ai».', 'I live in Sabadell.'],
-                [6, 'I live ___ Sabadell.', 'in', ['en', 'im'], 'A la ciutat = IN, amb i (no amb e): I live in Sabadell.', 'I live in Sabadell.']
+                [6, 'I live ___ Sabadell.', 'in', ['en', 'im'], 'A la ciutat = IN, amb i (no amb e): I live in Sabadell.', 'I live in Sabadell.'],
+                // 7 · there is / there are + a, an, some, any (workbook pàg. 13): a l'ex. 1 hi va posar «me», «mai», «der», «its»
+                [7, "There aren't ___ posters on the wall.", 'any', ['some', 'a'], "Diu que NO i és plural (posters): any.", "There aren't any posters on the wall."],
+                [7, 'There are ___ new books in our classroom.', 'some', ['any', 'a'], 'Diu que SÍ i és plural (books): some.', 'There are some new books in our classroom.'],
+                [7, 'Is there ___ good view from that window?', 'a', ['any', 'an'], 'Una sola cosa (view): a. Good comença amb g, no amb vocal.', 'Is there a good view from that window?'],
+                [7, "There aren't ___ chairs near the window.", 'any', ['some', 'an'], 'Diu que NO i és plural (chairs): any.', "There aren't any chairs near the window."],
+                [7, "There's ___ interesting photo in Ivy's room.", 'an', ['a', 'some'], 'Una sola cosa, i interesting comença amb vocal (i): an.', "There's an interesting photo in Ivy's room."],
+                [7, 'There are ___ pencils in my desk.', 'some', ['any', 'an'], 'Diu que SÍ i és plural (pencils): some.', 'There are some pencils in my desk.'],
+                [7, "There's ___ big cupboard in our classroom.", 'a', ['an', 'some'], 'Una sola cosa, i big comença amb b: a.', "There's a big cupboard in our classroom."],
+                [7, "There's ___ old wall.", 'an', ['a', 'any'], 'Una sola cosa, i old comença amb vocal (o): an.', "There's an old wall."],
+                [7, '___ there any posters in your room?', 'Are', ['Is', 'Am'], 'Pregunta i plural (posters): Are there…?', 'Are there any posters in your room?'],
+                [7, '___ there a mirror in your bedroom?', 'Is', ['Are', 'Am'], 'Pregunta i una sola cosa (a mirror): Is there…?', 'Is there a mirror in your bedroom?'],
+                [7, 'Is there a bedside table? Yes, there ___.', 'is', ['are', "isn't"], 'La resposta curta copia la pregunta: Is there…? Yes, there is.', 'Is there a bedside table? Yes, there is.'],
+                [7, 'Are there any shelves? No, there ___.', "aren't", ["isn't", 'are'], "Plural i diu que no: No, there aren't.", "Are there any shelves? No, there aren't."]
             ];
             // Des del 14/11, el bloc 5 (l'email senzill) i una mica de vocabulari; fora les negatives i les formes llargues.
             // 16/11 (redacció el 17/11): l'email i el bloc 6; com s'escriuen les paraules, a Paraules (escrites de memòria)
@@ -2921,12 +2934,14 @@
             const ANGLES_PER_DIA = { '2026-11-16': [0, 0, 0, 0, 8, 2] };
             // 17/11: redacció feta. Cap a l'examen de la Unit 1 (~26/11): be, have got i vocabulari, i 2 de l'email senzill
             const ANGLES_UNIT1_DES_DE = '2026-11-17';
-            const anglesPerDia = () => ANGLES_PER_DIA[hoy()] || (hoy() >= ANGLES_UNIT1_DES_DE ? [3, 3, 4, 0, 2, 0] : hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10, 0] : [3, 3, 4, 2, 0, 0]);
+            // 18/11: hi entra el bloc 7 (there is / there are + a, an, some, any), el que fa amb la Júlia
+            const ANGLES_THERE_DES_DE = '2026-11-18';
+            const anglesPerDia = () => ANGLES_PER_DIA[hoy()] || (hoy() >= ANGLES_THERE_DES_DE ? [2, 2, 2, 0, 1, 0, 5] : hoy() >= ANGLES_UNIT1_DES_DE ? [3, 3, 4, 0, 2, 0] : hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10, 0] : [3, 3, 4, 2, 0, 0]);
             const veuAngles = frase => `[en] ${frase}`;
             const fitxaAngles = ([bloc, preg, bona, altres, explica, frase]) => ({ bloc, preg, bona, altres, explica, veu: veuAngles(frase) });
             function itemsAngles() {
                 const perDia = anglesPerDia();
-                const noves = [1, 2, 3, 4, 5, 6].flatMap(b => shuffle(ANGLES_PREGUNTES.filter(p => p[0] === b)).slice(0, perDia[b - 1])).map(fitxaAngles);
+                const noves = [1, 2, 3, 4, 5, 6, 7].flatMap(b => shuffle(ANGLES_PREGUNTES.filter(p => p[0] === b)).slice(0, perDia[b - 1] || 0)).map(fitxaAngles);
                 // Les fallades d'abans, només si són dels blocs d'avui (el 15/11 ja no tornen les negatives)
                 const blocsAvui = new Set(ANGLES_PREGUNTES.filter(p => perDia[p[0] - 1] > 0).map(p => p[1]));
                 return itemsTria('angles', noves, perDia.reduce((a, b) => a + b, 0), f => blocsAvui.has(f.preg));
@@ -3074,7 +3089,36 @@
                 { id: 'en-hair', idioma: 'en', tanda: 'angles', marca: '[h][air]', frase: "I've got brown hair.",
                   truc: "Comença amb hac, i després air, l'aire: els cabells es mouen amb l'aire." },
                 { id: 'en-like', idioma: 'en', tanda: 'angles', marca: 'l[i]k[e]', frase: 'I like music.', truc: 'Amb i, i una e al final que no sona. Si hi poses a, és un llac.' },
-                { id: 'en-music', idioma: 'en', tanda: 'angles', marca: 'm[u]sic', frase: 'I like music.', truc: 'Com música, però sense accent i sense la a del final. La u, sola, sense i al davant.' }
+                { id: 'en-music', idioma: 'en', tanda: 'angles', marca: 'm[u]sic', frase: 'I like music.', truc: 'Com música, però sense accent i sense la a del final. La u, sola, sense i al davant.' },
+                // 17/11 (papà): l'anglès cada dia i a fons, examen de la Unit 1 cap al 26/11. Paraules del workbook (pàgs. 9 i 12) i de la redacció
+                // «Family» (3/11: «hort», «cerli», «grex», «gren», «glases», «facers», «famili», «pipol», «esmol», «gas», «mai»). Màxim 6 noves al dia.
+                { id: 'en-short', idioma: 'en', tanda: 'angles', desDe: '2026-11-18', marca: '[sh]ort', frase: 'I\'ve got short hair.', truc: 'Comença amb essa hac, el so de «shhh!», silenci. Sense la essa, hort és un hort.' },
+                { id: 'en-long', idioma: 'en', tanda: 'angles', desDe: '2026-11-18', marca: 'lon[g]', frase: 'I\'ve got long hair.', truc: 'Acaba amb ge, i no porta e al final.' },
+                { id: 'en-curly', idioma: 'en', tanda: 'angles', desDe: '2026-11-18', marca: 'c[ur]l[y]', frase: 'She\'s got curly hair.', truc: 'Al mig, u erra. Al final, i grega, la dels rínxols.' },
+                { id: 'en-straight', idioma: 'en', tanda: 'angles', desDe: '2026-11-18', marca: 'str[aigh]t', frase: 'He\'s got straight hair.', truc: 'Tres trossos: s t r, a i g, com aigua, i h t.' },
+                { id: 'en-grey', idioma: 'en', tanda: 'angles', desDe: '2026-11-18', marca: 'gr[ey]', frase: 'He\'s got grey hair.', truc: 'Acaba amb e i grega, com quan crides hey!' },
+                { id: 'en-green', idioma: 'en', tanda: 'angles', desDe: '2026-11-18', marca: 'gr[ee]n', frase: 'I\'ve got green eyes.', truc: 'Dues e, com dos ulls verds.' },
+                { id: 'en-glasses', idioma: 'en', tanda: 'angles', desDe: '2026-11-19', marca: 'gla[ss]es', frase: 'He\'s got glasses.', truc: 'Dos vidres: dues essa al mig, i e essa al final.' },
+                { id: 'en-freckles', idioma: 'en', tanda: 'angles', desDe: '2026-11-19', marca: 'fre[ck]les', frase: 'She\'s got freckles.', truc: 'f r e, després ce i ca juntes, i l e s.' },
+                { id: 'en-wall', idioma: 'en', tanda: 'angles', desDe: '2026-11-19', marca: 'w[all]', frase: 'There\'s a mirror on the wall.', truc: 'Ve doble i all, amb dues ela. Com tall i small.' },
+                { id: 'en-floor', idioma: 'en', tanda: 'angles', desDe: '2026-11-19', marca: 'fl[oo]r', frase: 'There\'s a rug on the floor.', truc: 'Dues o, com dues rajoles del terra.' },
+                { id: 'en-mirror', idioma: 'en', tanda: 'angles', desDe: '2026-11-19', marca: 'mi[rr]or', frase: 'There\'s a mirror in my bedroom.', truc: 'Comença com mirall, mi. El mirall ho repeteix tot: dues erra.' },
+                { id: 'en-window', idioma: 'en', tanda: 'angles', desDe: '2026-11-19', marca: 'wind[ow]', frase: 'There\'s a big window.', truc: 'Wind, el vent que entra per la finestra, i o ve doble.' },
+                { id: 'en-shelves', idioma: 'en', tanda: 'angles', desDe: '2026-11-20', marca: '[sh]el[ves]', frase: 'There are some shelves.', truc: 'Essa hac, shhh, i elves, els elfs que viuen als prestatges.' },
+                { id: 'en-wardrobe', idioma: 'en', tanda: 'angles', desDe: '2026-11-20', marca: 'ward[robe]', frase: 'There\'s a wardrobe in my bedroom.', truc: 'Ward i robe, que s\'assembla a roba: l\'armari guarda la roba.' },
+                { id: 'en-curtains', idioma: 'en', tanda: 'angles', desDe: '2026-11-20', marca: 'c[ur]t[ai]ns', frase: 'There are some curtains.', truc: 'Cur, com curly, i tains.' },
+                { id: 'en-posters', idioma: 'en', tanda: 'angles', desDe: '2026-11-20', marca: 'posters', frase: 'There are some posters on the wall.', truc: 'Igual que en català, però sense accent.' },
+                { id: 'en-blonde', idioma: 'en', tanda: 'angles', desDe: '2026-11-20', marca: 'blond[e]', frase: 'She\'s got blonde hair.', truc: 'Com rossa, blond, i una e al final que no sona.' },
+                { id: 'en-tall', idioma: 'en', tanda: 'angles', desDe: '2026-11-20', marca: 't[all]', frase: 'I\'m tall.', truc: 'Te i all, amb dues ela. Com wall i small.' },
+                { id: 'en-family', idioma: 'en', tanda: 'angles', desDe: '2026-11-21', marca: 'fam[i]l[y]', frase: 'My family is small.', truc: 'Com família, però sense accent i acaba amb i grega.' },
+                { id: 'en-people', idioma: 'en', tanda: 'angles', desDe: '2026-11-21', marca: 'p[eo]pl[e]', frase: 'There are four people in my family.', truc: 'Pe, e o, ple: com dir-la peo-ple.' },
+                { id: 'en-small', idioma: 'en', tanda: 'angles', desDe: '2026-11-21', marca: 'sm[all]', frase: 'My family is small.', truc: 'Essa, ema i all, amb dues ela. Com tall i wall.' },
+                { id: 'en-has', idioma: 'en', tanda: 'angles', desDe: '2026-11-21', marca: '[h]as', frase: 'She has got brown hair.', truc: 'Comença amb hac, com have: h, a, s.' },
+                { id: 'en-my', idioma: 'en', tanda: 'angles', desDe: '2026-11-21', marca: 'm[y]', frase: 'My name is Alice.', truc: 'Ema i i grega. Sona mai, però s\'escriu m y.' },
+                { id: 'en-braces', idioma: 'en', tanda: 'angles', desDe: '2026-11-22', marca: 'bra[c]es', frase: 'I\'ve got braces.', truc: 'Bra, ce, es. La ce sona com essa.' },
+                { id: 'en-height', idioma: 'en', tanda: 'angles', desDe: '2026-11-22', marca: 'h[eigh]t', frase: 'He\'s medium height.', truc: 'H, e i g h, i te. Com eight, el número vuit, amb una hac davant.' },
+                { id: 'en-dark', idioma: 'en', tanda: 'angles', desDe: '2026-11-22', marca: 'd[ar]k', frase: 'She\'s got dark hair.', truc: 'D, a erra, ca: com fosc, dark.' },
+                { id: 'en-blue', idioma: 'en', tanda: 'angles', desDe: '2026-11-22', marca: 'bl[ue]', frase: 'I\'ve got blue eyes.', truc: 'B, l, u, e. Acaba amb una e que no sona.' },
             ].map(w => ({ ...w, tanda: w.dictat2 ? 'dictat2' : w.tanda, paraula: w.marca.replace(/[\[\]]/g, '') }));
             const PARAULES_DES_DE = '2026-10-18';
             const PARAULES_DIES_DOMINADA = 3, PARAULES_REPAS_CADA = 7;
@@ -3085,7 +3129,7 @@
             // el domingo 15/11, de memoria las que aún no domina
             const DICTAT2_DES_DE = '2026-11-14', DICTAT2_FINS = '2026-11-15';
             // Tandas: palabras de un examen concreto que solo salen esos días (y esos días, solo ellas, hasta 12 nuevas)
-            const TANDES = { dictat2: [DICTAT2_DES_DE, DICTAT2_FINS], angles: ['2026-11-16', '2026-11-17'] }; // 17/11: repàs (hair i and, fallades el 16/11)
+            const TANDES = { dictat2: [DICTAT2_DES_DE, DICTAT2_FINS], angles: ['2026-11-16', '2026-11-27'] }; // fins a l'examen de la Unit 1 (~26/11): cada dia, les d'anglès
             const enTanda = (t, d) => d >= TANDES[t][0] && d <= TANDES[t][1];
             const tandaAvui = d => Object.keys(TANDES).some(t => enTanda(t, d));
             // desDe: la palabra entra ese día. repetirEl: ese día vuelve aunque el Dojo la dé por dominada (la falló en papel)
@@ -4046,7 +4090,7 @@
                 const e = w => st.w[w.id];
                 const actives = PARAULES.filter(w => paraulaActiva(w, d));
                 const vistes = actives.filter(w => e(w) && e(w).intro < d);
-                const pendents = vistes.filter(w => !e(w).dominada || w.repetirEl === d).slice(0, tandaAvui(d) ? 12 : 8);
+                const pendents = vistes.filter(w => !e(w).dominada || w.repetirEl === d).slice(0, enTanda('dictat2', d) ? 12 : 8);
                 const repas = vistes.filter(w => e(w).dominada && w.repetirEl !== d && diesEntre(e(w).ultima, d) >= PARAULES_REPAS_CADA).slice(0, 2);
                 const quantes = tandaAvui(d) ? 12 :PARAULES_SENSE_NOVES.includes(d) || pendents.length >= 8 ? 0 : pendents.length >= 5 ? 2 : 4;
                 const noves = actives.filter(w => !e(w) || e(w).intro === d).slice(0, quantes);
