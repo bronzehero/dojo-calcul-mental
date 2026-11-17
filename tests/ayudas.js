@@ -27,6 +27,12 @@ async function simularSupabase(page, opciones = {}) {
             if (!localStorage.getItem('dojo_lab')) localStorage.setItem('dojo_lab', JSON.stringify({ pausa: true }));
         });
     }
+    // Y las frases de inglés (desde el 18/11)
+    if (!opciones.frases) {
+        await page.addInitScript(() => {
+            if (!localStorage.getItem('dojo_frases')) localStorage.setItem('dojo_frases', JSON.stringify({ pausa: true }));
+        });
+    }
     // Lo mismo con el tema 1 de mates (desde el 22/10)
     if (!opciones.tema1) {
         await page.addInitScript(() => {
