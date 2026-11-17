@@ -112,6 +112,10 @@ test.describe('El Dojo des del 13/11', () => {
             .toEqual(['en-and', 'en-brown', 'en-eyes', 'en-hair', 'en-in', 'en-like', 'en-music']);
         expect(items.every(x => x.id.startsWith('en-'))).toBe(true);
         await preparar(page, '2026-11-17');
+        const repas = await page.evaluate(() => window.__itemsParaules());
+        expect(repas.length).toBeGreaterThan(0);
+        expect(repas.every(x => x.id.startsWith('en-'))).toBe(true);
+        await preparar(page, '2026-11-18');
         expect((await page.evaluate(() => window.__itemsParaules())).some(x => x.id.startsWith('en-'))).toBe(false);
     });
 
@@ -239,6 +243,14 @@ test.describe('Anglès', () => {
         expect(new Set(items.map(x => x.preg)).size).toBe(items.length);
     });
 
+    test('des del 17/11 (redacció feta, examen de la Unit 1): 3 de be, 3 de have got, 4 de vocabulari i 2 de l\'email', async ({ page }) => {
+        await preparar(page, '2026-11-17');
+        const items = await page.evaluate(() => window.__itemsAngles());
+        const compte = {};
+        items.forEach(x => { compte[x.bloc] = (compte[x.bloc] || 0) + 1; });
+        expect(compte).toEqual({ 1: 3, 2: 3, 3: 4, 5: 2 });
+    });
+
     test('totes les preguntes tenen 3 opcions diferents i la bona hi és una sola vegada', async ({ page }) => {
         await preparar(page, '2026-11-13');
         const totes = await page.evaluate(() => window.__anglesPreguntes());
@@ -275,7 +287,7 @@ test.describe('Anglès', () => {
         expect(dades).toHaveLength(n + 1);
         const st = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_angles')));
         expect(st.falla.map(f => f.preg)).toEqual([fallada]);
-        await page.clock.setFixedTime(new Date('2026-11-17T17:00:00'));
+        await page.clock.setFixedTime(new Date('2026-11-15T17:00:00'));
         expect((await page.evaluate(() => window.__itemsAngles()))[0].preg).toBe(fallada);
     });
 });

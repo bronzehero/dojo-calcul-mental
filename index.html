@@ -2919,7 +2919,9 @@
             // 16/11 (redacció el 17/11): l'email i el bloc 6; com s'escriuen les paraules, a Paraules (escrites de memòria)
             const ANGLES_SENZILL_DES_DE = '2026-11-14';
             const ANGLES_PER_DIA = { '2026-11-16': [0, 0, 0, 0, 8, 2] };
-            const anglesPerDia = () => ANGLES_PER_DIA[hoy()] || (hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10, 0] : [3, 3, 4, 2, 0, 0]);
+            // 17/11: redacció feta. Cap a l'examen de la Unit 1 (~26/11): be, have got i vocabulari, i 2 de l'email senzill
+            const ANGLES_UNIT1_DES_DE = '2026-11-17';
+            const anglesPerDia = () => ANGLES_PER_DIA[hoy()] || (hoy() >= ANGLES_UNIT1_DES_DE ? [3, 3, 4, 0, 2, 0] : hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10, 0] : [3, 3, 4, 2, 0, 0]);
             const veuAngles = frase => `[en] ${frase}`;
             const fitxaAngles = ([bloc, preg, bona, altres, explica, frase]) => ({ bloc, preg, bona, altres, explica, veu: veuAngles(frase) });
             function itemsAngles() {
@@ -3083,7 +3085,7 @@
             // el domingo 15/11, de memoria las que aún no domina
             const DICTAT2_DES_DE = '2026-11-14', DICTAT2_FINS = '2026-11-15';
             // Tandas: palabras de un examen concreto que solo salen esos días (y esos días, solo ellas, hasta 12 nuevas)
-            const TANDES = { dictat2: [DICTAT2_DES_DE, DICTAT2_FINS], angles: ['2026-11-16', '2026-11-16'] };
+            const TANDES = { dictat2: [DICTAT2_DES_DE, DICTAT2_FINS], angles: ['2026-11-16', '2026-11-17'] }; // 17/11: repàs (hair i and, fallades el 16/11)
             const enTanda = (t, d) => d >= TANDES[t][0] && d <= TANDES[t][1];
             const tandaAvui = d => Object.keys(TANDES).some(t => enTanda(t, d));
             // desDe: la palabra entra ese día. repetirEl: ese día vuelve aunque el Dojo la dé por dominada (la falló en papel)
