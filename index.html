@@ -3041,7 +3041,8 @@
             // ---------- CASTELLÀ · control de la U2 (agenda: dilluns 23/11; papà, 17/11: no està clar si es fa, per si de cas) ----------
             // La conversa, l'estil directe i l'indirecte (dossier 2, pàgs. 6-7; les fulles de classe del 2/11; la prova del 16/11).
             // El 2/11 va fer bé el directe i l'indirecte, però barreja el present i el passat a l'indirecte («dice que necesita» / «dijo que eran»).
-            const CASTU2_DES_DE = '2026-11-18', CASTU2_FINS = '2026-11-22';
+            // 18/11 (papà): confirmat, la setmana que ve NO hi ha control. Fora des d'avui (també de la missió a mitges: treuBlocsRetirats).
+            const CASTU2_DES_DE = '2026-11-18', CASTU2_FINS = '2026-11-17';
             const CU_CONVERSA = "La conversación: respetar el turno, saludar y despedirse, ser respetuoso. Con alguien mayor o que no conoces: de usted. Lo siento = disculpas · Muchas gracias = dar las gracias · De nada = devolverlas · Hasta luego = despedirse · Por supuesto = acuerdo.";
             const CU_DIRECTO = "Estilo DIRECTO: habla la persona (yo, tú, mi, contigo). Raya (—) al empezar. El narrador, entre rayas, con un verbo de habla: dijo, preguntó, respondió, exclamó, propuso.";
             const CU_INDIRECTO = "Estilo INDIRECTO: lo cuenta el narrador. Sin rayas. Verbo de habla + que (o si, en las preguntas). Cambian: yo → él/ella · presente → pasado · hoy → aquel día · aquí → allí.";
@@ -4339,10 +4340,21 @@
             // ==========================================
             // PLAN: MISIÓN ACTUAL
             // ==========================================
+            // 18/11 (papà): el castellà de la U2 surt també de la missió que va quedar a mitges (la va parar just al castellà).
+            // Es treu de la llista guardada i el número de bloc es corregeix perquè continuï on toca.
+            function treuBlocsRetirats(p) {
+                const BLOCS_RETIRATS = ['castu2'];
+                const ec = p.enCurso;
+                if (!ec || !Array.isArray(ec.bloques) || !ec.bloques.some(b => BLOCS_RETIRATS.includes(b.tipo))) return p;
+                const abans = ec.bloques.slice(0, ec.bloque || 0).filter(b => BLOCS_RETIRATS.includes(b.tipo)).length;
+                p.enCurso = { ...ec, bloques: ec.bloques.filter(b => !BLOCS_RETIRATS.includes(b.tipo)), bloque: Math.max(0, (ec.bloque || 0) - abans) };
+                try { localStorage.setItem('dojo_plan', JSON.stringify(p)); } catch (e) {}
+                return p;
+            }
             function leerPlan() {
                 try {
                     const p = JSON.parse(localStorage.getItem('dojo_plan'));
-                    if (p && Array.isArray(p.hechas)) return p;
+                    if (p && Array.isArray(p.hechas)) return treuBlocsRetirats(p);
                 } catch (e) {}
                 return { hechas: [] };
             }

@@ -339,18 +339,19 @@ test.describe('Anglès', () => {
     });
 });
 
-test.describe('Des del 18/11: música (examen 27/11) i castellà de la U2 (per si de cas, fins al 22/11), papà 17/11', () => {
+test.describe('Des del 18/11: música (examen 27/11); el castellà de la U2, fora (papà 18/11: no hi ha control)', () => {
     const AMB = { ...TOTS, musica: true, castu2: true };
-    test('el 18/11 la missió porta múltiples, castellà, anglès i música, en aquest ordre', async ({ page }) => {
+    test('el 18/11 la missió porta múltiples, anglès i música, en aquest ordre, i cap castellà', async ({ page }) => {
         await preparar(page, '2026-11-18', AMB);
-        await expect.poll(async () => (await pasos(page)).length).toBeGreaterThan(3);
+        await expect.poll(async () => (await pasos(page)).length).toBeGreaterThan(2);
         const p = (await pasos(page)).join(' | ');
-        const ordre = ['Múltiples', 'Castellà: la unitat 2', 'English', 'Música per a l\'examen'].map(x => p.indexOf(x));
+        expect(p).not.toContain('Castellà: la unitat 2');
+        const ordre = ['Múltiples', 'English', 'Música per a l\'examen'].map(x => p.indexOf(x));
         ordre.forEach(i => expect(i).toBeGreaterThanOrEqual(0));
         expect([...ordre].sort((a, b) => a - b)).toEqual(ordre);
     });
-    test('el 17/11 encara no; el castellà s\'acaba el 22/11 i la música el 26/11', async ({ page }) => {
-        for (const [dia, cast, mus] of [['2026-11-17', false, false], ['2026-11-22', true, true], ['2026-11-23', false, true], ['2026-11-27', false, false]]) {
+    test('el 17/11 encara no; la música s\'acaba el 26/11; el castellà, cap dia', async ({ page }) => {
+        for (const [dia, cast, mus] of [['2026-11-17', false, false], ['2026-11-18', false, true], ['2026-11-22', false, true], ['2026-11-23', false, true], ['2026-11-27', false, false]]) {
             await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); }).catch(() => {});
             await preparar(page, dia, AMB);
             await expect.poll(async () => (await pasos(page)).length).toBeGreaterThan(0);
@@ -373,6 +374,26 @@ test.describe('Des del 18/11: música (examen 27/11) i castellà de la U2 (per s
             expect(new Set([p[2], ...p[3]]).size, p[1]).toBe(1 + p[3].length);
             expect(p[3].length).toBeGreaterThanOrEqual(1);
         }
+    });
+    test('la missió d\'avui que va parar al castellà continua pel bloc següent, sense castellà', async ({ page }) => {
+        const BLOCS = [{ tipo: 'sa2' }, { tipo: 'castu2' }, { tipo: 'angles' }, { tipo: 'musica' }];
+        await preparar(page, '2026-11-18', AMB, { plan: { hechas: PLAN_ACABAT, extras: EXTRES_FETES, enCurso: { id: 10, bloque: 1, fecha: '2026-11-18', bloques: BLOCS } } });
+        await expect.poll(async () => (await pasos(page)).length).toBe(3);
+        expect((await pasos(page)).join(' | ')).not.toContain('Castellà: la unitat 2');
+        const ec = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_plan')).enCurso);
+        expect(ec.bloques.map(b => b.tipo)).toEqual(['sa2', 'angles', 'musica']);
+        expect(ec.bloque).toBe(1);
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toContainText('English');
+    });
+    test('si el castellà ja estava fet, el número de bloc es corregeix', async ({ page }) => {
+        const BLOCS = [{ tipo: 'sa2' }, { tipo: 'castu2' }, { tipo: 'angles' }, { tipo: 'musica' }];
+        await preparar(page, '2026-11-18', AMB, { plan: { hechas: PLAN_ACABAT, extras: EXTRES_FETES, enCurso: { id: 10, bloque: 3, fecha: '2026-11-18', bloques: BLOCS } } });
+        await expect.poll(async () => (await pasos(page)).length).toBe(3);
+        const ec = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_plan')).enCurso);
+        expect(ec.bloque).toBe(2);
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toContainText('Música');
     });
     test('una de música que falla torna al final i l\'endemà surt primer', async ({ page }) => {
         await preparar(page, '2026-11-18', { musica: true });
