@@ -5,6 +5,8 @@
 #   sueltas («cervell» → «servei») y las vocales sueltas («la e» → «la a»), y en ortografía eso confunde.
 # - Los textos que empiezan por «[es] » (palabras de castellano) van con una voz castellana (Elvira),
 #   y los que empiezan por «[en] » (frases de inglés, desde el 12/11), con una inglesa (Sonia).
+#   Desde el 19/11 los «[en] » se rehacen aparte con una voz de Gemini más clara y pausada, comprobada con Whisper;
+#   este script solo genera los que falten (con Sonia), y así un texto nuevo nunca se queda sin audio.
 # Sin el venv de Matxa (~/.local/share/matxa-tts/venv), todo con la Joana.
 # Ejecutar después de cambiar cualquier texto hablado: las pruebas fallan si falta alguno.
 # Uso: veu/genera.sh
