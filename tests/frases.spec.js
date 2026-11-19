@@ -110,6 +110,39 @@ test.describe('Frases en anglès', () => {
         expect(st.s[id].escolta || 0).toBe(0);
     });
 
+    test('des del 20/11, a escolta veu la frase amb un forat a la peça clau i escriu només aquesta (I\'ve, There\'s, are…)', async ({ page }) => {
+        const envios = await preparar(page, '2026-11-20');
+        await page.evaluate(() => { window.__dites = []; window.speechSynthesis.speak = u => window.__dites.push(u.text); });
+        const totes = await page.evaluate(() => window.__frasesEn());
+        for (const f of totes) expect(f.en, f.id).toContain(f.forat);
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toHaveText('Frases en anglès');
+        await page.click('#btn-intro-vamos');
+        await expect.poll(() => page.evaluate(() => window.__fraseActual())).not.toBe(null);
+        let f;
+        const actual = async () => { const id = await page.evaluate(() => window.__fraseActual()); return totes.find(x => x.id === id); };
+        // bé: només la peça (en minúscules, també val)
+        f = await actual();
+        await expect(page.locator('.frase-forat .forat')).toBeVisible();
+        await expect(page.locator('.frase-forat')).toContainText(f.en.replace(f.forat, '').trim().split(' ').pop());
+        await escriu(page, f.forat.toLowerCase());
+        await page.click('#btn-dictat-fet');
+        await expect.poll(() => envios.filter(e => e.datos.modulo === 'frases').length).toBe(1);
+        expect(envios.find(e => e.datos.modulo === 'frases').datos.correcta).toBe(true);
+        // malament: surt la frase bona amb la peça marcada en verd i el que ha escrit
+        await expect.poll(() => page.evaluate(() => window.__fraseActual())).not.toBe(f.id);
+        f = await actual();
+        await escriu(page, 'xx');
+        await page.click('#btn-dictat-fet');
+        await expect(page.locator('.forat-bo')).toHaveText(f.forat);
+        await expect(page.locator('.frase-mal')).toHaveText('xx');
+        await page.click('#btn-frase-reescriu');
+        await escriu(page, f.forat.toLowerCase());
+        await page.click('#btn-dictat-fet');
+        await expect.poll(() => envios.filter(e => e.datos.modulo === 'frases').length).toBe(3);
+        expect(envios.filter(e => e.datos.modulo === 'frases')[2].datos.correcta).toBe(true);
+    });
+
     test('tradueix: surt la frase en català i la diu la veu en català', async ({ page }) => {
         await preparar(page, '2026-11-19', { frases: true }, { frases: { s: { 'f-long': { escolta: 1, tradueix: [], ultima: '2026-11-18' } } } });
         await page.evaluate(() => { window.__dites = []; window.speechSynthesis.speak = u => window.__dites.push(u.text); });

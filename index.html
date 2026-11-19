@@ -999,6 +999,10 @@
         .tecla.fet:disabled { opacity: 0.4; }
         .frase-ca { font-size: 1.6rem; line-height: 1.3; }
         .frase-ca-sub { font-size: 1rem; color: #6b21a8; }
+        .frase-forat { font-size: 1.6rem; line-height: 1.4; }
+        .frase-forat .forat { display: inline-block; width: 3.2em; height: 1.1em; vertical-align: -0.15em; margin: 0 4px; background: #f5f0ff; border: 2px dashed #c4b5fd; border-radius: 8px; }
+        .forat-bo { color: #15803d; font-weight: 800; }
+        .forat-bo .apos { color: #d0342c; }
         .frase-correccio { text-align: center; }
         .frase-bona { font-size: 1.7rem; font-weight: 700; margin: 6px 0 10px; letter-spacing: 0.02em; }
         .frase-tu { font-size: 1.15rem; margin-bottom: 14px; }
@@ -2967,12 +2971,19 @@
             const anglesPerDia = () => ANGLES_PER_DIA[hoy()] || (hoy() >= ANGLES_BASE_DES_DE ? [5, 5, 0, 0, 2, 0, 6, 3] : hoy() >= ANGLES_THERE_DES_DE ? [3, 4, 3, 0, 1, 0, 6] : hoy() >= ANGLES_UNIT1_DES_DE ? [3, 3, 4, 0, 2, 0] : hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10, 0] : [3, 3, 4, 2, 0, 0]);
             const veuAngles = frase => `[en] ${frase}`;
             const fitxaAngles = ([bloc, preg, bona, altres, explica, frase]) => ({ bloc, preg, bona, altres, explica, veu: veuAngles(frase) });
+            // 19/11 nit (papà): per parts, com al paper. Mentre treballa el diàleg 1 (jo i tu), al Dojo només I / you i there is / are;
+            // al Dojo del 19/11 fallava he/she/they (They 'm not, He have got). He, she i els altres tornen amb el diàleg 2.
+            const ANGLES_JO_TU_DES_DE = '2026-11-20', ANGLES_ELL_ELLA_DES_DE = '2026-11-22';
+            const nomesJoTu = () => hoy() >= ANGLES_JO_TU_DES_DE && hoy() < ANGLES_ELL_ELLA_DES_DE;
+            const esAltraPersona = t => /\b(he|she|they|we|his|her|their|our|it)\b/i.test(String(t).replace(/[’`]/g, "'"));
+            const valJoTu = t => !nomesJoTu() || !esAltraPersona(t);
             function itemsAngles() {
                 const perDia = anglesPerDia();
-                const noves = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(b => shuffle(ANGLES_PREGUNTES.filter(p => p[0] === b)).slice(0, perDia[b - 1] || 0)).map(fitxaAngles);
+                const preguntes = ANGLES_PREGUNTES.filter(p => valJoTu(p[5]));
+                const noves = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(b => shuffle(preguntes.filter(p => p[0] === b)).slice(0, perDia[b - 1] || 0)).map(fitxaAngles);
                 // Les fallades d'abans, només si són dels blocs d'avui (el 15/11 ja no tornen les negatives)
-                const blocsAvui = new Set(ANGLES_PREGUNTES.filter(p => perDia[p[0] - 1] > 0).map(p => p[1]));
-                return itemsTria('angles', noves, perDia.reduce((a, b) => a + b, 0), f => blocsAvui.has(f.preg));
+                const blocsAvui = new Set(preguntes.filter(p => perDia[p[0] - 1] > 0).map(p => p[1]));
+                return itemsTria('angles', noves, perDia.reduce((a, b) => a + b, 0), f => blocsAvui.has(f.preg) && valJoTu(f.veu));
             }
             const anglesPendent = m => dojoNou(m) && hoy() >= ANGLES_DES_DE && !leerTria('angles').pausa && itemsAngles().length > 0;
             const conAngles = m => ({ ...m, bloques: [...m.bloques, { tipo: 'angles' }] });
@@ -3045,8 +3056,26 @@
             // Primer el que va fallar a la prova (inicis, primeres, funcions, Menken/Newman); vocabulari i Foley, una mica
             const MUSICA_PER_DIA = [2, 2, 1, 2, 1, 2];
             const fitxaTria = ([bloc, preg, bona, altres, explica]) => ({ bloc, preg, bona, altres, explica });
-            const itemsMusica = () => itemsTria('musica', [1, 2, 3, 4, 5, 6].flatMap(b =>
-                shuffle(MUSICA_PREGUNTES.filter(p => p[0] === b)).slice(0, MUSICA_PER_DIA[b - 1])).map(fitxaTria), 10);
+            // 19/11, test en paper després del vídeo (12 de 19): falla PARELLES que es creuen (1895/1927, sonora/Disney, Méliès/Edison,
+            // Menken/Newman, expressiva/narrativa, blockbuster/precuel·la). El 20 i el 21, primer aquestes, amb la parella a l'explicació.
+            const MUSICA_PAPER_DES_DE = '2026-11-20', MUSICA_PAPER_FINS = '2026-11-21';
+            const MU_PARELLA_COMP = "Toy Story, Cars, Monstres SA = Randy Newman (Pixar). La Sireneta, La Bella i la Bèstia, Aladdin = Alan Menken (Disney).";
+            const MUSICA_PAPER = [
+                [2, 'En quin any va néixer el cinema?', '1895', ['1927', '1937'], "1895: neix el cinema (París, Lumière). 1927: la primera que parla («El cantor de jazz»). 1937: la primera de Disney («Blancaneus»)."],
+                [2, 'La primera pel·lícula sonora:', '«El cantor de jazz» (1927)', ['«Blancaneus» (1937)', '«Viatge a la Lluna» (1902)'], "Sonora = que parla: «El cantor de jazz», 1927. «Blancaneus» (1937) és la primera de Disney."],
+                [1, 'Qui va inventar les primeres ficcions i els trucatges?', 'Georges Méliès', ['Thomas Edison', 'Els germans Lumière'], "Els trucatges i «Viatge a la Lluna»: Méliès. D'Edison en van fugir els productors i van fundar Hollywood."],
+                [6, 'Qui va fer la música de «Toy Story»?', 'Randy Newman', ['Alan Menken'], MU_PARELLA_COMP],
+                [6, 'Qui va fer la música de «La Bella i la Bèstia»?', 'Alan Menken', ['Randy Newman'], MU_PARELLA_COMP],
+                [4, 'La música ens fa por abans que passi res. Quina funció és?', 'Expressiva', ['Narrativa', 'Banda sonora'], "Expressiva = el que SENTIM (por, alegria). Narrativa = ens explica ON i QUAN (l'època, el país). La banda sonora és tota la música, no una funció."],
+                [4, 'La música ens porta a una època o a un país. Quina funció és?', 'Narrativa', ['Expressiva'], "Narrativa = ens explica ON i QUAN (l'època, el país). Expressiva = el que SENTIM (por, alegria)."],
+                [3, 'Blockbuster:', 'Una pel·lícula de molt d\'èxit, que veu moltíssima gent', ['Una pel·lícula que passa abans d\'una altra', 'Un gir que no t\'esperes'], "Blockbuster: un èxit enorme, cues al cine. La que passa abans és la prequel·la."]
+            ];
+            const itemsMusica = () => {
+                const normals = [1, 2, 3, 4, 5, 6].flatMap(b => shuffle(MUSICA_PREGUNTES.filter(p => p[0] === b)).slice(0, MUSICA_PER_DIA[b - 1]));
+                const paper = hoy() >= MUSICA_PAPER_DES_DE && hoy() <= MUSICA_PAPER_FINS ? shuffle(MUSICA_PAPER) : [];
+                const ja = new Set(paper.map(p => p[1]));
+                return itemsTria('musica', [...paper, ...normals.filter(p => !ja.has(p[1]))].map(fitxaTria), 10);
+            };
             const musicaPendent = m => dojoNou(m) && hoy() >= MUSICA_DES_DE && hoy() <= MUSICA_FINS && !leerTria('musica').pausa && itemsMusica().length > 0;
             const conMusica = m => ({ ...m, bloques: [...m.bloques, { tipo: 'musica' }] });
 
@@ -3100,40 +3129,46 @@
             // desDe: el dia que les seves paraules entren a Paraules (el bloc va després de les paraules)
             const FRASES_DES_DE = '2026-11-18', FRASES_PER_DIA = 6, FRASES_REPAS_CADA = 7;
             const FRASES_EN = [
-                ['f-long', '2026-11-18', "I've got long hair.", 'Tinc els cabells llargs.'],
-                ['f-short', '2026-11-18', "She's got short hair.", 'Ella té els cabells curts.'],
-                ['f-curly', '2026-11-18', "He's got curly hair.", 'Ell té els cabells arrissats.'],
-                ['f-straight', '2026-11-18', "I've got straight hair.", 'Tinc els cabells llisos.'],
-                ['f-grey', '2026-11-18', "He's got grey hair.", 'Ell té els cabells grisos.'],
-                ['f-green', '2026-11-18', "I've got green eyes.", 'Tinc els ulls verds.'],
-                ['f-glasses', '2026-11-20', "He's got glasses.", 'Ell porta ulleres.'],
-                ['f-freckles', '2026-11-20', "She's got freckles.", 'Ella té pigues.'],
-                ['f-brown', '2026-11-19', "I've got brown eyes.", 'Tinc els ulls marrons.'],
-                ['f-music', '2026-11-19', 'I like music.', "M'agrada la música."],
+                ['f-long', '2026-11-18', "I've got long hair.", 'Tinc els cabells llargs.', "I've"],
+                ['f-short', '2026-11-18', "She's got short hair.", 'Ella té els cabells curts.', "She's"],
+                ['f-curly', '2026-11-18', "He's got curly hair.", 'Ell té els cabells arrissats.', "He's"],
+                ['f-straight', '2026-11-18', "I've got straight hair.", 'Tinc els cabells llisos.', "I've"],
+                ['f-grey', '2026-11-18', "He's got grey hair.", 'Ell té els cabells grisos.', "He's"],
+                ['f-green', '2026-11-18', "I've got green eyes.", 'Tinc els ulls verds.', "I've"],
+                ['f-glasses', '2026-11-20', "He's got glasses.", 'Ell porta ulleres.', "He's"],
+                ['f-freckles', '2026-11-20', "She's got freckles.", 'Ella té pigues.', "She's"],
+                ['f-brown', '2026-11-19', "I've got brown eyes.", 'Tinc els ulls marrons.', "I've"],
+                ['f-music', '2026-11-19', 'I like music.', "M'agrada la música.", 'like'],
                 // 19/11 (papà): primer les frases de la base (be, there is / there are, de qui és), amb paraules que ja sap
-                ['f-there-bed', '2026-11-19', "There's a bed.", 'Hi ha un llit.'],
-                ['f-are-some', '2026-11-19', 'There are some books.', 'Hi ha uns llibres.'],
-                ['f-you-are', '2026-11-19', "You're my friend.", 'Ets la meva amiga.'],
-                ['f-her-hair', '2026-11-20', 'Her hair is long.', "Els cabells d'ella són llargs."],
-                ['f-his-room', '2026-11-20', 'His room is small.', "L'habitació d'ell és petita."],
-                ['f-isnt-tall', '2026-11-20', "She isn't tall.", 'Ella no és alta.'],
-                ['f-mirror', '2026-11-21', "There's a mirror.", 'Hi ha un mirall.'],
-                ['f-window', '2026-11-21', "There's a window.", 'Hi ha una finestra.'],
-                ['f-posters', '2026-11-22', 'There are some posters.', 'Hi ha uns pòsters.'],
-                ['f-shelves', '2026-11-22', 'There are some shelves.', 'Hi ha uns prestatges.'],
-                ['f-wardrobe', '2026-11-22', "There's a wardrobe.", 'Hi ha un armari.'],
-                ['f-curtains', '2026-11-22', "There aren't any curtains.", 'No hi ha cortines.'],
-                ['f-tall', '2026-11-20', "I'm tall.", 'Sóc alta.'],
-                ['f-blonde', '2026-11-23', "She's got blonde hair.", 'Ella té els cabells rossos.'],
-                ['f-family', '2026-11-21', 'My family is small.', 'La meva família és petita.'],
-                ['f-live', '2026-11-21', 'I live in Sabadell.', 'Visc a Sabadell.'],
-                ['f-is-there', '2026-11-21', 'Is there a mirror?', 'Hi ha un mirall?'],
-                ['f-no-wardrobe', '2026-11-22', "There isn't a wardrobe.", 'No hi ha armari.'],
-                ['f-braces', '2026-11-23', "I've got braces.", 'Porto aparell a les dents.'],
-                ['f-dark', '2026-11-22', "She's got dark hair.", 'Ella té els cabells foscos.'],
-                ['f-blue', '2026-11-22', "I've got blue eyes.", 'Tinc els ulls blaus.']
-            ].map(([id, desDe, en, ca]) => ({ id, desDe, en, ca }));
+                ['f-there-bed', '2026-11-19', "There's a bed.", 'Hi ha un llit.', "There's"],
+                ['f-are-some', '2026-11-19', 'There are some books.', 'Hi ha uns llibres.', 'are'],
+                ['f-you-are', '2026-11-19', "You're my friend.", 'Ets la meva amiga.', "You're"],
+                ['f-her-hair', '2026-11-20', 'Her hair is long.', "Els cabells d'ella són llargs.", 'Her'],
+                ['f-his-room', '2026-11-20', 'His room is small.', "L'habitació d'ell és petita.", 'His'],
+                ['f-isnt-tall', '2026-11-20', "She isn't tall.", 'Ella no és alta.', "isn't"],
+                ['f-mirror', '2026-11-21', "There's a mirror.", 'Hi ha un mirall.', "There's"],
+                ['f-window', '2026-11-21', "There's a window.", 'Hi ha una finestra.', "There's"],
+                ['f-posters', '2026-11-22', 'There are some posters.', 'Hi ha uns pòsters.', 'are'],
+                ['f-shelves', '2026-11-22', 'There are some shelves.', 'Hi ha uns prestatges.', 'are'],
+                ['f-wardrobe', '2026-11-22', "There's a wardrobe.", 'Hi ha un armari.', "There's"],
+                ['f-curtains', '2026-11-22', "There aren't any curtains.", 'No hi ha cortines.', "aren't"],
+                ['f-tall', '2026-11-20', "I'm tall.", 'Sóc alta.', "I'm"],
+                ['f-blonde', '2026-11-23', "She's got blonde hair.", 'Ella té els cabells rossos.', "She's"],
+                ['f-family', '2026-11-21', 'My family is small.', 'La meva família és petita.', 'My'],
+                ['f-live', '2026-11-21', 'I live in Sabadell.', 'Visc a Sabadell.', 'in'],
+                ['f-is-there', '2026-11-21', 'Is there a mirror?', 'Hi ha un mirall?', 'Is'],
+                ['f-no-wardrobe', '2026-11-22', "There isn't a wardrobe.", 'No hi ha armari.', "isn't"],
+                ['f-braces', '2026-11-23', "I've got braces.", 'Porto aparell a les dents.', "I've"],
+                ['f-dark', '2026-11-22', "She's got dark hair.", 'Ella té els cabells foscos.', "She's"],
+                ['f-blue', '2026-11-22', "I've got blue eyes.", 'Tinc els ulls blaus.', "I've"]
+            ].map(([id, desDe, en, ca, forat]) => ({ id, desDe, en, ca, forat }));
             const veuFraseEn = f => `[en] ${f.en}`;
+            // 19/11 nit: escrivint la frase sencera fallava les 12 per com s'escriu straight, curly o grey, i no practicava el que toca.
+            // Des del 20/11, a «escolta» sent la frase sencera i la veu escrita amb un forat a la peça clau (I've, She's, There's, are…).
+            const FRASES_FORAT_DES_DE = '2026-11-20';
+            const fraseAmbForat = it => it.mode === 'escolta' && hoy() >= FRASES_FORAT_DES_DE && !!it.f.forat;
+            const fraseForat = f => { const i = f.en.indexOf(f.forat); return [f.en.slice(0, i), f.en.slice(i + f.forat.length)]; };
+            const fraseAmbResposta = (f, r) => { const [a, b] = fraseForat(f); return a + r + b; };
             // Iguals sense mirar majúscules, punts ni apòstrofs rodons; «I've» i «I have» valen igual
             const paraulesFrase = t => t.toLowerCase().replace(/[’`]/g, "'").replace(/[.,!?¿¡]/g, ' ')
                 .replace(/'s got\b/g, ' has got').replace(/\bi'm\b/g, 'i am').replace(/'ve\b/g, ' have').replace(/'re\b/g, ' are')
@@ -3160,7 +3195,7 @@
             const fraseDominada = e => !!e && (e.tradueix || []).length >= 2;
             function itemsFrases() {
                 const d = hoy(), st = leerFrases();
-                const actives = FRASES_EN.filter(f => d >= f.desDe && (!st.s[f.id] || st.s[f.id].ultima !== d));
+                const actives = FRASES_EN.filter(f => d >= f.desDe && valJoTu(f.en) && (!st.s[f.id] || st.s[f.id].ultima !== d));
                 const e = f => st.s[f.id];
                 const tradueix = actives.filter(f => e(f) && e(f).escolta && !fraseDominada(e(f)));
                 const escolta = actives.filter(f => !e(f) || !e(f).escolta);
@@ -3185,7 +3220,10 @@
             const conFrases = m => ({ ...m, bloques: [...m.bloques, { tipo: 'frases' }] });
             const parlarFrase = it => hablar(it.mode === 'escolta' ? veuFraseEn(it.f) : it.f.ca);
             function pintarFrase() {
-                opFactorsEl.innerHTML = item.mode === 'escolta' ? '🎧 Escolta i escriu en anglès'
+                const [abans, despres] = fraseForat(item.f);
+                opFactorsEl.innerHTML = fraseAmbForat(item)
+                    ? `<span class="frase-forat">${escaparHtml(abans)}<span class="forat"></span>${escaparHtml(despres)}</span><br><span class="frase-ca-sub">🎧 Escolta i escriu la paraula que falta</span>`
+                    : item.mode === 'escolta' ? '🎧 Escolta i escriu en anglès'
                     : `<span class="frase-ca">${escaparHtml(item.f.ca)}</span><br><span class="frase-ca-sub">En anglès?</span>`;
                 currentInput = '';
                 teclas = [];
@@ -3198,7 +3236,8 @@
                 if (resposta !== null && !resposta) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
-                const ok = resposta !== null && frasesIguals(resposta, item.f.en);
+                const forat = fraseAmbForat(item);
+                const ok = resposta !== null && frasesIguals(forat ? fraseAmbResposta(item.f, resposta) : resposta, item.f.en);
                 // Compta el primer intent; el segon, només es guarda
                 if (item.intent === 1) {
                     registrar(item, resposta, ok, ms, { mode: item.mode, intent: 1, escoltat: item.escoltat, ...(resposta === null ? { no_lo_se: true } : {}) });
@@ -3210,8 +3249,10 @@
                     // Com a Paraules: la bona, les seves paraules que no hi són marcades, i la torna a escriure
                     item.intent = 2;
                     document.getElementById('dictat-panel').hidden = true;
-                    opFeedbackEl.innerHTML = `<div class="frase-correccio"><div class="frase-bona">${escaparHtml(item.f.en)}</div>`
-                        + `<div class="frase-tu">Has escrit: ${htmlFraseMarcada(resposta, item.f.en)}</div>`
+                    const [abans, despres] = fraseForat(item.f);
+                    opFeedbackEl.innerHTML = `<div class="frase-correccio"><div class="frase-bona">`
+                        + (forat ? `${escaparHtml(abans)}<span class="forat-bo">${escaparHtml(item.f.forat).replace(/&#39;|'/g, '<span class="apos">\'</span>')}</span>${escaparHtml(despres)}` : escaparHtml(item.f.en)) + `</div>`
+                        + `<div class="frase-tu">Has escrit: ${forat ? `<span class="frase-mal">${escaparHtml(resposta)}</span>` : htmlFraseMarcada(resposta, item.f.en)}</div>`
                         + `<button id="btn-frase-reescriu" class="btn-action btn-paraula-seguir">La torno a escriure ✍️</button></div>`;
                     document.getElementById('btn-no-ho-se').hidden = true;
                     hablar(veuFraseEn(item.f));
@@ -3410,7 +3451,7 @@
                 { id: 'en-blonde', idioma: 'en', tanda: 'angles', desDe: '2026-11-23', marca: 'blond[e]', frase: 'She\'s got blonde hair.', truc: 'Com rossa, blond, i una e al final que no sona.' },
                 { id: 'en-tall', idioma: 'en', tanda: 'angles', desDe: '2026-11-20', marca: 't[all]', frase: 'I\'m tall.', truc: 'Te i all, amb dues ela. Com wall i small.' },
                 { id: 'en-family', idioma: 'en', tanda: 'angles', desDe: '2026-11-21', marca: 'fam[i]l[y]', frase: 'My family is small.', truc: 'Com família, però sense accent i acaba amb i grega.' },
-                { id: 'en-people', idioma: 'en', tanda: 'angles', desDe: '2026-11-22', marca: 'p[eo]pl[e]', frase: 'There are four people in my family.', truc: 'Pe, e o, ple: com dir-la peo-ple.' },
+                { id: 'en-people', idioma: 'en', tanda: 'angles', desDe: '2026-11-23', marca: 'p[eo]pl[e]', frase: 'There are four people in my family.', truc: 'Pe, e o, ple: com dir-la peo-ple.' },
                 { id: 'en-small', idioma: 'en', tanda: 'angles', desDe: '2026-11-21', marca: 'sm[all]', frase: 'My family is small.', truc: 'Essa, ema i all, amb dues ela. Com tall i wall.' },
                 // 19/11 (papà): primer la base, les paraules que surten a totes les frases; els sustantius, darrere (+1 a +2 dies)
                 { id: 'en-there', idioma: 'en', tanda: 'angles', desDe: '2026-11-19', marca: 'th[ere]', frase: "There's a bed in my bedroom.", truc: 'Com here, aquí, amb una te davant: t, here. There is = hi ha.' },
@@ -3418,8 +3459,8 @@
                 { id: 'en-some', idioma: 'en', tanda: 'angles', desDe: '2026-11-19', marca: 's[o]m[e]', frase: 'There are some posters.', truc: 'Sona sam, però s\'escriu amb o i una e al final: s, o, m, e.' },
                 { id: 'en-any', idioma: 'en', tanda: 'angles', desDe: '2026-11-19', marca: '[a]n[y]', frase: "There aren't any chairs.", truc: 'Sona eni, però s\'escriu a, n, i grega.' },
                 { id: 'en-your', idioma: 'en', tanda: 'angles', desDe: '2026-11-20', marca: 'y[our]', frase: 'Is this your desk?', truc: 'I grega i our: el teu. Our sol vol dir el nostre.' },
-                { id: 'en-her', idioma: 'en', tanda: 'angles', desDe: '2026-11-20', marca: 'h[er]', frase: 'Her hair is long.', truc: "H, e, erra: d'ella. Els cabells, hair, porten a i." },
-                { id: 'en-his', idioma: 'en', tanda: 'angles', desDe: '2026-11-20', marca: 'h[i]s', frase: 'His room is big.', truc: "H, i, essa: d'ell. No és he's, que vol dir he is." },
+                { id: 'en-her', idioma: 'en', tanda: 'angles', desDe: '2026-11-22', marca: 'h[er]', frase: 'Her hair is long.', truc: "H, e, erra: d'ella. Els cabells, hair, porten a i." },
+                { id: 'en-his', idioma: 'en', tanda: 'angles', desDe: '2026-11-22', marca: 'h[i]s', frase: 'His room is big.', truc: "H, i, essa: d'ell. No és he's, que vol dir he is." },
                 { id: 'en-has', idioma: 'en', tanda: 'angles', desDe: '2026-11-19', marca: '[h]as', frase: 'She has got brown hair.', truc: 'Comença amb hac, com have: h, a, s.' },
                 { id: 'en-my', idioma: 'en', tanda: 'angles', desDe: '2026-11-19', marca: 'm[y]', frase: 'My name is Alice.', truc: 'Ema i i grega. Sona mai, però s\'escriu m y.' },
                 { id: 'en-braces', idioma: 'en', tanda: 'angles', desDe: '2026-11-23', marca: 'bra[c]es', frase: 'I\'ve got braces.', truc: 'Bra, ce, es. La ce sona com essa.' },
@@ -4125,7 +4166,7 @@
             window.__itemsAngles = () => itemsAngles().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona, veu: x.veu }));
             window.__itemsMusica = () => itemsMusica().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona }));
             window.__itemsCastu2 = () => itemsCastu2().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona }));
-            window.__preguntesTria = () => ({ musica: MUSICA_PREGUNTES, castu2: CASTU2_PREGUNTES, angles: ANGLES_PREGUNTES });
+            window.__preguntesTria = () => ({ musica: [...MUSICA_PREGUNTES, ...MUSICA_PAPER], castu2: CASTU2_PREGUNTES, angles: ANGLES_PREGUNTES });
             window.__anglesPreguntes = () => ANGLES_PREGUNTES;
             window.__itemsSocials = () => itemsSocials().map(x => ({ bloc: x.bloc, preg: x.preg, ...(x.previa ? { previa: true } : {}) }));
             window.__idMisio = () => misionMostrada().id;

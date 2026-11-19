@@ -121,9 +121,10 @@ test.describe('El Dojo des del 13/11', () => {
 
     test('des del 18/11 (papà: anglès cada dia, examen de la Unit 1 ~26/11): cada dia entren les paraules d\'anglès del dia, i només d\'anglès', async ({ page }) => {
         // 19/11 (papà): primer la base (there, are, some, any, has, my, your, her, his); els sustantius, darrere
+        // 19/11 nit: her i his, amb el diàleg 2 (he/she), el 22/11
         const DIES = { '2026-11-18': ['short', 'long', 'curly', 'straight', 'grey', 'green'], '2026-11-19': ['there', 'are', 'some', 'any', 'has', 'my'],
-            '2026-11-20': ['your', 'her', 'his', 'glasses', 'freckles', 'tall'], '2026-11-21': ['wall', 'floor', 'mirror', 'window', 'family', 'small'],
-            '2026-11-22': ['shelves', 'wardrobe', 'curtains', 'posters', 'people'], '2026-11-23': ['blonde', 'braces', 'height', 'dark', 'blue'] };
+            '2026-11-20': ['your', 'glasses', 'freckles', 'tall'], '2026-11-21': ['wall', 'floor', 'mirror', 'window', 'family', 'small'],
+            '2026-11-22': ['her', 'his', 'shelves', 'wardrobe', 'curtains', 'posters'], '2026-11-23': ['blonde', 'braces', 'height', 'dark', 'blue', 'people'] };
         await preparar(page, '2026-11-18');
         expect((await pasos(page)).join(' | ')).toContain('Paraules');
         for (const [dia, paraules] of Object.entries(DIES)) {
@@ -308,6 +309,34 @@ test.describe('Anglès', () => {
             expect(compte).toEqual({ 1: 5, 2: 5, 5: 2, 7: 6, 8: 3 });
             expect(new Set(items.map(x => x.preg)).size).toBe(21);
         }
+    });
+
+    test('el 20 i el 21/11 (diàleg 1, jo i tu): només I / you i there is / are, a les preguntes, a les frases i a les fallades d\'abans; el 22/11 tornen he/she', async ({ page }) => {
+        const altra = t => /\b(he|she|they|we|his|her|their|our|it)\b/i.test(t);
+        for (const dia of ['2026-11-20', '2026-11-21']) {
+            await preparar(page, dia, TOTS, { angles: { falla: [{ bloc: 1, preg: 'They ___ Portuguese. They\'re Italian.', bona: 'aren\'t', altres: ['isn\'t', '\'m not'], explica: 'x', veu: "[en] They aren't Portuguese. They're Italian." }], fet: '2026-11-19' } });
+            const items = await page.evaluate(() => window.__itemsAngles());
+            expect(items.length).toBeGreaterThanOrEqual(18);
+            expect(items.filter(x => altra(x.veu)).map(x => x.veu)).toEqual([]);
+            const frases = await page.evaluate(() => { const f = window.__frasesEn(); return window.__itemsFrases().map(x => f.find(y => y.id === x.id).en); });
+            expect(frases.filter(altra)).toEqual([]);
+        }
+        await preparar(page, '2026-11-22');
+        expect((await page.evaluate(() => window.__itemsAngles())).some(x => altra(x.veu))).toBe(true);
+    });
+
+    test('música, el 20 i el 21/11: primer les 8 parelles que es van creuar al test de paper; el 22/11, com sempre', async ({ page }) => {
+        const PAPER = ['En quin any va néixer el cinema?', 'La primera pel·lícula sonora:', 'Qui va inventar les primeres ficcions i els trucatges?',
+            'Qui va fer la música de «Toy Story»?', 'Qui va fer la música de «La Bella i la Bèstia»?', 'La música ens fa por abans que passi res. Quina funció és?',
+            'La música ens porta a una època o a un país. Quina funció és?', 'Blockbuster:'];
+        await preparar(page, '2026-11-20');
+        const mus = (await page.evaluate(() => window.__itemsMusica())).map(x => x.preg);
+        expect(mus.length).toBe(10);
+        PAPER.forEach(p => expect(mus).toContain(p));
+        await preparar(page, '2026-11-22');
+        const mus22 = await page.evaluate(() => window.__itemsMusica());
+        expect(mus22.length).toBe(10);
+        expect(new Set(mus22.map(x => x.bloc))).toEqual(new Set([1, 2, 3, 4, 5, 6]));
     });
 
     test('de qui és (bloc 8): my, your, his, her, our, their, i cada una amb la seva trampa', async ({ page }) => {
