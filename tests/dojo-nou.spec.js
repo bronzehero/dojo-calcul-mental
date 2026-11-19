@@ -120,9 +120,10 @@ test.describe('El Dojo des del 13/11', () => {
     });
 
     test('des del 18/11 (papà: anglès cada dia, examen de la Unit 1 ~26/11): cada dia entren les paraules d\'anglès del dia, i només d\'anglès', async ({ page }) => {
-        const DIES = { '2026-11-18': ['short', 'long', 'curly', 'straight', 'grey', 'green'], '2026-11-19': ['glasses', 'freckles', 'wall', 'floor', 'mirror', 'window'],
-            '2026-11-20': ['shelves', 'wardrobe', 'curtains', 'posters', 'blonde', 'tall'], '2026-11-21': ['family', 'people', 'small', 'has', 'my'],
-            '2026-11-22': ['braces', 'height', 'dark', 'blue'] };
+        // 19/11 (papà): primer la base (there, are, some, any, has, my, your, her, his); els sustantius, darrere
+        const DIES = { '2026-11-18': ['short', 'long', 'curly', 'straight', 'grey', 'green'], '2026-11-19': ['there', 'are', 'some', 'any', 'has', 'my'],
+            '2026-11-20': ['your', 'her', 'his', 'glasses', 'freckles', 'tall'], '2026-11-21': ['wall', 'floor', 'mirror', 'window', 'family', 'small'],
+            '2026-11-22': ['shelves', 'wardrobe', 'curtains', 'posters', 'people'], '2026-11-23': ['blonde', 'braces', 'height', 'dark', 'blue'] };
         await preparar(page, '2026-11-18');
         expect((await pasos(page)).join(' | ')).toContain('Paraules');
         for (const [dia, paraules] of Object.entries(DIES)) {
@@ -296,6 +297,25 @@ test.describe('Anglès', () => {
         const compte = {};
         items.forEach(x => { compte[x.bloc] = (compte[x.bloc] || 0) + 1; });
         expect(compte).toEqual({ 1: 3, 2: 4, 3: 3, 5: 1, 7: 6 });
+    });
+
+    test('des del 19/11 (papà: primer la base, després els sustantius): be 5, have got 5, email 2, there is/are 6, de qui és 3; cap de vocabulari', async ({ page }) => {
+        for (const dia of ['2026-11-19', '2026-11-24']) {
+            await preparar(page, dia);
+            const items = await page.evaluate(() => window.__itemsAngles());
+            const compte = {};
+            items.forEach(x => { compte[x.bloc] = (compte[x.bloc] || 0) + 1; });
+            expect(compte).toEqual({ 1: 5, 2: 5, 5: 2, 7: 6, 8: 3 });
+            expect(new Set(items.map(x => x.preg)).size).toBe(21);
+        }
+    });
+
+    test('de qui és (bloc 8): my, your, his, her, our, their, i cada una amb la seva trampa', async ({ page }) => {
+        await preparar(page, '2026-11-19');
+        const b8 = (await page.evaluate(() => window.__anglesPreguntes())).filter(p => p[0] === 8);
+        expect(b8.length).toBeGreaterThanOrEqual(8);
+        const bones = b8.map(p => p[2].toLowerCase().split(' ')[0]);
+        ['my', 'your', 'his', 'her', 'our', 'their'].forEach(w => expect(bones).toContain(w));
     });
 
     test('totes les preguntes tenen 3 opcions diferents i la bona hi és una sola vegada', async ({ page }) => {
