@@ -2805,7 +2805,52 @@
                 ['16 és múltiple de 6.', 'Fals', 'A la taula del 6 hi ha 12 i 18, però no 16.']
             ];
             const SA2_VOCAB = 'El MÚLTIPLE és el gran (el resultat de la taula). El DIVISOR és el petit (el de la taula).';
+            // 20/11 (papà, d'acord): 8 dies encallada entre el 33 i el 75 %. Tria el número que s'hi assembla («divisor de 18» → 8,
+            // «de 28» → 8, «múltiple de 8» → 58): no ho calcula. Des del 21/11, el múltiple i el divisor es construeixen amb la taula
+            // i s'escriuen amb el teclat, sense opcions: «Un múltiple de 8: 8 × 7 = ?» i «Un divisor de 18: 18 = 3 × ?».
+            // En encertar, la frase («56 és múltiple de 8»). El vocabulari i les regles, igual (no hi ha números que s'assemblin).
+            const SA2_CONSTRUEIX_DES_DE = '2026-11-21';
+            const sa2Construeix = () => hoy() >= SA2_CONSTRUEIX_DES_DE;
+            // L'explicació nova es diu en veu alta el primer dia (clau de veu pròpia), i després un cop per setmana com les altres
+            const SA2_INFO_CONSTRUEIX = { nombre: 'Múltiples i divisors', icono: '🔢', clauVeu: 'sa2c', paso: () => 'Múltiples i divisors',
+                instr: "Mates del tema nou: múltiples i divisors, amb la taula de multiplicar. Digues la multiplicació en veu alta i escriu el número que falta. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».",
+                ejemplo: 'Un divisor de 18: 18 = 3 × ? ➜ 6. El 3 i el 6 són divisors de 18.' };
+            function sa2FitxesConstrueix() {
+                const fets = [...SA2_FETS.slice(0, 8), ...shuffle(SA2_FETS.slice(8))];
+                const out = [], titols = new Set(), usades = new Set();
+                let k = 0;
+                const seguent = () => fets[k++ % fets.length];
+                // 4 múltiples (un per taula) i 4 divisors (un per nombre), cada fet de les taules una sola vegada
+                for (let n = 0, intents = 0; n < 4 && intents < 40; intents++) {
+                    const [a, b] = seguent(), prod = a * b;
+                    const t = [a, b].sort(() => Math.random() - 0.5).find(x => !titols.has(`Un múltiple de ${x}:`));
+                    if (!t || usades.has(prod)) continue;
+                    const o = prod / t, titol = `Un múltiple de ${t}:`;
+                    titols.add(titol); usades.add(prod);
+                    out.push({ bloc: 1, num: true, titol, preg: `${t} × ${o} = ? (múltiple de ${t})`, op: `${t} × ${o}`, bona: String(prod),
+                        solucio: `${t} × ${o} = ${prod}`, diu: `${prod} és múltiple de ${t}`,
+                        explica: `${t} × ${o} = ${prod}: el ${prod} surt a la taula del ${t}, és múltiple de ${t}.` });
+                    n++;
+                }
+                for (let n = 0, intents = 0; n < 4 && intents < 40; intents++) {
+                    const [a, b] = seguent(), prod = a * b;
+                    if (usades.has(prod)) continue;
+                    const d = Math.random() < 0.5 ? a : b, o = prod / d;
+                    usades.add(prod);
+                    out.push({ bloc: 2, num: true, titol: `Un divisor de ${prod}:`, preg: `${prod} = ${d} × ? (divisor de ${prod})`, op: `${prod} = ${d} ×`,
+                        sensIgual: true, bona: String(o), solucio: `${prod} = ${d} × ${o}`, diu: `${d} i ${o} són divisors de ${prod}`,
+                        explica: `${d} × ${o} = ${prod}: el ${d} i el ${o} són divisors de ${prod}.` });
+                    n++;
+                }
+                const [a, b] = seguent(), prod = a * b;
+                out.push({ bloc: 3, preg: `${a} × ${b} = ${prod}. Què és cert?`, bona: `${prod} és múltiple de ${a}`,
+                    altres: [`${a} és múltiple de ${prod}`, `${prod} és divisor de ${a}`], explica: SA2_VOCAB });
+                const [frase, bona, explica] = shuffle(SA2_REGLES)[0];
+                out.push({ bloc: 4, preg: frase, bona, altres: [bona === 'Cert' ? 'Fals' : 'Cert'], explica });
+                return shuffle(out);
+            }
             function sa2Fitxes() {
+                if (sa2Construeix()) return sa2FitxesConstrueix();
                 const fets = [...SA2_FETS.slice(0, 8), ...shuffle(SA2_FETS.slice(8))];
                 const out = [], usades = new Set();
                 const posa = (bloc, preg, bona, altres, explica) => {
@@ -2840,7 +2885,8 @@
                 posa(4, frase, bona, [bona === 'Cert' ? 'Fals' : 'Cert'], explica);
                 return shuffle(out);
             }
-            const itemsSa2 = () => itemsTria('sa2', sa2Fitxes(), SA2_PER_DIA);
+            // Des del 21/11, les fallades d'abans de triar un número (blocs 1 i 2) ja no tornen: ara surten construïdes
+            const itemsSa2 = () => itemsTria('sa2', sa2Fitxes(), SA2_PER_DIA, f => !sa2Construeix() || f.num || f.bloc >= 3);
             const sa2Pendent = m => dojoNou(m) && hoy() >= SA2_DES_DE && !leerTria('sa2').pausa && itemsSa2().length > 0;
             const conSa2 = m => ({ ...m, bloques: [...m.bloques, { tipo: 'sa2' }] });
 
@@ -2984,6 +3030,61 @@
                 // Les fallades d'abans, només si són dels blocs d'avui (el 15/11 ja no tornen les negatives)
                 const blocsAvui = new Set(preguntes.filter(p => perDia[p[0] - 1] > 0).map(p => p[1]));
                 return itemsTria('angles', noves, perDia.reduce((a, b) => a + b, 0), f => blocsAvui.has(f.preg) && valJoTu(f.veu));
+            }
+            // 20/11 (papà, d'acord): repeteix el mateix error dos minuts després («I am got», «My name Alice», a / an amb aren't):
+            // llegir la correcció no li arriba. Des del 21/11, si falla (no amb «No ho sé»), com a Frases: la frase bona sencera amb
+            // la peça marcada, l'escolta, la tapa i l'escriu (mira, tapa, escriu i comprova). El segon intent no compta: es guarda a part.
+            const ANGLES_COPIA_DES_DE = '2026-11-21';
+            const NOMBRES_EN = { 11: 'eleven', 12: 'twelve', 70: 'seventy' };
+            // Al teclat de lletres no hi ha xifres ni guionets
+            const fraseCopiaAngles = it => it.veu.replace(/^\[en\]\s*/, '').replace(/\b(\d+)\b/g, (m, n) => NOMBRES_EN[n] || m);
+            const copiaIgual = (a, b) => frasesIguals(a.replace(/-/g, ' '), b.replace(/-/g, ' '));
+            function htmlCopiaAngles(it) {
+                const f = it.copia, i = f.toLowerCase().indexOf(it.esperado.toLowerCase());
+                if (i < 0) return escaparHtml(f);
+                return escaparHtml(f.slice(0, i)) + `<span class="forat-bo">${escaparHtml(f.slice(i, i + it.esperado.length))}</span>` + escaparHtml(f.slice(i + it.esperado.length));
+            }
+            function anglesACopiar(opcio) {
+                item.intent = 2;
+                item.copia = fraseCopiaAngles(item);
+                playFeedbackSound(false);
+                document.getElementById('btn-no-ho-se').hidden = true;
+                opFeedbackEl.innerHTML = `<div class="frase-correccio"><div class="frase-bona">${htmlCopiaAngles(item)}</div>`
+                    + `<div class="frase-tu">Has triat: <span class="frase-mal">${escaparHtml(opcio)}</span></div>`
+                    + `<div class="correction-pista">${escaparHtml(item.explica)}</div>`
+                    + `<button id="btn-angles-copia" class="btn-action btn-paraula-seguir">La torno a escriure ✍️</button></div>`;
+                // La frase en anglès ja la diu responderTema1
+            }
+            function anglesEscriu() {
+                if (!item || item.tipo !== 'angles' || !item.copia || item.etapa === 'copia') return;
+                callarVeu();
+                opFeedbackEl.innerHTML = '';
+                item.etapa = 'copia';
+                document.getElementById('tema1-preg').textContent = 'Escriu la frase sencera:';
+                document.getElementById('btn-escoltar-dictat').hidden = true;
+                document.getElementById('dictat-panel').hidden = false;
+                currentInput = '';
+                teclas = [];
+                tInicio = performance.now();
+                isEvaluating = false;
+                pintarDictat();
+            }
+            document.addEventListener('click', e => { if (e.target && e.target.id === 'btn-angles-copia') anglesEscriu(); });
+            function evaluarCopiaAngles(resposta) {
+                if (isEvaluating || !item || item.etapa !== 'copia' || !resposta) return;
+                isEvaluating = true;
+                const ms = Math.round(performance.now() - tInicio);
+                const ok = copiaIgual(resposta, item.copia);
+                if (!sesion.prueba) guardarEvento({ modulo: 'angles', item: item.clave, esperado: item.copia, respuesta: resposta, correcta: ok, tiempo_ms: ms,
+                    primera_tecla_ms: teclas.length ? teclas[0][0] : null, detalle: { mision: sesion.mision.id, teclas, modo: item.modo, intent: 2, copia: true } });
+                item.etapa = null;
+                document.getElementById('dictat-panel').hidden = true;
+                document.getElementById('btn-escoltar-dictat').hidden = false;
+                hablar(item.veu);
+                if (ok) return celebrar();
+                opFeedbackEl.innerHTML = '';
+                mostrarCorreccion('🌸 Gairebé! Fixa-t\'hi:', item.copia, `Has escrit: ${resposta}`);
+                mostrarPistaCorreccion();
             }
             const anglesPendent = m => dojoNou(m) && hoy() >= ANGLES_DES_DE && !leerTria('angles').pausa && itemsAngles().length > 0;
             const conAngles = m => ({ ...m, bloques: [...m.bloques, { tipo: 'angles' }] });
@@ -4162,12 +4263,13 @@
             window.__itemsTonicaV = () => itemsTonica().map(w => ({ paraula: paraulaTonica(w), versions: !!w.versions }));
             window.__veuVersions = p => veuVersions(TONICA_PARAULES.find(w => paraulaTonica(w) === p));
             window.__itemsBio = () => itemsBio().map(x => ({ bloc: x.bloc, preg: x.preg }));
-            window.__itemsSa2 = () => itemsSa2().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona, altres: x.altres }));
+            window.__itemsSa2 = () => itemsSa2().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona, altres: x.altres, num: !!x.num, op: x.op, titol: x.titol }));
             window.__itemsAngles = () => itemsAngles().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona, veu: x.veu }));
             window.__itemsMusica = () => itemsMusica().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona }));
             window.__itemsCastu2 = () => itemsCastu2().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona }));
             window.__preguntesTria = () => ({ musica: [...MUSICA_PREGUNTES, ...MUSICA_PAPER], castu2: CASTU2_PREGUNTES, angles: ANGLES_PREGUNTES });
             window.__anglesPreguntes = () => ANGLES_PREGUNTES;
+            window.__anglesCopies = () => ANGLES_PREGUNTES.map(p => fraseCopiaAngles({ veu: veuAngles(p[5]) }));
             window.__itemsSocials = () => itemsSocials().map(x => ({ bloc: x.bloc, preg: x.preg, ...(x.previa ? { previa: true } : {}) }));
             window.__idMisio = () => misionMostrada().id;
             window.__itemsTonica = () => itemsTonica().map(w => paraulaTonica(w));
@@ -4181,6 +4283,7 @@
                 ROMANS_ESCALA.forEach(e => t.add(e.veu));
                 t.add(TEMA1_EXAMEN_INFO.instr);
                 t.add(TEMA1_ULTIM_INFO.instr);
+                t.add(SA2_INFO_CONSTRUEIX.instr);
                 [...ACCENT_ON_SEMPRE, ...ACCENT_ON, ...ACCENT_NO].forEach(x => t.add(veuAccent(x)));
                 t.add(ACCENT_LLEGEIX_VEU);
                 t.add(PAS10_DITS);
@@ -4600,6 +4703,7 @@
                 if (b.tipo === 'tema1' && hoy() === TEMA1_ULTIM_DIA) return { ...TIPOS.tema1, ...TEMA1_ULTIM_INFO };
                 if (b.tipo === 'tema1' && setmanaExamenMates()) return { ...TIPOS.tema1, ...TEMA1_EXAMEN_INFO };
                 if (b.tipo === 'lab' && !leerLab().prova) return LAB_INFO_PROVA;
+                if (b.tipo === 'sa2' && sa2Construeix()) return SA2_INFO_CONSTRUEIX;
                 if (b.tipo !== 'grafia') return TIPOS[b.tipo];
                 // Igual que l'enunciat de l'examen; el color només ajuda a trobar-ho al full
                 const e = EXAMEN_CATALA[b.bloc];
@@ -4718,7 +4822,7 @@
                 showScreen('intro');
                 // 12/11 (papà): les explicacions repetides cada dia es fan pesades. La veu, el primer dia i després un cop
                 // per setmana; el text, sempre a la pantalla (i el botó d'escoltar-la, si en té)
-                const tipo = bloqueActual().tipo;
+                const tipo = t.clauVeu || bloqueActual().tipo;
                 let dites = {};
                 try { dites = JSON.parse(localStorage.getItem('dojo_intro_veu')) || {}; } catch (e) {}
                 if (enPrueba() || !dites[tipo] || diesEntre(dites[tipo], hoy()) >= 7) {
@@ -5196,6 +5300,10 @@
                 }
                 if (TRIA_TIPUS.includes(tipo)) {
                     const x = sesion.fijos[sesion.hechos];
+                    // SA2 des del 21/11: el múltiple i el divisor, construïts amb la taula i escrits amb el teclat
+                    if (x.num) return { tipo, modo: `bloc${x.bloc}`, texto: x.op, html: htmlOperacion(x.op), sensIgual: !!x.sensIgual,
+                        clave: `${tipo}:${x.preg.slice(0, 40)}`, esperado: x.bona, preg: x.titol, opcions: null, solucio: x.solucio,
+                        explica: x.explica, diu: x.diu, fix: x };
                     return { tipo, modo: `bloc${x.bloc}`, texto: x.preg, clave: `${tipo}:${x.preg.slice(0, 40)}`, esperado: x.bona,
                         preg: tipo === 'angles' && (x.bloc === 3 || (x.bloc === 5 && !x.preg.endsWith(':'))) ? 'Com s\'escriu en anglès?'
                             : tipo === 'angles' && x.bloc >= 4 ? 'Quina està bé?' : 'Quina és la bona?',
@@ -5258,12 +5366,12 @@
 
                 const ambPreg = ['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'tonica', 'parens'].includes(item.tipo);
                 const ambOpcions = ambPreg && !!item.opcions;
-                const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo) || (item.tipo === 'tema1' && !ambOpcions) ||
+                const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo) || (['tema1', 'sa2'].includes(item.tipo) && !ambOpcions) ||
                     (item.tipo === 'parens' && !!item.maxXifres);
                 opFactorsEl.innerHTML = item.html || htmlOperacion(item.texto);
                 marcarCanviDeSigne();
                 opIgualEl.textContent = item.tipo === 'teclear' ? '→' : '=';
-                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir', 'paraules', 'accent', 'lab', 'frases'].includes(item.tipo) || ambOpcions || (item.tipo === 'parens' && !item.maxXifres);
+                opIgualEl.hidden = ['vf', 'teclear', 'grafia', 'dictat', 'xifra', 'sentir', 'paraules', 'accent', 'lab', 'frases'].includes(item.tipo) || ambOpcions || (item.tipo === 'parens' && !item.maxXifres) || !!item.sensIgual;
                 opAnswerEl.hidden = !numerico;
                 opCardEl.classList.toggle('op-largo', item.tipo === 'vf' || item.tipo === 'tema1' || (item.tipo === 'parens' && item.modo !== 'obre'));
                 // Tema 1 y castellano: la pregunta, pequeña, arriba; lo que hay que mirar (el número, la palabra clave, el texto, la viñeta), grande
@@ -5292,6 +5400,7 @@
                 if (item.tipo === 'grafia') opFactorsEl.innerHTML = htmlFrase(item);
                 document.getElementById('grafia-panel').hidden = item.tipo !== 'grafia';
                 document.getElementById('dictat-panel').hidden = !['dictat', 'accent', 'frases'].includes(item.tipo);
+                document.getElementById('btn-escoltar-dictat').hidden = false;
                 document.getElementById('paraules-panel').hidden = true;
                 document.getElementById('lab-panel').hidden = true;
                 const ambXifres = ['xifra', 'sentir'].includes(item.tipo);
@@ -5488,12 +5597,13 @@
                 }
             }
 
-            function celebrar() {
+            // diu: en lloc de l'elogi, el que acaba de fer, dit amb paraules (SA2: «56 és múltiple de 8»), una mica més de temps
+            function celebrar(diu) {
                 playFeedbackSound(true);
                 opCardEl.classList.add('success-anim');
                 const compliments = ['Genial! 🌟', 'Molt bé! 👏', 'Això és! ✨', 'Fantàstic! 🚀', 'Súper! 🌸'];
-                opFeedbackEl.innerHTML = `<div class="celebrate-text">${compliments[Math.floor(Math.random() * compliments.length)]}</div>`;
-                setTimeout(siguienteItem, 800);
+                opFeedbackEl.innerHTML = `<div class="celebrate-text">${diu ? `✓ ${escaparHtml(diu)}` : compliments[Math.floor(Math.random() * compliments.length)]}</div>`;
+                setTimeout(siguienteItem, diu ? 1800 : 800);
             }
 
             function mostrarCorreccion(titulo, mates, texto, sonido = true) {
@@ -5536,7 +5646,8 @@
                 const girada = !ok && item.tipo !== 'teclear' && esGirada(item.esperado, currentInput);
                 const extra = {};
                 if (girada) extra.girada = true;
-                if (item.tipo === 'tema1') extra.modo = item.modo;
+                if (['tema1', 'sa2'].includes(item.tipo)) extra.modo = item.modo;
+                if (item.tipo === 'sa2') { anotarTria('sa2', item, ok); if (!ok) tornaTria(item); }
                 if (item.nivell !== undefined) { extra.nivell = item.nivell; extra.pas = item.pas; }
                 if (item.modo === 'arrel') extra.quadrat = item.quadrat;
                 if (item.tipo === 'tema1' && item.modo === 'roma') anotarRoma(item.fix, ok);
@@ -5561,9 +5672,9 @@
                 if (ok) {
                     if (item.objetivo) hablar(fetSetmana().diccio);
                     if (item.dificil) hablar(dificilDe(item).diccio);
-                    celebrar();
+                    celebrar(item.diu);
                 } else {
-                    const mates = item.tipo === 'teclear' ? item.texto : item.tipo === 'tema1' ? item.solucio : `${item.texto} = ${item.esperado}`;
+                    const mates = item.tipo === 'teclear' ? item.texto : ['tema1', 'sa2'].includes(item.tipo) ? item.solucio : `${item.texto} = ${item.esperado}`;
                     const titulo = girada ? '🔄 Les xifres són bones, però girades!' : '🌸 Gairebé! Fixa-t\'hi bé:';
                     mostrarCorreccion(titulo, mates, `Tu has posat: ${currentInput}`);
                     mostrarPistaCorreccion();
@@ -5618,6 +5729,7 @@
                 registrar(item, opcio, ok, ms, item.tipo === 'catala' ? { modo: item.modo, opcions: item.opcions, intent: item.intent } : item.tipo === 'tonica' ? { modo: item.modo, opcions: item.opcions, escoltat: item.escoltat, ...(item.torna ? { torna: true } : {}) } : { modo: item.modo, opcions: item.opcions, ...(item.fix && item.fix.torna ? { torna: true } : {}) });
                 document.getElementById('tema1-panel').hidden = true;
                 if (ok) celebrar();
+                else if (item.tipo === 'angles' && hoy() >= ANGLES_COPIA_DES_DE) anglesACopiar(opcio);
                 else {
                     opFeedbackEl.innerHTML = '';
                     mostrarCorreccion('🌸 Gairebé! Fixa-t\'hi bé:', item.solucio, `Tu has triat: ${opcio}`);
@@ -5745,13 +5857,13 @@
             function teclaDictat(k) {
                 if (isEvaluating || !item) return;
                 const escrivint = ['dictat', 'accent', 'frases'].includes(item.tipo) || (item.tipo === 'paraules' && ['escriu', 'familia'].includes(item.etapa)) ||
-                    (item.tipo === 'lab' && ['escriu', 'frase', 'edita'].includes(item.etapa));
+                    (item.tipo === 'lab' && ['escriu', 'frase', 'edita'].includes(item.etapa)) || (item.tipo === 'angles' && item.etapa === 'copia');
                 if (!escrivint) return;
                 teclas.push([Math.round(performance.now() - tInicio), k]);
                 if (k === 'back') currentInput = currentInput.slice(0, -1);
-                else if (k === 'enter') return item.tipo === 'frases' ? evaluarFrase(currentInput.trim()) : item.tipo === 'lab' ? enterLab(currentInput.trim()) : item.tipo === 'paraules' ? evaluarParaula(currentInput.trim()) : item.tipo === 'accent' ? evaluarAccent() : evaluarDictat();
+                else if (k === 'enter') return item.tipo === 'angles' ? evaluarCopiaAngles(currentInput.trim()) : item.tipo === 'frases' ? evaluarFrase(currentInput.trim()) : item.tipo === 'lab' ? enterLab(currentInput.trim()) : item.tipo === 'paraules' ? evaluarParaula(currentInput.trim()) : item.tipo === 'accent' ? evaluarAccent() : evaluarDictat();
                 else if (k === ' ') { if (currentInput && !currentInput.endsWith(' ')) currentInput += ' '; }
-                else if (currentInput.length < (item.tipo === 'lab' && item.etapa === 'frase' ? 70 : item.tipo === 'frases' ? 45 : 24)) currentInput += k;
+                else if (currentInput.length < (item.tipo === 'lab' && item.etapa === 'frase' ? 70 : item.tipo === 'angles' ? 60 : item.tipo === 'frases' ? 45 : 24)) currentInput += k;
                 pintarDictat();
             }
 

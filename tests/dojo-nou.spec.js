@@ -456,3 +456,133 @@ test.describe('Des del 18/11: música (examen 27/11); el castellà de la U2, for
         expect(st.falla.map(f => f.preg)).toContain(primera.texto);
     });
 });
+
+// 20/11 (papà, d'acord): a SA2 triava el número que s'assembla (divisor de 18 → 8); a l'anglès repetia l'error dos minuts després.
+test.describe('Des del 21/11: SA2 construït amb la taula i, a l\'anglès, la frase bona escrita després de fallar', () => {
+    test('SA2: múltiples i divisors sense opcions, amb el número que falta; el 20/11 encara de triar', async ({ page }) => {
+        await preparar(page, '2026-11-20');
+        expect((await page.evaluate(() => window.__itemsSa2())).some(x => x.num)).toBe(false);
+        await page.clock.setFixedTime(new Date('2026-11-21T17:00:00'));
+        for (let r = 0; r < 5; r++) {
+            const items = await page.evaluate(() => window.__itemsSa2());
+            expect(items).toHaveLength(10);
+            expect(new Set(items.map(x => x.preg)).size).toBe(10);
+            expect(items.filter(x => x.num && x.bloc === 1)).toHaveLength(4);
+            expect(items.filter(x => x.num && x.bloc === 2)).toHaveLength(4);
+            for (const x of items.filter(x => x.num)) {
+                let m;
+                if ((m = x.op.match(/^(\d+) × (\d+)$/))) {
+                    expect(Number(m[1]) * Number(m[2])).toBe(Number(x.bona));
+                    expect(x.titol).toBe(`Un múltiple de ${m[1]}:`);
+                } else {
+                    m = x.op.match(/^(\d+) = (\d+) ×$/);
+                    expect(m).not.toBeNull();
+                    expect(Number(m[2]) * Number(x.bona)).toBe(Number(m[1]));
+                    expect(x.titol).toBe(`Un divisor de ${m[1]}:`);
+                }
+            }
+        }
+    });
+
+    test('SA2: les fallades de triar un número ja no tornen; les de vocabulari, sí', async ({ page }) => {
+        await preparar(page, '2026-11-21', TOTS, { sa2: { falla: [
+            { bloc: 2, preg: 'Quin és divisor de 18?', bona: '6', altres: ['8', '5'], explica: 'x' },
+            { bloc: 3, preg: '7 × 8 = 56. Què és cert?', bona: '56 és múltiple de 7', altres: ['a', 'b'], explica: 'x' }] } });
+        const items = await page.evaluate(() => window.__itemsSa2());
+        expect(items.map(x => x.preg)).not.toContain('Quin és divisor de 18?');
+        expect(items[0].preg).toBe('7 × 8 = 56. Què és cert?');
+    });
+
+    test('SA2: s\'escriu amb el teclat; bé → la frase; malament → explicada i torna al final', async ({ page }) => {
+        const envios = await preparar(page, '2026-11-21', { sa2: true });
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toHaveText('Múltiples i divisors');
+        await expect(page.locator('#intro-texto')).toContainText('taula de multiplicar');
+        await page.click('#btn-intro-vamos');
+        let anterior = 'null', fallada = null, frases = 0;
+        for (let i = 0; i < 11; i++) {
+            const t = await seguent(page, anterior);
+            if (i === 10) expect(t.texto).toBe(fallada);
+            if (!t.opcions) {
+                await expect(page.locator('#keypad')).toBeVisible();
+                if (fallada === null) {
+                    fallada = t.texto;
+                    await page.keyboard.type(String(Number(t.esperado) + 1).slice(-2));
+                    await page.keyboard.press('Enter');
+                    await expect(page.locator('#correction-math-text')).toContainText(`${t.esperado}`);
+                    await expect(page.locator('#correction-pista')).toBeVisible();
+                    expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
+                    await page.click('#btn-correction-continue');
+                } else {
+                    await page.keyboard.type(t.esperado);
+                    await page.keyboard.press('Enter');
+                    await expect(page.locator('.celebrate-text')).toContainText(/és múltiple de|són divisors de/);
+                    frases++;
+                }
+            } else await page.click(`#tema1-opcions button[data-opcio="${t.esperado}"]`);
+            anterior = JSON.stringify(t);
+        }
+        expect(frases).toBeGreaterThan(5);
+        const dades = envios.filter(e => e.datos.modulo === 'sa2').map(e => e.datos);
+        expect(dades).toHaveLength(11);
+        expect(dades.filter(d => !d.correcta)).toHaveLength(1);
+        const st = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_sa2')));
+        expect(st.falla).toHaveLength(1);
+        expect(st.falla[0].num).toBe(true);
+    });
+
+    test('anglès: si falla, la frase bona; la torna a escriure tapada i el segon intent es guarda a part', async ({ page }) => {
+        const envios = await preparar(page, '2026-11-21', { angles: true });
+        const n = (await page.evaluate(() => window.__itemsAngles())).length;
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toHaveText('English');
+        await page.click('#btn-intro-vamos');
+        const esc = s => s.replace(/"/g, '\\"');
+        // La primera: malament, i la reescriu bé
+        let t = await seguent(page, 'null');
+        await page.click(`#tema1-opcions button:not([data-opcio="${esc(t.esperado)}"]) >> nth=0`);
+        await expect(page.locator('#btn-angles-copia')).toBeVisible();
+        await expect(page.locator('.frase-bona')).toBeVisible();
+        await expect(page.locator('#btn-correction-continue')).toBeHidden();
+        expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
+        const copia = (await page.locator('.frase-bona').innerText()).trim();
+        await page.click('#btn-angles-copia');
+        await expect(page.locator('.frase-bona')).toHaveCount(0);
+        await expect(page.locator('#dictat-panel')).toBeVisible();
+        await page.keyboard.type(copia.toLowerCase());
+        await page.keyboard.press('Enter');
+        await expect(page.locator('.celebrate-text')).toBeVisible();
+        // La segona: malament, i la reescriu malament → la correcció de sempre
+        let anterior = JSON.stringify(t);
+        t = await seguent(page, anterior);
+        await page.click(`#tema1-opcions button:not([data-opcio="${esc(t.esperado)}"]) >> nth=0`);
+        await page.click('#btn-angles-copia');
+        await page.keyboard.type('my name alice');
+        await page.keyboard.press('Enter');
+        await expect(page.locator('#btn-correction-continue')).toBeVisible();
+        await expect(page.locator('#correction-pista')).toBeVisible();
+        await page.click('#btn-correction-continue');
+        anterior = JSON.stringify(t);
+        // La resta, bé (i les dues que ha fallat tornen al final)
+        for (let i = 2; i < n + 2; i++) {
+            t = await seguent(page, anterior);
+            await page.click(`#tema1-opcions button[data-opcio="${esc(t.esperado)}"]`);
+            anterior = JSON.stringify(t);
+        }
+        const dades = envios.filter(e => e.datos.modulo === 'angles').map(e => e.datos);
+        const segons = dades.filter(d => d.detalle && d.detalle.intent === 2);
+        expect(segons.map(d => d.correcta)).toEqual([true, false]);
+        expect(dades).toHaveLength(n + 2 + 2);
+        const st = await page.evaluate(() => JSON.parse(localStorage.getItem('dojo_angles')));
+        expect(st.falla).toHaveLength(2);
+    });
+
+    test('anglès: la frase per escriure, sense xifres (al teclat no n\'hi ha)', async ({ page }) => {
+        await preparar(page, '2026-11-21');
+        const totes = await page.evaluate(() => window.__anglesPreguntes());
+        const copies = await page.evaluate(() => window.__anglesCopies());
+        expect(copies).toHaveLength(totes.length);
+        copies.forEach(c => { expect(c).not.toMatch(/\d/); expect(c.length).toBeLessThanOrEqual(60); });
+        expect(copies).toContain('I am twelve years old.');
+    });
+});
