@@ -325,8 +325,8 @@ test.describe('Anglès', () => {
         expect((await page.evaluate(() => window.__itemsAngles())).some(x => altra(x.veu))).toBe(true);
     });
 
-    test('música, del 20 al 26/11: primer les 8 que es van creuar als tests de paper (test 2: anys, Méliès, funcions, PRE); i la música té opcions diferents', async ({ page }) => {
-        const PAPER = ['En quin any va néixer el cinema?', 'En quin any es va fer «Blancaneus»?', 'En quin any es va fer «El cantor de jazz»?',
+    test('música, del 20 al 26/11: primer les 8 que es van creuar als tests de paper (test 2: l\'ordre, Méliès, funcions, PRE; les dates no); i la música té opcions diferents', async ({ page }) => {
+        const PAPER = ['La primera pel·lícula sonora (la primera que PARLA):', 'La primera pel·lícula de Disney (la primera que DIBUIXA):', 'Qui va fer la primera sessió de cinema?',
             'Qui va inventar els trucatges i va fer «Viatge a la Lluna»?', 'Quines són les dues funcions de la música en el cinema?',
             'La música ens porta a una època o a un país. Quina funció és?', 'Blockbuster:', 'Prequel·la:'];
         for (const dia of ['2026-11-21', '2026-11-26']) {

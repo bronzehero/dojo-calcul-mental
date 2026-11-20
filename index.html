@@ -1680,9 +1680,9 @@
                 bio:     { nombre: 'Bio per a l\'examen', icono: '🔬', instr: "Biologia, per a l'examen de dimarts: com treballen els científics. Llegeixes la pregunta i tries la bona entre tres. Si et va bé, digues la resposta en veu alta abans de tocar-la. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Què és la variable dependent? ➜ El que observem o mesurem', paso: () => 'Bio per a l\'examen' },
                 socials: { nombre: 'Socials per a l\'examen', icono: '🌋', instr: "Socials, per a l'examen de dimarts: el relleu. Llegeixes la pregunta i tries la bona entre tres. Si et va bé, digues la resposta en veu alta abans de tocar-la. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'On es nota més un terratrèmol? ➜ A l\'epicentre', paso: () => 'Socials per a l\'examen' },
                 sa2:     { nombre: 'Múltiples i divisors', icono: '🔢', instr: "Mates del tema nou: múltiples i divisors. Cada pregunta es contesta amb una multiplicació de les taules. Llegeixes la pregunta i tries la bona. Si et va bé, digues la multiplicació en veu alta abans de tocar. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'Quin és divisor de 56? ➜ 7, perquè 7 × 8 = 56', paso: () => 'Múltiples i divisors' },
-                musica:  { nombre: 'Música per a l\'examen', icono: '🎬', instr: "Música i cinema, per a l'examen del divendres 27: els inicis del cinema, les primeres pel·lícules, el vocabulari, les funcions de la música, el Foley, Menken i Newman. Llegeixes la pregunta i tries la bona. Si et va bé, digues-la en veu alta abans de tocar-la. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'Qui va fer la primera sessió de cinema? ➜ Els germans Lumière', paso: () => 'Música per a l\'examen' },
+                musica:  { nombre: 'Música per a l\'examen', icono: '🎬', instr: "Música i cinema, per a l'examen del divendres 27: els inicis del cinema, les primeres pel·lícules, el vocabulari, les funcions de la música, el Foley, Menken i Newman. Llegeix la pregunta sencera fluixet, que t'escoltis, i les respostes que hi ha just a sota. Després tria. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'Qui va fer la primera sessió de cinema? ➜ Els germans Lumière', paso: () => 'Música per a l\'examen' },
                 castu2:  { nombre: 'Castellà: la unitat 2', icono: '💬', instr: "Castellà, per si hi ha control de la unitat 2: la conversa, l'estil directe i l'indirecte. Llegeixes la pregunta i tries la bona. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: '«—¿Tienes mi libro? —preguntó Leo.» ➜ Leo preguntó si tenía su libro.', paso: () => 'Castellà: la unitat 2' },
-                angles:  { nombre: 'English', icono: '🇬🇧', instr: "Ara, anglès: el que necessites per escriure sobre tu. Llegeixes la frase i tries la bona. Quan contestes, la sentiràs sencera en anglès: escolta-la bé. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'I ___ 12 years old. ➜ am', paso: () => 'English' },
+                angles:  { nombre: 'English', icono: '🇬🇧', instr: "Ara, anglès: el que necessites per escriure sobre tu. Llegeix la frase sencera fluixet, que t'escoltis: si sona rara, no és la bona. I tria. Quan contestes, la sentiràs sencera en anglès: escolta-la bé. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'I ___ 12 years old. ➜ am', paso: () => 'English' },
                 frases:  { nombre: 'Frases en anglès', icono: '✍️', instr: "Frases curtes en anglès, de les que ja has estudiat. Si veus 🎧, l'escoltes i l'escrius en anglès. Si veus la frase en català, l'escrius en anglès. Si una paraula no surt, et surt marcada i la tornes a escriure.", voz: "Frases curtes en anglès, de les que ja has estudiat. Si veus els auriculars, l'escoltes i l'escrius en anglès. Si veus la frase en català, l'escrius en anglès. Si una paraula no surt, et surt marcada i la tornes a escriure.", ejemplo: '🎧 «I like music.» ➜ i like music', paso: () => 'Frases en anglès' },
                 tonica:  { nombre: 'On pica la força?', icono: '🥁', instr: "Ara, paraules en català: on pica la força. Sentiràs una paraula i la veuràs partida en trossos. Digues-la tu en veu alta, ben fort, com si cridessis algú de lluny. El tros que s'allarga és el que pica: toca'l. Si dubtes, torna-la a escoltar. Al teu ritme.", ejemplo: 'ca-mí ➜ toques «mi»', paso: () => 'On pica la força?' },
                 castella: { nombre: 'Castellà per a l\'examen', icono: '💬', instr: "Repàs del control de castellà, com a l'examen: llegeixes un text curt o mires una vinyeta i tries què és. Quina propietat falla, quin tipus de text és, quin pla, quin angle o quina part del còmic. Si una no surt, et surt explicada. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: '«Primero, bate dos huevos…» ➜ Instructivo', paso: () => 'Castellà per a l\'examen' },
@@ -3052,6 +3052,7 @@
                 opFeedbackEl.innerHTML = `<div class="frase-correccio"><div class="frase-bona">${htmlCopiaAngles(item)}</div>`
                     + `<div class="frase-tu">Has triat: <span class="frase-mal">${escaparHtml(opcio)}</span></div>`
                     + `<div class="correction-pista">${escaparHtml(item.explica)}</div>`
+                    + `<div class="correction-pista">🗣️ Digues-la fluixet, que t'escoltis: si sona rara, és que no està bé.</div>`
                     + `<button id="btn-angles-copia" class="btn-action btn-paraula-seguir">La torno a escriure ✍️</button></div>`;
                 // La frase en anglès ja la diu responderTema1
             }
@@ -3060,7 +3061,7 @@
                 callarVeu();
                 opFeedbackEl.innerHTML = '';
                 item.etapa = 'copia';
-                document.getElementById('tema1-preg').textContent = 'Escriu la frase sencera:';
+                document.getElementById('tema1-preg').textContent = 'Escriu la frase sencera (dient-la fluixet):';
                 document.getElementById('btn-escoltar-dictat').hidden = true;
                 document.getElementById('dictat-panel').hidden = false;
                 currentInput = '';
@@ -3168,9 +3169,11 @@
             const MU_FUNCIONS_EN = "Les dues funcions són E i N. EXPRESSIVA = E d'EMOCIÓ (por, alegria). NARRATIVA = com el narrador d'un conte: «Fa molt de temps, en un país llunyà…» (època i país). «Forta i fluixa» és el volum; la banda sonora és tota la música.";
             const MU_PRE = "Mira si porta PRE: PREQUEL·LA = PRE = abans (com la PREhistòria). BLOCKBUSTER no porta PRE: és la de molt d'èxit, cues al cine.";
             const MUSICA_PAPER = [
-                [2, 'En quin any va néixer el cinema?', '1895', ['1902', '1927', '1937'], MU_LINIA],
-                [2, 'En quin any es va fer «Blancaneus»?', '1937', ['1902', '1927', '1895'], MU_LINIA],
-                [2, 'En quin any es va fer «El cantor de jazz»?', '1927', ['1937', '1895', '1902'], MU_LINIA],
+                // Papà (21/11): les dates, de moment no (a ella li costa molt recordar números; ho provarà ell d'una altra manera).
+                // L'ordre i les pel·lícules, sí.
+                [2, 'La primera pel·lícula sonora (la primera que PARLA):', '«El cantor de jazz»', ['«Blancaneus»', '«Viatge a la Lluna»'], MU_LINIA],
+                [2, 'La primera pel·lícula de Disney (la primera que DIBUIXA):', '«Blancaneus»', ['«El cantor de jazz»', '«Viatge a la Lluna»'], MU_LINIA],
+                [1, 'Qui va fer la primera sessió de cinema?', 'Els germans Lumière', ['Georges Méliès', 'Walt Disney'], MU_LINIA],
                 [1, 'Qui va inventar els trucatges i va fer «Viatge a la Lluna»?', 'Georges Méliès', ['Walt Disney', 'Els germans Lumière', 'Thomas Edison'], "Méliès, el mag de la Lluna: trucatges = trucs de màgia, «Viatge a la Lluna» (1902). Disney arriba molt més tard (1937)."],
                 [4, 'Quines són les dues funcions de la música en el cinema?', 'Expressiva i narrativa', ['Forta i fluixa', 'Ràpida i lenta', 'Alegre i trista'], MU_FUNCIONS_EN],
                 [4, 'La música ens porta a una època o a un país. Quina funció és?', 'Narrativa', ['Banda sonora', 'Expressiva'], MU_FUNCIONS_EN],
