@@ -325,18 +325,21 @@ test.describe('Anglès', () => {
         expect((await page.evaluate(() => window.__itemsAngles())).some(x => altra(x.veu))).toBe(true);
     });
 
-    test('música, el 20 i el 21/11: primer les 8 parelles que es van creuar al test de paper; el 22/11, com sempre', async ({ page }) => {
-        const PAPER = ['En quin any va néixer el cinema?', 'La primera pel·lícula sonora:', 'Qui va inventar les primeres ficcions i els trucatges?',
-            'Qui va fer la música de «Toy Story»?', 'Qui va fer la música de «La Bella i la Bèstia»?', 'La música ens fa por abans que passi res. Quina funció és?',
-            'La música ens porta a una època o a un país. Quina funció és?', 'Blockbuster:'];
-        await preparar(page, '2026-11-20');
-        const mus = (await page.evaluate(() => window.__itemsMusica())).map(x => x.preg);
-        expect(mus.length).toBe(10);
-        PAPER.forEach(p => expect(mus).toContain(p));
-        await preparar(page, '2026-11-22');
-        const mus22 = await page.evaluate(() => window.__itemsMusica());
-        expect(mus22.length).toBe(10);
-        expect(new Set(mus22.map(x => x.bloc))).toEqual(new Set([1, 2, 3, 4, 5, 6]));
+    test('música, del 20 al 26/11: primer les 8 que es van creuar als tests de paper (test 2: anys, Méliès, funcions, PRE); i la música té opcions diferents', async ({ page }) => {
+        const PAPER = ['En quin any va néixer el cinema?', 'En quin any es va fer «Blancaneus»?', 'En quin any es va fer «El cantor de jazz»?',
+            'Qui va inventar els trucatges i va fer «Viatge a la Lluna»?', 'Quines són les dues funcions de la música en el cinema?',
+            'La música ens porta a una època o a un país. Quina funció és?', 'Blockbuster:', 'Prequel·la:'];
+        for (const dia of ['2026-11-21', '2026-11-26']) {
+            await preparar(page, dia);
+            const mus = (await page.evaluate(() => window.__itemsMusica())).map(x => x.preg);
+            expect(mus.length).toBe(10);
+            PAPER.forEach(p => expect(mus).toContain(p));
+        }
+        const totes = (await page.evaluate(() => window.__preguntesTria())).musica;
+        for (const [, , bona, altres, explica] of totes) {
+            expect(new Set([bona, ...altres]).size).toBe(altres.length + 1);
+            expect(explica.length).toBeGreaterThan(10);
+        }
     });
 
     test('de qui és (bloc 8): my, your, his, her, our, their, i cada una amb la seva trampa', async ({ page }) => {
@@ -520,6 +523,8 @@ test.describe('Des del 21/11: SA2 construït amb la taula i, a l\'anglès, la fr
                     frases++;
                 }
             } else await page.click(`#tema1-opcions button[data-opcio="${t.esperado}"]`);
+            // L'element actual canvia (anotarTria) abans que passi la celebració (0,8 s; 1,8 s amb la frase): esperar-la, o la tecla va a l'anterior
+            await page.waitForTimeout(t.opcions ? 1000 : 2000);
             anterior = JSON.stringify(t);
         }
         expect(frases).toBeGreaterThan(5);

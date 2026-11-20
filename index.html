@@ -3159,17 +3159,23 @@
             const fitxaTria = ([bloc, preg, bona, altres, explica]) => ({ bloc, preg, bona, altres, explica });
             // 19/11, test en paper després del vídeo (12 de 19): falla PARELLES que es creuen (1895/1927, sonora/Disney, Méliès/Edison,
             // Menken/Newman, expressiva/narrativa, blockbuster/precuel·la). El 20 i el 21, primer aquestes, amb la parella a l'explicació.
-            const MUSICA_PAPER_DES_DE = '2026-11-20', MUSICA_PAPER_FINS = '2026-11-21';
-            const MU_PARELLA_COMP = "Toy Story, Cars, Monstres SA = Randy Newman (Pixar). La Sireneta, La Bella i la Bèstia, Aladdin = Alan Menken (Disney).";
+            // 20/11, test 2 (11 de 18): Menken/Newman, la sonora i la por ja surten. Ara falla l'ANY de cada cosa (1895/1902/1927/1937
+            // barrejats), «Viatge a la Lluna» → Disney, les dues funcions → «forta i fluixa», època → «banda sonora», i blockbuster → «passa
+            // abans» (2 tests). Canvi de mètode (full «lo que aun se cruza»): la línia del temps com una persona (neix, somia, parla,
+            // dibuixa), el mag de la Lluna, el narrador del conte i PRE = abans. Fins a l'examen (dv 27).
+            const MUSICA_PAPER_DES_DE = '2026-11-20', MUSICA_PAPER_FINS = '2026-11-26';
+            const MU_LINIA = "Com una persona: NEIX (1895, Lumière) → SOMIA (1902, Méliès, «Viatge a la Lluna») → PARLA (1927, «El cantor de jazz») → DIBUIXA (1937, Disney, «Blancaneus»).";
+            const MU_FUNCIONS_EN = "Les dues funcions són E i N. EXPRESSIVA = E d'EMOCIÓ (por, alegria). NARRATIVA = com el narrador d'un conte: «Fa molt de temps, en un país llunyà…» (època i país). «Forta i fluixa» és el volum; la banda sonora és tota la música.";
+            const MU_PRE = "Mira si porta PRE: PREQUEL·LA = PRE = abans (com la PREhistòria). BLOCKBUSTER no porta PRE: és la de molt d'èxit, cues al cine.";
             const MUSICA_PAPER = [
-                [2, 'En quin any va néixer el cinema?', '1895', ['1927', '1937'], "1895: neix el cinema (París, Lumière). 1927: la primera que parla («El cantor de jazz»). 1937: la primera de Disney («Blancaneus»)."],
-                [2, 'La primera pel·lícula sonora:', '«El cantor de jazz» (1927)', ['«Blancaneus» (1937)', '«Viatge a la Lluna» (1902)'], "Sonora = que parla: «El cantor de jazz», 1927. «Blancaneus» (1937) és la primera de Disney."],
-                [1, 'Qui va inventar les primeres ficcions i els trucatges?', 'Georges Méliès', ['Thomas Edison', 'Els germans Lumière'], "Els trucatges i «Viatge a la Lluna»: Méliès. D'Edison en van fugir els productors i van fundar Hollywood."],
-                [6, 'Qui va fer la música de «Toy Story»?', 'Randy Newman', ['Alan Menken'], MU_PARELLA_COMP],
-                [6, 'Qui va fer la música de «La Bella i la Bèstia»?', 'Alan Menken', ['Randy Newman'], MU_PARELLA_COMP],
-                [4, 'La música ens fa por abans que passi res. Quina funció és?', 'Expressiva', ['Narrativa', 'Banda sonora'], "Expressiva = el que SENTIM (por, alegria). Narrativa = ens explica ON i QUAN (l'època, el país). La banda sonora és tota la música, no una funció."],
-                [4, 'La música ens porta a una època o a un país. Quina funció és?', 'Narrativa', ['Expressiva'], "Narrativa = ens explica ON i QUAN (l'època, el país). Expressiva = el que SENTIM (por, alegria)."],
-                [3, 'Blockbuster:', 'Una pel·lícula de molt d\'èxit, que veu moltíssima gent', ['Una pel·lícula que passa abans d\'una altra', 'Un gir que no t\'esperes'], "Blockbuster: un èxit enorme, cues al cine. La que passa abans és la prequel·la."]
+                [2, 'En quin any va néixer el cinema?', '1895', ['1902', '1927', '1937'], MU_LINIA],
+                [2, 'En quin any es va fer «Blancaneus»?', '1937', ['1902', '1927', '1895'], MU_LINIA],
+                [2, 'En quin any es va fer «El cantor de jazz»?', '1927', ['1937', '1895', '1902'], MU_LINIA],
+                [1, 'Qui va inventar els trucatges i va fer «Viatge a la Lluna»?', 'Georges Méliès', ['Walt Disney', 'Els germans Lumière', 'Thomas Edison'], "Méliès, el mag de la Lluna: trucatges = trucs de màgia, «Viatge a la Lluna» (1902). Disney arriba molt més tard (1937)."],
+                [4, 'Quines són les dues funcions de la música en el cinema?', 'Expressiva i narrativa', ['Forta i fluixa', 'Ràpida i lenta', 'Alegre i trista'], MU_FUNCIONS_EN],
+                [4, 'La música ens porta a una època o a un país. Quina funció és?', 'Narrativa', ['Banda sonora', 'Expressiva'], MU_FUNCIONS_EN],
+                [3, 'Blockbuster:', 'Una pel·lícula de molt d\'èxit, que veu moltíssima gent', ['Una pel·lícula que passa abans d\'una altra', 'Un gir que no t\'esperes'], MU_PRE],
+                [3, 'Prequel·la:', 'Una pel·lícula que passa abans d\'una altra', ['Una pel·lícula de molt d\'èxit', 'Un gir que no t\'esperes'], MU_PRE]
             ];
             const itemsMusica = () => {
                 const normals = [1, 2, 3, 4, 5, 6].flatMap(b => shuffle(MUSICA_PREGUNTES.filter(p => p[0] === b)).slice(0, MUSICA_PER_DIA[b - 1]));
