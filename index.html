@@ -3183,11 +3183,12 @@
             // Papà (21/11, a la nit): els anys, sí, però que la bona es vegi molt (aprenentatge sense error, i després s'acosten).
             // Nivell 1: segles molt diferents (cap dels 1800, que el 1895 n'és) · 2: el mateix segle, dècades lluny · 3: com a l'examen.
             // Puja amb 2 encerts a la primera en dies diferents; si falla, baixa un nivell. Els anys sempre surten (fins al 26/11).
+            // 21/11: sola, al Dojo, va fallar els 4 a nivell 1 (sense l'àncora no sap cap on mirar; amb el papà, descartant, sí): pista fixa.
             const MU_ANYS = [
-                [2, 'En quin any va néixer el cinema (els Lumière, el tren)?', '1895', [['1610', '1720', '2010'], ['1840', '1960', '1990'], ['1902', '1927', '1937']]],
-                [2, 'En quin any és «Viatge a la Lluna», de Méliès?', '1902', [['1640', '1760', '2018'], ['1850', '1965', '1995'], ['1895', '1927', '1937']]],
-                [2, 'En quin any és la primera pel·lícula sonora, «El cantor de jazz»?', '1927', [['1650', '1780', '2015'], ['1860', '1970', '2000'], ['1895', '1902', '1937']]],
-                [2, 'En quin any és «Blancaneus», la primera de Disney?', '1937', [['1660', '1790', '2020'], ['1870', '1975', '2005'], ['1895', '1902', '1927']]]
+                [2, 'En quin any va néixer el cinema (els Lumière, el tren)? Pista: el cinema és de cap al 1900.', '1895', [['1610', '1720', '2010'], ['1840', '1960', '1990'], ['1902', '1927', '1937']]],
+                [2, 'En quin any és «Viatge a la Lluna», de Méliès? Pista: el cinema és de cap al 1900.', '1902', [['1640', '1760', '2018'], ['1850', '1965', '1995'], ['1895', '1927', '1937']]],
+                [2, 'En quin any és la primera pel·lícula sonora, «El cantor de jazz»? Pista: el cinema és de cap al 1900.', '1927', [['1650', '1780', '2015'], ['1860', '1970', '2000'], ['1895', '1902', '1937']]],
+                [2, 'En quin any és «Blancaneus», la primera de Disney? Pista: el cinema és de cap al 1900.', '1937', [['1660', '1790', '2020'], ['1870', '1975', '2005'], ['1895', '1902', '1927']]]
             ];
             const nivellAny = preg => Math.min(3, Math.max(1, ((leerTria('musica').anys || {})[preg] || {}).niv || 1));
             const itemsAnys = () => MU_ANYS.map(([bloc, preg, bona, nivells]) => {

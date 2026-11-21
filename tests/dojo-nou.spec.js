@@ -346,7 +346,7 @@ test.describe('Anglès', () => {
     test('els anys de música (papà 21/11): primer molt lluny, i s\'acosten amb 2 dies bé; si falla, baixa', async ({ page }) => {
         await preparar(page, '2026-11-22');
         const anys = async () => (await page.evaluate(() => window.__itemsMusica())).filter(x => x.preg.startsWith('En quin any'));
-        const sonora = 'En quin any és la primera pel·lícula sonora, «El cantor de jazz»?';
+        const sonora = 'En quin any és la primera pel·lícula sonora, «El cantor de jazz»? Pista: el cinema és de cap al 1900.';
         const de = async preg => (await anys()).find(x => x.preg === preg);
         // Nivell 1: cap altre any del segle de la bona (ni dels 1800, que és el del 1895)
         for (const x of await anys()) {
