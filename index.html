@@ -2762,6 +2762,7 @@
                 try { localStorage.setItem('dojo_' + clau, JSON.stringify(st)); } catch (e) { /* sense memòria, segueix igual */ }
             }
             function anotarTria(clau, it, ok) {
+                if (clau === 'musica') anotarAny(it.fix, ok);
                 if (ok && it.fix && it.fix.torna) return;
                 const st = leerTria(clau);
                 const falla = (st.falla || []).filter(f => f.preg !== it.fix.preg);
@@ -3169,8 +3170,7 @@
             const MU_FUNCIONS_EN = "Les dues funcions són E i N. EXPRESSIVA = E d'EMOCIÓ (por, alegria). NARRATIVA = com el narrador d'un conte: «Fa molt de temps, en un país llunyà…» (època i país). «Forta i fluixa» és el volum; la banda sonora és tota la música.";
             const MU_PRE = "Mira si porta PRE: PREQUEL·LA = PRE = abans (com la PREhistòria). BLOCKBUSTER no porta PRE: és la de molt d'èxit, cues al cine.";
             const MUSICA_PAPER = [
-                // Papà (21/11): les dates, de moment no (a ella li costa molt recordar números; ho provarà ell d'una altra manera).
-                // L'ordre i les pel·lícules, sí.
+                // Papà (21/11): l'ordre i les pel·lícules; els anys van a part (MU_ANYS), amb opcions molt lluny que s'acosten.
                 [2, 'La primera pel·lícula sonora (la primera que PARLA):', '«El cantor de jazz»', ['«Blancaneus»', '«Viatge a la Lluna»'], MU_LINIA],
                 [2, 'La primera pel·lícula de Disney (la primera que DIBUIXA):', '«Blancaneus»', ['«El cantor de jazz»', '«Viatge a la Lluna»'], MU_LINIA],
                 [1, 'Qui va fer la primera sessió de cinema?', 'Els germans Lumière', ['Georges Méliès', 'Walt Disney'], MU_LINIA],
@@ -3180,11 +3180,44 @@
                 [3, 'Blockbuster:', 'Una pel·lícula de molt d\'èxit, que veu moltíssima gent', ['Una pel·lícula que passa abans d\'una altra', 'Un gir que no t\'esperes'], MU_PRE],
                 [3, 'Prequel·la:', 'Una pel·lícula que passa abans d\'una altra', ['Una pel·lícula de molt d\'èxit', 'Un gir que no t\'esperes'], MU_PRE]
             ];
+            // Papà (21/11, a la nit): els anys, sí, però que la bona es vegi molt (aprenentatge sense error, i després s'acosten).
+            // Nivell 1: segles molt diferents (cap dels 1800, que el 1895 n'és) · 2: el mateix segle, dècades lluny · 3: com a l'examen.
+            // Puja amb 2 encerts a la primera en dies diferents; si falla, baixa un nivell. Els anys sempre surten (fins al 26/11).
+            const MU_ANYS = [
+                [2, 'En quin any va néixer el cinema (els Lumière, el tren)?', '1895', [['1610', '1720', '2010'], ['1840', '1960', '1990'], ['1902', '1927', '1937']]],
+                [2, 'En quin any és «Viatge a la Lluna», de Méliès?', '1902', [['1640', '1760', '2018'], ['1850', '1965', '1995'], ['1895', '1927', '1937']]],
+                [2, 'En quin any és la primera pel·lícula sonora, «El cantor de jazz»?', '1927', [['1650', '1780', '2015'], ['1860', '1970', '2000'], ['1895', '1902', '1937']]],
+                [2, 'En quin any és «Blancaneus», la primera de Disney?', '1937', [['1660', '1790', '2020'], ['1870', '1975', '2005'], ['1895', '1902', '1927']]]
+            ];
+            const nivellAny = preg => Math.min(3, Math.max(1, ((leerTria('musica').anys || {})[preg] || {}).niv || 1));
+            const itemsAnys = () => MU_ANYS.map(([bloc, preg, bona, nivells]) => {
+                const niv = nivellAny(preg);
+                return { bloc, preg, bona, altres: nivells[niv - 1], explica: MU_LINIA, any: niv };
+            });
+            function anotarAny(fix, ok) {
+                if (!fix || !fix.any || fix.torna || enPrueba()) return;
+                const st = leerTria('musica');
+                const anys = { ...(st.anys || {}) };
+                const a = anys[fix.preg] || { niv: 1, bons: [] };
+                if (!ok) anys[fix.preg] = { niv: Math.max(1, a.niv - 1), bons: [] };
+                else {
+                    const bons = a.bons.includes(hoy()) ? a.bons : [...a.bons, hoy()];
+                    anys[fix.preg] = bons.length >= 2 && a.niv < 3 ? { niv: a.niv + 1, bons: [] } : { niv: a.niv, bons: bons.slice(-2) };
+                }
+                guardarTria('musica', { ...st, anys });
+            }
             const itemsMusica = () => {
-                const normals = [1, 2, 3, 4, 5, 6].flatMap(b => shuffle(MUSICA_PREGUNTES.filter(p => p[0] === b)).slice(0, MUSICA_PER_DIA[b - 1]));
-                const paper = hoy() >= MUSICA_PAPER_DES_DE && hoy() <= MUSICA_PAPER_FINS ? shuffle(MUSICA_PAPER) : [];
+                const enPaper = hoy() >= MUSICA_PAPER_DES_DE && hoy() <= MUSICA_PAPER_FINS;
+                const anys = enPaper ? itemsAnys() : [];
+                const preguntaAny = new Set(MUSICA_PREGUNTES.filter(p => p[1].startsWith('En quin any')).map(p => p[1]));
+                const normals = [1, 2, 3, 4, 5, 6].flatMap(b => shuffle(MUSICA_PREGUNTES.filter(p => p[0] === b && !(enPaper && preguntaAny.has(p[1]))))
+                    .slice(0, MUSICA_PER_DIA[b - 1]));
+                const paper = enPaper ? shuffle(MUSICA_PAPER) : [];
                 const ja = new Set(paper.map(p => p[1]));
-                return itemsTria('musica', [...paper, ...normals.filter(p => !ja.has(p[1]))].map(fitxaTria), 10);
+                // Els anys, sempre i amb el seu nivell d'avui (els fallats d'ahir no tornen amb les opcions velles)
+                // Fins a l'examen, 12 (8 del paper + 4 anys); després, 10
+                if (leerTria('musica').fet === hoy()) return itemsTria('musica', [], 0);
+                return [...shuffle(anys), ...itemsTria('musica', [...paper, ...normals.filter(p => !ja.has(p[1]))].map(fitxaTria), enPaper ? 8 : 10, f => !f.any)];
             };
             const musicaPendent = m => dojoNou(m) && hoy() >= MUSICA_DES_DE && hoy() <= MUSICA_FINS && !leerTria('musica').pausa && itemsMusica().length > 0;
             const conMusica = m => ({ ...m, bloques: [...m.bloques, { tipo: 'musica' }] });
@@ -4274,7 +4307,8 @@
             window.__itemsBio = () => itemsBio().map(x => ({ bloc: x.bloc, preg: x.preg }));
             window.__itemsSa2 = () => itemsSa2().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona, altres: x.altres, num: !!x.num, op: x.op, titol: x.titol }));
             window.__itemsAngles = () => itemsAngles().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona, veu: x.veu }));
-            window.__itemsMusica = () => itemsMusica().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona }));
+            window.__itemsMusica = () => itemsMusica().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona, altres: x.altres, any: x.any, explica: x.explica }));
+            window.__anotarTria = (clau, it, ok) => anotarTria(clau, it, ok);
             window.__itemsCastu2 = () => itemsCastu2().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona }));
             window.__preguntesTria = () => ({ musica: [...MUSICA_PREGUNTES, ...MUSICA_PAPER], castu2: CASTU2_PREGUNTES, angles: ANGLES_PREGUNTES });
             window.__anglesPreguntes = () => ANGLES_PREGUNTES;

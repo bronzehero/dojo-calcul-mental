@@ -325,21 +325,57 @@ test.describe('Anglès', () => {
         expect((await page.evaluate(() => window.__itemsAngles())).some(x => altra(x.veu))).toBe(true);
     });
 
-    test('música, del 20 al 26/11: primer les 8 que es van creuar als tests de paper (test 2: l\'ordre, Méliès, funcions, PRE; les dates no); i la música té opcions diferents', async ({ page }) => {
+    test('música, del 20 al 26/11: primer les 8 que es van creuar als tests de paper (test 2: l\'ordre, Méliès, funcions, PRE) i els 4 anys; i la música té opcions diferents', async ({ page }) => {
         const PAPER = ['La primera pel·lícula sonora (la primera que PARLA):', 'La primera pel·lícula de Disney (la primera que DIBUIXA):', 'Qui va fer la primera sessió de cinema?',
             'Qui va inventar els trucatges i va fer «Viatge a la Lluna»?', 'Quines són les dues funcions de la música en el cinema?',
             'La música ens porta a una època o a un país. Quina funció és?', 'Blockbuster:', 'Prequel·la:'];
         for (const dia of ['2026-11-21', '2026-11-26']) {
             await preparar(page, dia);
             const mus = (await page.evaluate(() => window.__itemsMusica())).map(x => x.preg);
-            expect(mus.length).toBe(10);
+            expect(mus.length).toBe(12);
             PAPER.forEach(p => expect(mus).toContain(p));
+            expect(mus.filter(p => p.startsWith('En quin any'))).toHaveLength(4);
         }
         const totes = (await page.evaluate(() => window.__preguntesTria())).musica;
         for (const [, , bona, altres, explica] of totes) {
             expect(new Set([bona, ...altres]).size).toBe(altres.length + 1);
             expect(explica.length).toBeGreaterThan(10);
         }
+    });
+
+    test('els anys de música (papà 21/11): primer molt lluny, i s\'acosten amb 2 dies bé; si falla, baixa', async ({ page }) => {
+        await preparar(page, '2026-11-22');
+        const anys = async () => (await page.evaluate(() => window.__itemsMusica())).filter(x => x.preg.startsWith('En quin any'));
+        const sonora = 'En quin any és la primera pel·lícula sonora, «El cantor de jazz»?';
+        const de = async preg => (await anys()).find(x => x.preg === preg);
+        // Nivell 1: cap altre any del segle de la bona (ni dels 1800, que és el del 1895)
+        for (const x of await anys()) {
+            expect(x.any).toBe(1);
+            x.altres.forEach(a => { expect(Math.floor(a / 100)).not.toBe(Math.floor(x.bona / 100)); expect(Math.floor(a / 100)).not.toBe(18); });
+        }
+        const contesta = (dia, ok) => page.evaluate(([preg, ok]) => {
+            const x = window.__itemsMusica().find(y => y.preg === preg);
+            window.__anotarTria('musica', { fix: x }, ok);
+        }, [sonora, ok]).then(() => dia);
+        await contesta('22', true);
+        await contesta('22', true);
+        expect((await de(sonora)).any).toBe(1);
+        await page.clock.setFixedTime(new Date('2026-11-23T17:00:00'));
+        await contesta('23', true);
+        const n2 = await de(sonora);
+        expect(n2.any).toBe(2);
+        n2.altres.forEach(a => { expect(Math.abs(+a - 1927)).toBeGreaterThan(30); expect(Math.abs(+a - 1927)).toBeLessThan(100); });
+        await page.clock.setFixedTime(new Date('2026-11-24T17:00:00'));
+        await contesta('24', true);
+        await page.clock.setFixedTime(new Date('2026-11-25T17:00:00'));
+        await contesta('25', true);
+        const n3 = await de(sonora);
+        expect(n3.any).toBe(3);
+        expect([...n3.altres].sort()).toEqual(['1895', '1902', '1937']);
+        await contesta('25', false);
+        expect((await de(sonora)).any).toBe(2);
+        await page.clock.setFixedTime(new Date('2026-11-27T17:00:00'));
+        expect((await anys()).filter(x => x.any)).toHaveLength(0);
     });
 
     test('de qui és (bloc 8): my, your, his, her, our, their, i cada una amb la seva trampa', async ({ page }) => {
