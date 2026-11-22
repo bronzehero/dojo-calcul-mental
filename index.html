@@ -3001,7 +3001,23 @@
                 [8, '(nostre) ___ classroom is big.', 'Our', ['We', 'Their'], 'El nostre = OUR.', 'Our classroom is big.'],
                 [8, "(d'ells) ___ house is small.", 'Their', ['There', 'They'], "D'ells = THEIR. There vol dir allà, o hi ha (there is).", 'Their house is small.'],
                 [8, 'Ella té els cabells llargs.', 'Her hair is long.', ['She hair is long.', 'His hair is long.'], "D'ella = HER: her hair. Hair = cabells; her = d'ella.", 'Her hair is long.'],
-                [8, 'La meva habitació és petita.', 'My bedroom is small.', ['I bedroom is small.', 'My bedroom are small.'], 'MY bedroom IS small: una habitació, IS.', 'My bedroom is small.']
+                [8, 'La meva habitació és petita.', 'My bedroom is small.', ['I bedroom is small.', 'My bedroom are small.'], 'MY bedroom IS small: una habitació, IS.', 'My bedroom is small.'],
+                // 9 · ell i ella (diàleg 2, 22/11). Als forats 4 va posar is/he's davant de got (4 cops), «hasn't» després de Yes i his
+                // per a la germana. Opcions: només paraules de debò que es confonen (has / is / his), mai paraules mal escrites.
+                [9, '___ he got blue eyes?', 'Has', ['Is', 'His'], 'Si hi ha GOT, davant va HAS: Has he got…? (IS va sense got: Is he tall?)', 'Has he got blue eyes?'],
+                [9, '___ he twelve?', 'Is', ['Has', 'His'], 'Sense got, IS: Is he twelve? Is he tall?', 'Is he twelve?'],
+                [9, 'He ___ got glasses.', 'has', ['is', 'his'], 'Si hi ha GOT, davant va HAS (amb he i she). Mai is.', 'He has got glasses.'],
+                [9, 'She ___ got long hair.', 'has', ['is', 'her'], 'Si hi ha GOT, davant va HAS (amb he i she). Mai is.', 'She has got long hair.'],
+                [9, "She ___ got blue eyes. She's got green eyes.", "hasn't", ['is', 'has'], "La frase del costat diu el contrari: NO → hasn't.", "She hasn't got blue eyes. She's got green eyes."],
+                [9, 'Has she got long hair? Yes, she ___.', 'has', ["hasn't", 'is'], "YES, sense n't. La resposta repeteix la paraula de la pregunta: Has…? → Yes, she has.", 'Has she got long hair? Yes, she has.'],
+                [9, 'Has he got blue eyes? No, he ___.', "hasn't", ["isn't", 'has'], "NO, amb n't. La resposta repeteix la paraula de la pregunta: Has…? → No, he hasn't.", "Has he got blue eyes? No, he hasn't."],
+                [9, 'Is he twelve? No, he ___.', "isn't", ["hasn't", 'is'], "La resposta repeteix la paraula de la pregunta: Is…? → No, he isn't.", "Is he twelve? No, he isn't."],
+                [9, 'Is she tall? Yes, she ___.', 'is', ['has', "isn't"], 'YES, sense n\'t. Is…? → Yes, she is.', 'Is she tall? Yes, she is.'],
+                [9, 'This is my sister. ___ name is Ana.', 'Her', ['His', 'She'], "D'ella = HER. D'ell = HIS.", 'This is my sister. Her name is Ana.'],
+                [9, 'This is my brother. ___ name is Tom.', 'His', ['Her', "He's"], "D'ell = HIS. D'ella = HER.", 'This is my brother. His name is Tom.'],
+                [9, "He's got glasses = ?", 'He has got glasses.', ['He is got glasses.', 'His got glasses.'], "Amb GOT, la 's és HAS.", 'He has got glasses.'],
+                [9, "He's tall = ?", 'He is tall.', ['He has tall.', 'His tall.'], "Sense got, la 's és IS.", 'He is tall.'],
+                [9, "She's got freckles = ?", 'She has got freckles.', ['She is got freckles.', 'Her got freckles.'], "Amb GOT, la 's és HAS.", 'She has got freckles.']
             ];
             // Des del 14/11, el bloc 5 (l'email senzill) i una mica de vocabulari; fora les negatives i les formes llargues.
             // 16/11 (redacció el 17/11): l'email i el bloc 6; com s'escriuen les paraules, a Paraules (escrites de memòria)
@@ -3015,7 +3031,11 @@
             // 19/11 (papà): «lo más importante es there is / there are, I am, you are, your, has got, I've… los sustantivos, después».
             // Des d'avui, només la base: be 5, have got 5, l'email senzill 2, there is/are 6, de qui és 3. Cap de vocabulari (bloc 3).
             const ANGLES_BASE_DES_DE = '2026-11-19';
-            const anglesPerDia = () => ANGLES_PER_DIA[hoy()] || (hoy() >= ANGLES_BASE_DES_DE ? [5, 5, 0, 0, 2, 0, 6, 3] : hoy() >= ANGLES_THERE_DES_DE ? [3, 4, 3, 0, 1, 0, 6] : hoy() >= ANGLES_UNIT1_DES_DE ? [3, 3, 4, 0, 2, 0] : hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10, 0] : [3, 3, 4, 2, 0, 0]);
+            // 22/11 (ella, per boca del papà): escriure frases llargues se li fa molt pesat i no hi arriba. Des del 23/11, frases
+            // només per triar (dites en veu alta), i escriure, només una paraula. Hi entren ell/ella (bloc 9) i les frases de
+            // Frases per triar (bloc 10, del català a l'anglès), que abans escrivia senceres.
+            const ANGLES_PARAULA_DES_DE = '2026-11-23';
+            const anglesPerDia = () => ANGLES_PER_DIA[hoy()] || (hoy() >= ANGLES_PARAULA_DES_DE ? [3, 3, 0, 0, 1, 0, 4, 2, 5, 3] : hoy() >= ANGLES_BASE_DES_DE ? [5, 5, 0, 0, 2, 0, 6, 3] : hoy() >= ANGLES_THERE_DES_DE ? [3, 4, 3, 0, 1, 0, 6] : hoy() >= ANGLES_UNIT1_DES_DE ? [3, 3, 4, 0, 2, 0] : hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10, 0] : [3, 3, 4, 2, 0, 0]);
             const veuAngles = frase => `[en] ${frase}`;
             const fitxaAngles = ([bloc, preg, bona, altres, explica, frase]) => ({ bloc, preg, bona, altres, explica, veu: veuAngles(frase) });
             // 19/11 nit (papà): per parts, com al paper. Mentre treballa el diàleg 1 (jo i tu), al Dojo només I / you i there is / are;
@@ -3024,10 +3044,33 @@
             const nomesJoTu = () => hoy() >= ANGLES_JO_TU_DES_DE && hoy() < ANGLES_ELL_ELLA_DES_DE;
             const esAltraPersona = t => /\b(he|she|they|we|his|her|their|our|it)\b/i.test(String(t).replace(/[’`]/g, "'"));
             const valJoTu = t => !nomesJoTu() || !esAltraPersona(t);
+            // Bloc 10: les frases de Frases, del català a l'anglès, per triar. Les altres dues opcions canvien només la peça clau
+            // per paraules de debò que confon (I'm got, His got, There are a…): llegides en veu alta, la bona és la que sona bé.
+            const FRASES_TRIA_ALTRES = {
+                "I've": [["I'm", 'I'], "Amb got: I've got (I have got). Mai I'm got."],
+                "I'm": [["I've", 'I'], "Alta o baixa, sense got: I'm tall (I am tall)."],
+                "She's": [['She', 'Her'], "Amb got, la 's és HAS: she's got = she has got."],
+                "He's": [['He', 'His'], "Amb got, la 's és HAS: he's got = he has got."],
+                "There's": [['There are', 'Their'], "Una sola cosa: There's (there is)."],
+                'are': [['is', 'am'], 'Moltes coses (books, posters, shelves): There ARE.'],
+                "You're": [['Your', 'You'], "You're = you are. Your = el teu."],
+                'Her': [['His', 'She'], "D'ella = HER. D'ell = HIS."],
+                'His': [['Her', "He's"], "D'ell = HIS. D'ella = HER."],
+                "isn't": [["aren't", "hasn't"], "Diu que NO, i és una sola cosa (o he, she): isn't."],
+                "aren't": [["isn't", "haven't"], "Diu que NO, i són moltes coses: aren't."],
+                'like': [['likes', 'am like'], 'Amb I: I like (sense -s i sense am).'],
+                'My': [['I', 'Me'], 'El meu, la meva = MY.'],
+                'in': [['at', 'on'], 'A la ciutat: IN.'],
+                'Is': [['Are', 'Has'], 'Pregunta i una sola cosa: Is there…?']
+            };
+            const anglesTriaFrases = () => hoy() < ANGLES_PARAULA_DES_DE ? [] : FRASES_EN.filter(f => hoy() >= f.desDe && FRASES_TRIA_ALTRES[f.forat]).map(f => {
+                const [altres, explica] = FRASES_TRIA_ALTRES[f.forat], [a, b] = fraseForat(f);
+                return [10, `${f.ca} Digues-les fluixet: quina sona bé?`, f.en, altres.map(x => a + x + b), explica, f.en];
+            });
             function itemsAngles() {
                 const perDia = anglesPerDia();
-                const preguntes = ANGLES_PREGUNTES.filter(p => valJoTu(p[5]));
-                const noves = [1, 2, 3, 4, 5, 6, 7, 8].flatMap(b => shuffle(preguntes.filter(p => p[0] === b)).slice(0, perDia[b - 1] || 0)).map(fitxaAngles);
+                const preguntes = [...ANGLES_PREGUNTES, ...anglesTriaFrases()].filter(p => valJoTu(p[5]));
+                const noves = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].flatMap(b => shuffle(preguntes.filter(p => p[0] === b)).slice(0, perDia[b - 1] || 0)).map(fitxaAngles);
                 // Les fallades d'abans, només si són dels blocs d'avui (el 15/11 ja no tornen les negatives)
                 const blocsAvui = new Set(preguntes.filter(p => perDia[p[0] - 1] > 0).map(p => p[1]));
                 return itemsTria('angles', noves, perDia.reduce((a, b) => a + b, 0), f => blocsAvui.has(f.preg) && valJoTu(f.veu));
@@ -3045,16 +3088,27 @@
                 if (i < 0) return escaparHtml(f);
                 return escaparHtml(f.slice(0, i)) + `<span class="forat-bo">${escaparHtml(f.slice(i, i + it.esperado.length))}</span>` + escaparHtml(f.slice(i + it.esperado.length));
             }
+            // Des del 23/11 (ella ho va demanar): no copia la frase sencera. Si la bona és una peça (1 o 2 paraules: has, hasn't, Her…), la veu
+            // marcada a la frase, la diu, i escriu NOMÉS la peça al forat. Si la bona és una frase, la llegeix en veu alta i seguim.
+            const anglesNomesPeca = it => hoy() >= ANGLES_PARAULA_DES_DE && it.esperado.trim().split(/\s+/).length <= 2;
             function anglesACopiar(opcio) {
+                if (hoy() >= ANGLES_PARAULA_DES_DE && !anglesNomesPeca(item)) {
+                    opFeedbackEl.innerHTML = '';
+                    mostrarCorreccion('🌸 Gairebé! Llegeix-la fluixet, que t\'escoltis:', item.solucio, `Tu has triat: ${opcio}`);
+                    mostrarPistaCorreccion();
+                    return;
+                }
                 item.intent = 2;
                 item.copia = fraseCopiaAngles(item);
+                const i = item.copia.toLowerCase().indexOf(item.esperado.toLowerCase());
+                item.foratCopia = anglesNomesPeca(item) && i >= 0 ? [item.copia.slice(0, i), item.copia.slice(i + item.esperado.length)] : null;
                 playFeedbackSound(false);
                 document.getElementById('btn-no-ho-se').hidden = true;
                 opFeedbackEl.innerHTML = `<div class="frase-correccio"><div class="frase-bona">${htmlCopiaAngles(item)}</div>`
                     + `<div class="frase-tu">Has triat: <span class="frase-mal">${escaparHtml(opcio)}</span></div>`
                     + `<div class="correction-pista">${escaparHtml(item.explica)}</div>`
                     + `<div class="correction-pista">🗣️ Digues-la fluixet, que t'escoltis: si sona rara, és que no està bé.</div>`
-                    + `<button id="btn-angles-copia" class="btn-action btn-paraula-seguir">La torno a escriure ✍️</button></div>`;
+                    + `<button id="btn-angles-copia" class="btn-action btn-paraula-seguir">${item.foratCopia ? 'Escric la paraula ✍️' : 'La torno a escriure ✍️'}</button></div>`;
                 // La frase en anglès ja la diu responderTema1
             }
             function anglesEscriu() {
@@ -3062,7 +3116,9 @@
                 callarVeu();
                 opFeedbackEl.innerHTML = '';
                 item.etapa = 'copia';
-                document.getElementById('tema1-preg').textContent = 'Escriu la frase sencera (dient-la fluixet):';
+                if (item.foratCopia) document.getElementById('tema1-preg').innerHTML = `<span class="frase-forat">${escaparHtml(item.foratCopia[0])}<span class="forat"></span>${escaparHtml(item.foratCopia[1])}</span>`
+                    + '<br><span class="frase-ca-sub">Digues la frase fluixet i escriu només la paraula que falta</span>';
+                else document.getElementById('tema1-preg').textContent = 'Escriu la frase sencera (dient-la fluixet):';
                 document.getElementById('btn-escoltar-dictat').hidden = true;
                 document.getElementById('dictat-panel').hidden = false;
                 currentInput = '';
@@ -3076,9 +3132,11 @@
                 if (isEvaluating || !item || item.etapa !== 'copia' || !resposta) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
-                const ok = copiaIgual(resposta, item.copia);
-                if (!sesion.prueba) guardarEvento({ modulo: 'angles', item: item.clave, esperado: item.copia, respuesta: resposta, correcta: ok, tiempo_ms: ms,
-                    primera_tecla_ms: teclas.length ? teclas[0][0] : null, detalle: { mision: sesion.mision.id, teclas, modo: item.modo, intent: 2, copia: true } });
+                const f = item.foratCopia;
+                // Si la peça és «'ve» o «'s», també val la forma llarga (I + have)
+                const ok = f ? [f[0] + resposta + f[1], f[0] + ' ' + resposta + f[1]].some(x => copiaIgual(x, item.copia)) : copiaIgual(resposta, item.copia);
+                if (!sesion.prueba) guardarEvento({ modulo: 'angles', item: item.clave, esperado: f ? item.esperado : item.copia, respuesta: resposta, correcta: ok, tiempo_ms: ms,
+                    primera_tecla_ms: teclas.length ? teclas[0][0] : null, detalle: { mision: sesion.mision.id, teclas, modo: item.modo, intent: 2, copia: true, ...(f ? { paraula: true } : {}) } });
                 item.etapa = null;
                 document.getElementById('dictat-panel').hidden = true;
                 document.getElementById('btn-escoltar-dictat').hidden = false;
@@ -3335,8 +3393,11 @@
                 return { s: {} };
             }
             function guardarFrases(st) { try { localStorage.setItem('dojo_frases', JSON.stringify(st)); } catch (e) {} }
-            const modeFrase = e => !e || !e.escolta ? 'escolta' : 'tradueix';
-            const fraseDominada = e => !!e && (e.tradueix || []).length >= 2;
+            // Des del 23/11 (ella: escriure la frase sencera és massa), a Frases només escolta i escriu la peça; traduir-la, ara
+            // per triar, a l'anglès (bloc 10). Dominada amb 2 dies bé a la primera escoltant (o 2 traduint, d'abans).
+            const FRASES_NOMES_PECA_DES_DE = '2026-11-23';
+            const modeFrase = e => !e || !e.escolta || hoy() >= FRASES_NOMES_PECA_DES_DE ? 'escolta' : 'tradueix';
+            const fraseDominada = e => !!e && ((e.tradueix || []).length >= 2 || (hoy() >= FRASES_NOMES_PECA_DES_DE && (e.escoltaDies || []).length >= 2));
             function itemsFrases() {
                 const d = hoy(), st = leerFrases();
                 const actives = FRASES_EN.filter(f => d >= f.desDe && valJoTu(f.en) && (!st.s[f.id] || st.s[f.id].ultima !== d));
@@ -3353,6 +3414,8 @@
                 const st = leerFrases(), d = hoy();
                 const e = st.s[f.id] || { escolta: 0, tradueix: [] };
                 if (ok && mode === 'escolta') e.escolta = (e.escolta || 0) + 1;
+                if (ok && mode === 'escolta' && !(e.escoltaDies || []).includes(d)) e.escoltaDies = [...(e.escoltaDies || []), d];
+                if (!ok && mode === 'escolta' && d >= FRASES_NOMES_PECA_DES_DE) e.escoltaDies = [];
                 if (ok && mode === 'tradueix' && !(e.tradueix || []).includes(d)) e.tradueix = [...(e.tradueix || []), d];
                 // Si falla traduint, torna a comptar des de zero (però no torna al dictat)
                 if (!ok && mode === 'tradueix') e.tradueix = [];
@@ -3378,9 +3441,18 @@
             function evaluarFrase(resposta) {
                 if (isEvaluating || !item || item.tipo !== 'frases') return;
                 if (resposta !== null && !resposta) return;
-                isEvaluating = true;
-                const ms = Math.round(performance.now() - tInicio);
                 const forat = fraseAmbForat(item);
+                // 22/11: al forat escrivia la frase sencera («his got hort her»). Des del 23/11, si escriu més paraules que la peça,
+                // no compta: li recorda que només va la paraula que falta i torna a escriure.
+                if (forat && resposta && hoy() >= FRASES_NOMES_PECA_DES_DE && resposta.trim().split(/\s+/).length > item.f.forat.split(/\s+/).length + 1) {
+                    opFeedbackEl.innerHTML = '<div class="correction-pista">✋ Només la paraula que falta al forat (la frase ja hi és).</div>';
+                    currentInput = '';
+                    pintarDictat();
+                    return;
+                }
+                isEvaluating = true;
+                if (forat) opFeedbackEl.innerHTML = '';
+                const ms = Math.round(performance.now() - tInicio);
                 const ok = resposta !== null && frasesIguals(forat ? fraseAmbResposta(item.f, resposta) : resposta, item.f.en);
                 // Compta el primer intent; el segon, només es guarda
                 if (item.intent === 1) {

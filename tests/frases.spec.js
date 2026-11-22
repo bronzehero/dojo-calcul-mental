@@ -160,3 +160,33 @@ test.describe('Frases en anglès', () => {
         throw new Error('no ha sortit la de traduir');
     });
 });
+
+test.describe('Des del 23/11: a Frases només la peça', () => {
+    test('les que abans passaven a traduir, ara també són d\'escoltar (escriu una paraula)', async ({ page }) => {
+        await preparar(page, '2026-11-23', { frases: true }, { frases: { s: {
+            'f-long': { escolta: 1, tradueix: [], ultima: '2026-11-18' },
+            'f-short': { escolta: 2, tradueix: ['2026-11-20'], ultima: '2026-11-20' } } } });
+        const items = await page.evaluate(() => window.__itemsFrases());
+        expect(items.length).toBeGreaterThan(0);
+        expect(items.every(x => x.mode === 'escolta')).toBe(true);
+    });
+
+    test('si al forat escriu la frase sencera, no compta: li recorda que només va la paraula i la torna a escriure', async ({ page }) => {
+        const envios = await preparar(page, '2026-11-23');
+        await page.evaluate(() => { window.speechSynthesis.speak = () => {}; });
+        const totes = await page.evaluate(() => window.__frasesEn());
+        await page.click('#btn-start-game');
+        await page.click('#btn-intro-vamos');
+        await expect.poll(() => page.evaluate(() => window.__fraseActual())).not.toBe(null);
+        const id = await page.evaluate(() => window.__fraseActual());
+        const f = totes.find(x => x.id === id);
+        await escriu(page, 'his got long her');
+        await page.click('#btn-dictat-fet');
+        await expect(page.locator('#op-feedback')).toContainText('Només la paraula que falta');
+        expect(envios.filter(e => e.datos.modulo === 'frases')).toHaveLength(0);
+        await escriu(page, f.forat.toLowerCase());
+        await page.click('#btn-dictat-fet');
+        await expect.poll(() => envios.filter(e => e.datos.modulo === 'frases').length).toBe(1);
+        expect(envios.find(e => e.datos.modulo === 'frases').datos.correcta).toBe(true);
+    });
+});

@@ -301,7 +301,8 @@ test.describe('Anglès', () => {
     });
 
     test('des del 19/11 (papà: primer la base, després els sustantius): be 5, have got 5, email 2, there is/are 6, de qui és 3; cap de vocabulari', async ({ page }) => {
-        for (const dia of ['2026-11-19', '2026-11-24']) {
+        // Fins al 22/11; des del 23/11, el repartiment nou (més avall)
+        for (const dia of ['2026-11-19', '2026-11-22']) {
             await preparar(page, dia);
             const items = await page.evaluate(() => window.__itemsAngles());
             const compte = {};
@@ -625,5 +626,77 @@ test.describe('Des del 21/11: SA2 construït amb la taula i, a l\'anglès, la fr
         expect(copies).toHaveLength(totes.length);
         copies.forEach(c => { expect(c).not.toMatch(/\d/); expect(c.length).toBeLessThanOrEqual(60); });
         expect(copies).toContain('I am twelve years old.');
+    });
+});
+
+// 22/11 (ella, per boca del papà): escriure frases llargues en anglès és massa. Des del 23/11, frases per triar dient-les
+// fluixet, i escriure només una paraula. Entren ell/ella (diàleg 2) i les frases de Frases per triar.
+test.describe('Des del 23/11: anglès sense escriure frases senceres', () => {
+    test('5 d\'ell/ella i 3 frases per triar; les opcions de les frases només canvien la peça, i el 22/11 encara no hi són', async ({ page }) => {
+        await preparar(page, '2026-11-23', { angles: true });
+        const items = await page.evaluate(() => window.__itemsAngles());
+        expect(items.filter(x => x.bloc === 9)).toHaveLength(5);
+        const fr = items.filter(x => x.bloc === 10);
+        expect(fr).toHaveLength(3);
+        expect(items.length).toBe(21);
+        const compte = {};
+        items.forEach(x => { compte[x.bloc] = (compte[x.bloc] || 0) + 1; });
+        expect(compte).toEqual({ 1: 3, 2: 3, 5: 1, 7: 4, 8: 2, 9: 5, 10: 3 });
+        const totes = await page.evaluate(() => window.__frasesEn());
+        for (const x of fr) {
+            const f = totes.find(t => t.en === x.bona);
+            expect(f, x.bona).toBeTruthy();
+            expect(x.preg).toContain(f.ca);
+        }
+    });
+
+    test('el 22/11, sense blocs 9 ni 10', async ({ page }) => {
+        await preparar(page, '2026-11-22', { angles: true });
+        const items = await page.evaluate(() => window.__itemsAngles());
+        expect(items.filter(x => x.bloc >= 9)).toHaveLength(0);
+    });
+
+    test('si falla una peça, escriu només la paraula al forat; si falla una frase, la llegeix i segueix sense escriure', async ({ page }) => {
+        const envios = await preparar(page, '2026-11-23', { angles: true });
+        const n = (await page.evaluate(() => window.__itemsAngles())).length;
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toHaveText('English');
+        await page.click('#btn-intro-vamos');
+        const esc = s => s.replace(/"/g, '\\"');
+        let anterior = 'null', peca = false, frase = false;
+        for (let i = 0; i < n + 2; i++) {
+            const t = await seguent(page, anterior);
+            anterior = JSON.stringify(t);
+            const curta = t.esperado.trim().split(/\s+/).length <= 2;
+            if ((curta && !peca) || (!curta && !frase)) {
+                await page.click(`#tema1-opcions button:not([data-opcio="${esc(t.esperado)}"]) >> nth=0`);
+                if (curta) {
+                    peca = true;
+                    await expect(page.locator('#btn-angles-copia')).toHaveText('Escric la paraula ✍️');
+                    await page.click('#btn-angles-copia');
+                    await expect(page.locator('#tema1-preg .forat')).toBeVisible();
+                    await page.keyboard.type(t.esperado.toLowerCase());
+                    await page.keyboard.press('Enter');
+                    await expect(page.locator('.celebrate-text')).toBeVisible();
+                } else {
+                    frase = true;
+                    await expect(page.locator('#btn-angles-copia')).toHaveCount(0);
+                    await expect(page.locator('#btn-correction-continue')).toBeVisible();
+                    expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
+                    await page.click('#btn-correction-continue');
+                }
+            } else await page.click(`#tema1-opcions button[data-opcio="${esc(t.esperado)}"]`);
+            await page.waitForTimeout(t.opcions ? 1000 : 2000);
+        }
+        expect(peca && frase).toBe(true);
+        const segons = envios.filter(e => e.datos.modulo === 'angles' && e.datos.detalle && e.datos.detalle.intent === 2).map(e => e.datos);
+        expect(segons).toHaveLength(1);
+        expect(segons[0].detalle.paraula).toBe(true);
+        expect(segons[0].correcta).toBe(true);
+    });
+
+    test('la peça amb apòstrof val curta o llarga (\'ve = have)', async ({ page }) => {
+        await preparar(page, '2026-11-23', { angles: true });
+        expect(await page.evaluate(() => window.__frasesIguals('I have got brown hair.', "I've got brown hair."))).toBe(true);
     });
 });
