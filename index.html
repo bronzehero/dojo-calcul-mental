@@ -3082,11 +3082,14 @@
             });
             function itemsAngles() {
                 const perDia = anglesPerDia();
-                const preguntes = [...ANGLES_PREGUNTES, ...anglesTriaFrases()].filter(p => valJoTu(p[5]));
+                // 23/11 nit (ella, per boca del papà): encara li surten «frases llargues». Triar entre tres frases senceres
+                // també és llegir-ne tres de quasi iguals. Des del 24/11, només preguntes on la bona és una peça (≤ 2 paraules).
+                const curta = t => hoy() < ANGLES_FORMAL_DES_DE || String(t).trim().split(/\s+/).length <= 2;
+                const preguntes = [...ANGLES_PREGUNTES, ...anglesTriaFrases()].filter(p => valJoTu(p[5]) && curta(p[2]));
                 const noves = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].flatMap(b => shuffle(preguntes.filter(p => p[0] === b)).slice(0, perDia[b - 1] || 0)).map(fitxaAngles);
                 // Les fallades d'abans, només si són dels blocs d'avui (el 15/11 ja no tornen les negatives)
                 const blocsAvui = new Set(preguntes.filter(p => perDia[p[0] - 1] > 0).map(p => p[1]));
-                return itemsTria('angles', noves, perDia.reduce((a, b) => a + b, 0), f => blocsAvui.has(f.preg) && valJoTu(f.veu));
+                return itemsTria('angles', noves, perDia.reduce((a, b) => a + b, 0), f => blocsAvui.has(f.preg) && valJoTu(f.veu) && curta(f.bona));
             }
             // 20/11 (papà, d'acord): repeteix el mateix error dos minuts després («I am got», «My name Alice», a / an amb aren't):
             // llegir la correcció no li arriba. Des del 21/11, si falla (no amb «No ho sé»), com a Frases: la frase bona sencera amb
@@ -3710,7 +3713,12 @@
             const enTanda = (t, d) => d >= TANDES[t][0] && d <= TANDES[t][1];
             const tandaAvui = d => Object.keys(TANDES).some(t => enTanda(t, d));
             // desDe: la palabra entra ese día. repetirEl: ese día vuelve aunque el Dojo la dé por dominada (la falló en papel)
-            const paraulaActiva = (w, d) => w.tanda ? enTanda(w.tanda, d) && (!w.desDe || d >= w.desDe) :!tandaAvui(d) && !(d >= LAB_DES_DE && LAB_DE_PARAULES.includes(w.id)) &&
+            // 23/11: 37 minuts de Dojo i, al final de Paraules, lletres a l'atzar (straight, brown, braces): no podia més.
+            // Fins a l'examen (27/11), de l'anglès només les paraules del seu email, i 6 al dia com a màxim.
+            const PARAULES_EMAIL_DES_DE = '2026-11-24', PARAULES_EMAIL_MAX = 6;
+            const PARAULES_EMAIL = ['en-in', 'en-and', 'en-brown', 'en-eyes', 'en-hair', 'en-like', 'en-music', 'en-my', 'en-tall', 'en-green'];
+            const nomesEmail = d => enTanda('angles', d) && d >= PARAULES_EMAIL_DES_DE;
+            const paraulaActiva = (w, d) => w.tanda ? enTanda(w.tanda, d) && (!w.desDe || d >= w.desDe) && (w.tanda !== 'angles' || !nomesEmail(d) || PARAULES_EMAIL.includes(w.id)) :!tandaAvui(d) && !(d >= LAB_DES_DE && LAB_DE_PARAULES.includes(w.id)) &&
                 (w.idioma !== 'es' || d <= PARAULES_ES_FINS || PARAULES_ES_QUEDEN.includes(w.id));
             // Días con la misión corta (29/10: examen de tecno y vóley): solo las que ya ha visto, ninguna nueva
             const PARAULES_SENSE_NOVES = ['2026-10-29'];
@@ -4697,9 +4705,9 @@
                 const e = w => st.w[w.id];
                 const actives = PARAULES.filter(w => paraulaActiva(w, d));
                 const vistes = actives.filter(w => e(w) && e(w).intro < d);
-                const pendents = vistes.filter(w => !e(w).dominada || w.repetirEl === d).slice(0, enTanda('dictat2', d) ? 12 : 8);
-                const repas = vistes.filter(w => e(w).dominada && w.repetirEl !== d && diesEntre(e(w).ultima, d) >= PARAULES_REPAS_CADA).slice(0, 2);
-                const quantes = tandaAvui(d) ? 12 :PARAULES_SENSE_NOVES.includes(d) || pendents.length >= 8 ? 0 : pendents.length >= 5 ? 2 : 4;
+                const pendents = vistes.filter(w => !e(w).dominada || w.repetirEl === d).slice(0, enTanda('dictat2', d) ? 12 : nomesEmail(d) ? PARAULES_EMAIL_MAX : 8);
+                const repas = vistes.filter(w => e(w).dominada && w.repetirEl !== d && diesEntre(e(w).ultima, d) >= PARAULES_REPAS_CADA).slice(0, nomesEmail(d) ? 0 : 2);
+                const quantes = nomesEmail(d) ? Math.max(0, PARAULES_EMAIL_MAX - pendents.length) : tandaAvui(d) ? 12 :PARAULES_SENSE_NOVES.includes(d) || pendents.length >= 8 ? 0 : pendents.length >= 5 ? 2 : 4;
                 const noves = actives.filter(w => !e(w) || e(w).intro === d).slice(0, quantes);
                 const recorda = shuffle([...pendents, ...repas]);
                 let final = shuffle(noves);

@@ -653,9 +653,11 @@ test.describe('Des del 23/11: anglès sense escriure frases senceres', () => {
     test('des del 24/11 (email informal a l\'examen): 3 de formal o informal, i la bona sempre és la informal', async ({ page }) => {
         await preparar(page, '2026-11-24', { angles: true });
         const items = await page.evaluate(() => window.__itemsAngles());
-        const compte = {};
-        items.forEach(x => { compte[x.bloc] = (compte[x.bloc] || 0) + 1; });
-        expect(compte).toEqual({ 1: 3, 2: 3, 5: 1, 7: 3, 8: 2, 9: 4, 10: 3, 11: 3 });
+        // i, des del 24/11, cap frase sencera per triar: només peces (≤ 2 paraules)
+        for (const x of items) expect(x.bona.trim().split(/\s+/).length, x.bona).toBeLessThanOrEqual(2);
+        const b11 = items.filter(i => i.bloc === 11).length;
+        expect(b11).toBeGreaterThan(0);
+        expect(b11).toBeLessThanOrEqual(3);
         const formals = ['Dear Martin,', 'With regards,'];
         for (const x of items.filter(i => i.bloc === 11)) {
             expect(formals).not.toContain(x.bona);
@@ -663,6 +665,16 @@ test.describe('Des del 23/11: anglès sense escriure frases senceres', () => {
         }
         await preparar(page, '2026-11-23', { angles: true });
         expect((await page.evaluate(() => window.__itemsAngles())).filter(x => x.bloc === 11)).toHaveLength(0);
+    });
+
+    test('del 24 al 27/11, a Paraules només les de l\'email, 6 al dia com a màxim', async ({ page }) => {
+        const email = ['en-in', 'en-and', 'en-brown', 'en-eyes', 'en-hair', 'en-like', 'en-music', 'en-my', 'en-tall', 'en-green'];
+        await preparar(page, '2026-11-24');
+        const items = await page.evaluate(() => window.__itemsParaules());
+        const ids = [...new Set(items.map(x => x.id))];
+        expect(ids.length).toBeGreaterThan(0);
+        expect(ids.length).toBeLessThanOrEqual(6);
+        for (const id of ids) expect(email, id).toContain(id);
     });
 
     test('el 22/11, sense blocs 9 ni 10', async ({ page }) => {
