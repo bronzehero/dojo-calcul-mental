@@ -675,6 +675,34 @@ test.describe('Des del 23/11: anglès sense escriure frases senceres', () => {
         for (const id of ids) expect(email, id).toContain(id);
     });
 
+    test('des del 24/11 (papà), a Paraules un sol intent de memòria; si falla, la copia mirant-la (cap paraula mal escrita a la vista) i seguim', async ({ page }) => {
+        const envios = await preparar(page, '2026-11-24', TOTS, { plan: { hechas: PLAN_ACABAT, extras: EXTRES_FETES,
+            enCurso: { id: 10, bloque: 0, fecha: '2026-11-23', bloques: [{ tipo: 'paraules' }] } } });
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toHaveText('Paraules');
+        await page.click('#btn-intro-vamos');
+        const p = await page.evaluate(() => window.__paraulaActual());
+        if (p.etapa === 'mira') await page.click('#btn-paraula-seguir');
+        await expect(page.locator('#dictat-panel')).toBeVisible();
+        await page.click('#teclat-lletres [data-tecla="x"]');
+        await page.click('#btn-dictat-fet');
+        // la còpia: la bona a la vista i el teclat alhora; no es mostra el que ha escrit
+        await expect.poll(async () => (await page.evaluate(() => window.__paraulaActual())).etapa).toBe('copia');
+        await expect(page.locator('#paraules-panel')).toBeVisible();
+        await expect(page.locator('#dictat-panel')).toBeVisible();
+        await expect(page.locator('#paraula-gran')).toHaveText(p.paraula);
+        await expect(page.locator('#paraules-panel')).not.toContainText('Has escrit');
+        await expect(page.locator('#btn-paraula-seguir')).toBeHidden();
+        // la copia malament i tot: seguim, no la torna a escriure
+        await page.click('#teclat-lletres [data-tecla="x"]');
+        await page.click('#btn-dictat-fet');
+        await expect.poll(async () => JSON.stringify(await page.evaluate(() => window.__paraulaActual()))).not.toBe(JSON.stringify({ ...p, etapa: 'copia' }));
+        const q = await page.evaluate(() => window.__paraulaActual());
+        expect(q === null || q.id !== p.id || q.fase !== p.fase).toBe(true);
+        const copia = envios.filter(e => e.datos.modulo === 'paraules' && e.datos.detalle.copia);
+        expect(copia).toHaveLength(1);
+    });
+
     test('el 22/11, sense blocs 9 ni 10', async ({ page }) => {
         await preparar(page, '2026-11-22', { angles: true });
         const items = await page.evaluate(() => window.__itemsAngles());

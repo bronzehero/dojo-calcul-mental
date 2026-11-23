@@ -1016,6 +1016,8 @@
         .paraula-gran { margin: 4px 0 12px 0; padding: 14px; border: 4px solid #e9dcff; border-radius: 20px; background: #fff;
             font-size: 3.4rem; font-weight: 700; letter-spacing: 0.06em; color: #1e293b; word-break: break-word; }
         .paraula-gran .clau { color: #db2777; background: #fce7f3; border-radius: 10px; padding: 0 4px; }
+        .paraula-gran .lletra-be { color: #15803d; }
+        .paraula-gran .lletra-falta { color: #c2410c; background: #ffedd5; border-radius: 8px; padding: 0 2px; }
         .paraula-truc { margin: 0 0 12px 0; padding: 12px 16px; border-radius: 16px; background: #faf5ff; color: #4c1d95; font-size: 1.35rem; line-height: 1.4; }
         /* La pareja catalán / castellano: lo que cambia, de color en las dos */
         .paraula-parella { margin: -4px 0 12px 0; padding: 10px 16px; border-radius: 16px; background: #fff7ed; color: #7c2d12; font-size: 1.3rem; line-height: 1.5; }
@@ -5990,7 +5992,7 @@
 
             function teclaDictat(k) {
                 if (isEvaluating || !item) return;
-                const escrivint = ['dictat', 'accent', 'frases'].includes(item.tipo) || (item.tipo === 'paraules' && ['escriu', 'familia'].includes(item.etapa)) ||
+                const escrivint = ['dictat', 'accent', 'frases'].includes(item.tipo) || (item.tipo === 'paraules' && ['escriu', 'familia', 'copia'].includes(item.etapa)) ||
                     (item.tipo === 'lab' && ['escriu', 'frase', 'edita'].includes(item.etapa)) || (item.tipo === 'angles' && item.etapa === 'copia');
                 if (!escrivint) return;
                 teclas.push([Math.round(performance.now() - tInicio), k]);
@@ -6041,9 +6043,56 @@
                 pista.hidden = false;
             }
 
+            // 23/11 (papà): escriure al Dojo li gasta molta energia, i si falla li fèiem tornar-la a escriure de memòria fins a 3 cops.
+            // Des del 24/11: un sol intent de memòria; si no surt, la copia MIRANT-LA (la paraula bona a la vista, amb les lletres
+            // que ja tenia en verd i les que faltaven en taronja) i seguim, surti com surti. Mai li ensenyem la paraula mal escrita.
+            const PARAULES_COPIA_DES_DE = '2026-11-24';
+            const paraulesAmbCopia = () => hoy() >= PARAULES_COPIA_DES_DE;
+            // Lletres de la bona que ja hi havia, en ordre (la subseqüència comuna més llarga)
+            function htmlEncerts(bona, seva) {
+                const a = [...bona], b = [...String(seva || '').toLowerCase()];
+                const L = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+                for (let i = a.length - 1; i >= 0; i--) for (let j = b.length - 1; j >= 0; j--)
+                    L[i][j] = a[i].toLowerCase() === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+                const ok = new Array(a.length).fill(false);
+                for (let i = 0, j = 0; i < a.length && j < b.length;) {
+                    if (a[i].toLowerCase() === b[j]) { ok[i] = true; i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
+                }
+                return a.map((c, i) => `<span class="${ok[i] ? 'lletra-be' : 'lletra-falta'}">${escaparHtml(c)}</span>`).join('');
+            }
+
             // PARAULES: mirar (las nuevas) → escribir de memoria → si no sale, mirarla otra vez y volver a escribirla (hasta 3 veces)
             function pintarParaula() {
                 const w = item.w;
+                if (item.etapa === 'copia') {
+                    opFactorsEl.textContent = `✍️ ${NOM_IDIOMA[w.idioma]}`;
+                    const pp = document.getElementById('paraules-panel'), dp = document.getElementById('dictat-panel');
+                    // la paraula, damunt del teclat (només es veuen juntes a la còpia)
+                    if (pp.parentNode === dp.parentNode && pp.nextElementSibling !== dp) dp.parentNode.insertBefore(pp, dp);
+                    pp.hidden = false;
+                    dp.hidden = false;
+                    document.getElementById('btn-escoltar-paraula').hidden = true;
+                    document.getElementById('btn-no-ho-se').hidden = true;
+                    document.getElementById('paraula-familia').hidden = true;
+                    document.getElementById('paraula-gran').innerHTML = htmlEncerts(item.paraula, item.ultima);
+                    const tu = document.getElementById('paraula-tu');
+                    tu.hidden = false;
+                    tu.textContent = 'Copia-la mirant-la. En verd, les lletres que ja tenies.';
+                    document.getElementById('paraula-truc').textContent = w.truc;
+                    document.getElementById('paraula-parella').hidden = true;
+                    document.getElementById('btn-paraula-seguir').hidden = true;
+                    gentleBox.style.display = 'none';
+                    opFeedbackEl.innerHTML = '';
+                    isEvaluating = false;
+                    currentInput = '';
+                    teclas = [];
+                    pintarDictat();
+                    tInicio = performance.now();
+                    hablarMira(w);
+                    return;
+                }
+                document.getElementById('btn-paraula-seguir').hidden = false;
+                document.getElementById('btn-escoltar-paraula').hidden = false;
                 const familia = item.etapa === 'familia';
                 const escriu = item.etapa === 'escriu' || familia;
                 const emoji = { mira: '👀', escriu: '🎧', corregeix: '🔍', familia: '👨‍👩‍👧' }[item.etapa];
@@ -6098,8 +6147,18 @@
 
             // resposta: lo que ha escrito, o null si ha pulsado «No ho sé»
             function evaluarParaula(resposta) {
-                if (isEvaluating || !item || item.tipo !== 'paraules' || !['escriu', 'familia'].includes(item.etapa)) return;
+                if (isEvaluating || !item || item.tipo !== 'paraules' || !['escriu', 'familia', 'copia'].includes(item.etapa)) return;
                 if (resposta === '') return;
+                // La còpia mirant-la: es guarda a part i seguim, surti com surti
+                if (item.etapa === 'copia') {
+                    isEvaluating = true;
+                    const okc = resposta === item.paraula;
+                    if (!enPrueba()) guardarEvento({ modulo: 'paraules', item: item.w.id, esperado: item.paraula, respuesta: resposta, correcta: okc,
+                        tiempo_ms: Math.round(performance.now() - tInicio), primera_tecla_ms: teclas.length ? teclas[0][0] : null,
+                        detalle: { mision: sesion.mision.id, fase: item.fase, intent: item.intent, idioma: item.w.idioma, teclas, copia: true } });
+                    callarVeu();
+                    return acabarParaula(okc);
+                }
                 const enFamilia = item.etapa === 'familia';
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
@@ -6122,6 +6181,10 @@
                 playFeedbackSound(false);
                 item.ultima = resposta;
                 item.intent++;
+                if (paraulesAmbCopia() && !enFamilia) {
+                    item.etapa = 'copia';
+                    return pintarParaula();
+                }
                 // Primer, dins de la seva família (un cop per paraula i dia); si tampoc surt, mirar-la com sempre
                 if (item.w.familia && !enFamilia && !item.familiaFeta) {
                     item.familiaFeta = true;
