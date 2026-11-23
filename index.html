@@ -3082,14 +3082,11 @@
             });
             function itemsAngles() {
                 const perDia = anglesPerDia();
-                // 23/11 nit (ella, per boca del papà): encara li surten «frases llargues». Triar entre tres frases senceres
-                // també és llegir-ne tres de quasi iguals. Des del 24/11, només preguntes on la bona és una peça (≤ 2 paraules).
-                const curta = t => hoy() < ANGLES_FORMAL_DES_DE || String(t).trim().split(/\s+/).length <= 2;
-                const preguntes = [...ANGLES_PREGUNTES, ...anglesTriaFrases()].filter(p => valJoTu(p[5]) && curta(p[2]));
+                const preguntes = [...ANGLES_PREGUNTES, ...anglesTriaFrases()].filter(p => valJoTu(p[5]));
                 const noves = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].flatMap(b => shuffle(preguntes.filter(p => p[0] === b)).slice(0, perDia[b - 1] || 0)).map(fitxaAngles);
                 // Les fallades d'abans, només si són dels blocs d'avui (el 15/11 ja no tornen les negatives)
                 const blocsAvui = new Set(preguntes.filter(p => perDia[p[0] - 1] > 0).map(p => p[1]));
-                return itemsTria('angles', noves, perDia.reduce((a, b) => a + b, 0), f => blocsAvui.has(f.preg) && valJoTu(f.veu) && curta(f.bona));
+                return itemsTria('angles', noves, perDia.reduce((a, b) => a + b, 0), f => blocsAvui.has(f.preg) && valJoTu(f.veu));
             }
             // 20/11 (papà, d'acord): repeteix el mateix error dos minuts després («I am got», «My name Alice», a / an amb aren't):
             // llegir la correcció no li arriba. Des del 21/11, si falla (no amb «No ho sé»), com a Frases: la frase bona sencera amb

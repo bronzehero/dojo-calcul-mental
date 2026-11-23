@@ -653,8 +653,6 @@ test.describe('Des del 23/11: anglès sense escriure frases senceres', () => {
     test('des del 24/11 (email informal a l\'examen): 3 de formal o informal, i la bona sempre és la informal', async ({ page }) => {
         await preparar(page, '2026-11-24', { angles: true });
         const items = await page.evaluate(() => window.__itemsAngles());
-        // i, des del 24/11, cap frase sencera per triar: només peces (≤ 2 paraules)
-        for (const x of items) expect(x.bona.trim().split(/\s+/).length, x.bona).toBeLessThanOrEqual(2);
         const b11 = items.filter(i => i.bloc === 11).length;
         expect(b11).toBeGreaterThan(0);
         expect(b11).toBeLessThanOrEqual(3);
