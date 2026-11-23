@@ -650,6 +650,21 @@ test.describe('Des del 23/11: anglès sense escriure frases senceres', () => {
         }
     });
 
+    test('des del 24/11 (email informal a l\'examen): 3 de formal o informal, i la bona sempre és la informal', async ({ page }) => {
+        await preparar(page, '2026-11-24', { angles: true });
+        const items = await page.evaluate(() => window.__itemsAngles());
+        const compte = {};
+        items.forEach(x => { compte[x.bloc] = (compte[x.bloc] || 0) + 1; });
+        expect(compte).toEqual({ 1: 3, 2: 3, 5: 1, 7: 3, 8: 2, 9: 4, 10: 3, 11: 3 });
+        const formals = ['Dear Martin,', 'With regards,'];
+        for (const x of items.filter(i => i.bloc === 11)) {
+            expect(formals).not.toContain(x.bona);
+            expect(x.preg).toContain('amiga');
+        }
+        await preparar(page, '2026-11-23', { angles: true });
+        expect((await page.evaluate(() => window.__itemsAngles())).filter(x => x.bloc === 11)).toHaveLength(0);
+    });
+
     test('el 22/11, sense blocs 9 ni 10', async ({ page }) => {
         await preparar(page, '2026-11-22', { angles: true });
         const items = await page.evaluate(() => window.__itemsAngles());

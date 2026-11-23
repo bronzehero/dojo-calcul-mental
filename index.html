@@ -3017,7 +3017,17 @@
                 [9, 'This is my brother. ___ name is Tom.', 'His', ['Her', "He's"], "D'ell = HIS. D'ella = HER.", 'This is my brother. His name is Tom.'],
                 [9, "He's got glasses = ?", 'He has got glasses.', ['He is got glasses.', 'His got glasses.'], "Amb GOT, la 's és HAS.", 'He has got glasses.'],
                 [9, "He's tall = ?", 'He is tall.', ['He has tall.', 'His tall.'], "Sense got, la 's és IS.", 'He is tall.'],
-                [9, "She's got freckles = ?", 'She has got freckles.', ['She is got freckles.', 'Her got freckles.'], "Amb GOT, la 's és HAS.", 'She has got freckles.']
+                [9, "She's got freckles = ?", 'She has got freckles.', ['She is got freckles.', 'Her got freckles.'], "Amb GOT, la 's és HAS.", 'She has got freckles.'],
+                // 11 · formal o informal (23/11: a l'examen, un email informal, «com si li parlessis a les amigues»). Al workbook
+                // (pàg. 14, Writing hack) va marcar Hi Lola, Hello Yasmin i Write soon com a formals, i With regards com a informal.
+                // Les frases són les del workbook i les de la llibreta; les formals només són Dear Martin i With regards.
+                [11, 'Email a una amiga. Per començar:', 'Hi Lola,', ['Dear Martin,', 'With regards,'], 'Si li ho diries a una amiga, és informal: Hi…, Hey…, Hello… «Dear» és formal.', 'Hi Lola,'],
+                [11, 'Email a una amiga. Per començar:', 'Hey Manuel,', ['Dear Martin,', 'With regards,'], 'Si li ho diries a una amiga, és informal: Hi…, Hey…, Hello… «Dear» és formal.', 'Hey Manuel,'],
+                [11, 'Email a una amiga. Per començar:', 'Hello Yasmin,', ['Dear Martin,', 'With regards,'], 'Hello també és informal: ho dius a una amiga. «Dear» és formal.', 'Hello Yasmin,'],
+                [11, 'Email a una amiga. Per començar:', 'Hi Victor,', ['Dear Martin,', 'With regards,'], 'Si li ho diries a una amiga, és informal: Hi… «Dear» és formal.', 'Hi Victor,'],
+                [11, 'Email a una amiga. Per acabar:', 'Write soon!', ['With regards,', 'Dear Martin,'], 'Write soon! és informal: ho dius a una amiga. «With regards» és formal.', 'Write soon!'],
+                [11, 'Email a una amiga. Per acabar:', 'Take care!', ['With regards,', 'Dear Martin,'], 'Take care! és informal. «With regards» és formal.', 'Take care!'],
+                [11, 'Email a una amiga. Per acabar:', 'See you soon!', ['With regards,', 'Dear Martin,'], 'See you soon! és informal. «With regards» és formal.', 'See you soon!']
             ];
             // Des del 14/11, el bloc 5 (l'email senzill) i una mica de vocabulari; fora les negatives i les formes llargues.
             // 16/11 (redacció el 17/11): l'email i el bloc 6; com s'escriuen les paraules, a Paraules (escrites de memòria)
@@ -3035,7 +3045,10 @@
             // només per triar (dites en veu alta), i escriure, només una paraula. Hi entren ell/ella (bloc 9) i les frases de
             // Frases per triar (bloc 10, del català a l'anglès), que abans escrivia senceres.
             const ANGLES_PARAULA_DES_DE = '2026-11-23';
-            const anglesPerDia = () => ANGLES_PER_DIA[hoy()] || (hoy() >= ANGLES_PARAULA_DES_DE ? [3, 3, 0, 0, 1, 0, 4, 2, 5, 3] : hoy() >= ANGLES_BASE_DES_DE ? [5, 5, 0, 0, 2, 0, 6, 3] : hoy() >= ANGLES_THERE_DES_DE ? [3, 4, 3, 0, 1, 0, 6] : hoy() >= ANGLES_UNIT1_DES_DE ? [3, 3, 4, 0, 2, 0] : hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10, 0] : [3, 3, 4, 2, 0, 0]);
+            // 23/11 tarda: l'examen del 27/11 demana un email informal → des del 24/11, 3 del bloc 11 (formal o informal),
+            // un menys del 7 i del 9.
+            const ANGLES_FORMAL_DES_DE = '2026-11-24';
+            const anglesPerDia = () => ANGLES_PER_DIA[hoy()] || (hoy() >= ANGLES_FORMAL_DES_DE ? [3, 3, 0, 0, 1, 0, 3, 2, 4, 3, 3] : hoy() >= ANGLES_PARAULA_DES_DE ? [3, 3, 0, 0, 1, 0, 4, 2, 5, 3] : hoy() >= ANGLES_BASE_DES_DE ? [5, 5, 0, 0, 2, 0, 6, 3] : hoy() >= ANGLES_THERE_DES_DE ? [3, 4, 3, 0, 1, 0, 6] : hoy() >= ANGLES_UNIT1_DES_DE ? [3, 3, 4, 0, 2, 0] : hoy() >= ANGLES_SENZILL_DES_DE ? [0, 0, 3, 0, 10, 0] : [3, 3, 4, 2, 0, 0]);
             const veuAngles = frase => `[en] ${frase}`;
             const fitxaAngles = ([bloc, preg, bona, altres, explica, frase]) => ({ bloc, preg, bona, altres, explica, veu: veuAngles(frase) });
             // 19/11 nit (papà): per parts, com al paper. Mentre treballa el diàleg 1 (jo i tu), al Dojo només I / you i there is / are;
@@ -3070,7 +3083,7 @@
             function itemsAngles() {
                 const perDia = anglesPerDia();
                 const preguntes = [...ANGLES_PREGUNTES, ...anglesTriaFrases()].filter(p => valJoTu(p[5]));
-                const noves = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].flatMap(b => shuffle(preguntes.filter(p => p[0] === b)).slice(0, perDia[b - 1] || 0)).map(fitxaAngles);
+                const noves = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].flatMap(b => shuffle(preguntes.filter(p => p[0] === b)).slice(0, perDia[b - 1] || 0)).map(fitxaAngles);
                 // Les fallades d'abans, només si són dels blocs d'avui (el 15/11 ja no tornen les negatives)
                 const blocsAvui = new Set(preguntes.filter(p => perDia[p[0] - 1] > 0).map(p => p[1]));
                 return itemsTria('angles', noves, perDia.reduce((a, b) => a + b, 0), f => blocsAvui.has(f.preg) && valJoTu(f.veu));
