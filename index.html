@@ -2821,7 +2821,8 @@
             // 24/11 (àudio d'una amiga): a l'examen entren múltiples, divisors i nombres primers i compostos (dossier 2.1-2.3, pàg. 1-13).
             // Des del 24/11, 3 múltiples + 3 divisors i 2 de «primer o compost» amb els nombres del dossier (pàg. 12: exemples i ex. 17-19).
             // Si és compost, l'explicació en dona la multiplicació (de la taula, si pot ser): és el que ja fa per trobar divisors.
-            const SA2_PRIMERS_DES_DE = '2026-11-24';
+            const SA2_PRIMERS_DES_DE = '2026-11-24', SA2_TRAMPA_DES_DE = '2026-11-25';
+            const SA2_TRAMPA = [[21, 3, 7], [25, 5, 5], [27, 3, 9]];
             const SA2_PRIMERS = [
                 [2], [3], [5], [7], [11], [13], [17], [19], [23], [29],
                 [4, 2, 2], [6, 2, 3], [8, 2, 4], [9, 3, 3], [10, 2, 5], [12, 3, 4], [14, 2, 7], [15, 3, 5], [20, 4, 5], [90, 9, 10], [125, 5, 25],
@@ -2877,7 +2878,10 @@
                 if (hoy() >= SA2_PRIMERS_DES_DE) {
                     // Un primer i un compost (de tant en tant, el 0 o l'1 en lloc del compost)
                     const primers = SA2_PRIMERS.filter(x => x[0] >= 2 && !x[1]), altres = SA2_PRIMERS.filter(x => x[0] < 2 || x[1]);
-                    out.push(sa2Primer(shuffle(primers)[0]), sa2Primer(shuffle(altres)[0]));
+                    // 24/11, examen de prova: va posar el 25 entre els 10 primers primers. Des del 25/11, la meitat de dies el compost és
+                    // un dels que semblen primers (senars: 21, 25, 27)
+                    const trampa = hoy() >= SA2_TRAMPA_DES_DE && Math.random() < 0.5;
+                    out.push(sa2Primer(shuffle(primers)[0]), sa2Primer(shuffle(trampa ? SA2_TRAMPA : altres)[0]));
                 }
                 return shuffle(out);
             }
@@ -4540,7 +4544,7 @@
                 // i les de triar de mates (SA2): vocabulari de cada fet de la taula, regles i primers
                 SA2_FETS.forEach(([a, b]) => t.add(`${a} × ${b} = ${a * b}. Què és cert?`));
                 SA2_REGLES.forEach(([frase]) => t.add(frase));
-                SA2_PRIMERS.forEach(x => t.add(sa2Primer(x).preg));
+                [...SA2_PRIMERS, ...SA2_TRAMPA].forEach(x => t.add(sa2Primer(x).preg));
                 for (const aS of [conSa2, m => m]) for (const aT of [conTonica, m => m]) for (const aB of [conBio, m => m])
                     for (const aA of [conAngles, m => m]) for (const aL of [m => m, conLab]) for (const aP of [m => m, conParaules])
                         for (const M of [ENTRENAMENT, CONTROL]) {

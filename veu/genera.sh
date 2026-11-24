@@ -65,7 +65,7 @@ LLETRA = r"(?<![\w'’·-])([bcçdfghjklmnpqrstvwxz]|ce|hac|ve|be|te|erra|essa|e
 # Las que Matxa dijo mal (comprobado con Whisper el 8/11/2026)
 JOANA_SEMPRE = ("Busca-ho al full d'apunts", 'porta hac: he, has', "l'iPad",
                 # 24/11: números al començament que la Matxa diu malament («setze» → «setsa», «per 10» → «per Déu»)
-                '16 és divisible per 10.', '6 és divisor de 16.', '4 × 8 = 32. Què és cert?')
+                '16 és divisible per 10.', '6 és divisor de 16.', '4 × 8 = 32. Què és cert?', 'El 27 és primer, compost o cap dels dos?')
 
 def amb_matxa(t):
     if not os.path.exists(os.path.expanduser('~/.local/share/matxa-tts/venv/bin/python')): return False

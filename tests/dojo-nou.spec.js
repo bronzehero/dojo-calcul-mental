@@ -807,6 +807,17 @@ test.describe('Des del 24/11: SA2 amb primers i compostos', () => {
         expect(it.slice(0, 4).map(x => x.preg)).toEqual(expect.arrayContaining(['Regla 1', 'Regla 2', 'Regla 3', 'Regla 4'].slice(0, 4)));
         expect(it.filter(x => x.bloc === 5)).toHaveLength(2);
     });
+    test('des del 25/11, els senars que semblen primers (21, 25, 27) surten com a compost, ben resolts', async ({ page }) => {
+        await preparar(page, '2026-11-25', { sa2: true });
+        const vistos = await page.evaluate(() => {
+            const s = new Set();
+            for (let i = 0; i < 60; i++) window.__itemsSa2().filter(x => x.bloc === 5 && x.bona === 'Compost').forEach(x => s.add(Number(x.preg.match(/\d+/)[0])));
+            return [...s];
+        });
+        expect(vistos.some(n => [21, 25, 27].includes(n))).toBe(true);
+        const textos = await page.evaluate(() => window.__textosVeu());
+        expect(textos).toContain('El 25 és primer, compost o cap dels dos?');
+    });
     test('el 23/11, encara 4 i 4 i sense primers', async ({ page }) => {
         await preparar(page, '2026-11-23', { sa2: true });
         const it = await page.evaluate(() => window.__itemsSa2());
