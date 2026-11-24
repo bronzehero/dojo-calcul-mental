@@ -2814,6 +2814,24 @@
             // i s'escriuen amb el teclat, sense opcions: «Un múltiple de 8: 8 × 7 = ?» i «Un divisor de 18: 18 = 3 × ?».
             // En encertar, la frase («56 és múltiple de 8»). El vocabulari i les regles, igual (no hi ha números que s'assemblin).
             const SA2_CONSTRUEIX_DES_DE = '2026-11-21';
+            // 24/11 (àudio d'una amiga): a l'examen entren múltiples, divisors i nombres primers i compostos (dossier 2.1-2.3, pàg. 1-13).
+            // Des del 24/11, 3 múltiples + 3 divisors i 2 de «primer o compost» amb els nombres del dossier (pàg. 12: exemples i ex. 17-19).
+            // Si és compost, l'explicació en dona la multiplicació (de la taula, si pot ser): és el que ja fa per trobar divisors.
+            const SA2_PRIMERS_DES_DE = '2026-11-24';
+            const SA2_PRIMERS = [
+                [2], [3], [5], [7], [11], [13], [17], [19], [23], [29],
+                [4, 2, 2], [6, 2, 3], [8, 2, 4], [9, 3, 3], [10, 2, 5], [12, 3, 4], [14, 2, 7], [15, 3, 5], [20, 4, 5], [90, 9, 10], [125, 5, 25],
+                [0], [1]
+            ];
+            const SA2_PRIMER_REGLA = "PRIMER: només té dos divisors, l'1 i ell mateix. COMPOST: en té més. EP!! El 0 i l'1 no són ni primers ni compostos.";
+            function sa2Primer([n, a, b]) {
+                const opcions = ['Primer', 'Compost', 'Ni primer ni compost'];
+                const bona = n < 2 ? opcions[2] : a ? opcions[1] : opcions[0];
+                const explica = n < 2 ? "EP!! El 0 i l'1 no són ni primers ni compostos."
+                    : a ? `${n} = ${a} × ${b}: té més divisors que l'1 i ell mateix (el ${a}${b !== a ? ` i el ${b}` : ''}). És compost.`
+                    : `${n} només és 1 × ${n}: només té dos divisors, l'1 i el ${n}. És primer.`;
+                return { bloc: 5, preg: `El ${n} és…`, bona, altres: opcions.filter(o => o !== bona), explica: `${explica} ${SA2_PRIMER_REGLA}` };
+            }
             const sa2Construeix = () => hoy() >= SA2_CONSTRUEIX_DES_DE;
             // L'explicació nova es diu en veu alta el primer dia (clau de veu pròpia), i després un cop per setmana com les altres
             const SA2_INFO_CONSTRUEIX = { nombre: 'Múltiples i divisors', icono: '🔢', clauVeu: 'sa2c', paso: () => 'Múltiples i divisors',
@@ -2824,8 +2842,9 @@
                 const out = [], titols = new Set(), usades = new Set();
                 let k = 0;
                 const seguent = () => fets[k++ % fets.length];
-                // 4 múltiples (un per taula) i 4 divisors (un per nombre), cada fet de les taules una sola vegada
-                for (let n = 0, intents = 0; n < 4 && intents < 40; intents++) {
+                // 4 múltiples (un per taula) i 4 divisors (un per nombre), cada fet de les taules una sola vegada (des del 24/11, 3 i 3)
+                const quants = hoy() >= SA2_PRIMERS_DES_DE ? 3 : 4;
+                for (let n = 0, intents = 0; n < quants && intents < 40; intents++) {
                     const [a, b] = seguent(), prod = a * b;
                     const t = [a, b].sort(() => Math.random() - 0.5).find(x => !titols.has(`Un múltiple de ${x}:`));
                     if (!t || usades.has(prod)) continue;
@@ -2836,7 +2855,7 @@
                         explica: `${t} × ${o} = ${prod}: el ${prod} surt a la taula del ${t}, és múltiple de ${t}.` });
                     n++;
                 }
-                for (let n = 0, intents = 0; n < 4 && intents < 40; intents++) {
+                for (let n = 0, intents = 0; n < quants && intents < 40; intents++) {
                     const [a, b] = seguent(), prod = a * b;
                     if (usades.has(prod)) continue;
                     const d = Math.random() < 0.5 ? a : b, o = prod / d;
@@ -2851,6 +2870,11 @@
                     altres: [`${a} és múltiple de ${prod}`, `${prod} és divisor de ${a}`], explica: SA2_VOCAB });
                 const [frase, bona, explica] = shuffle(SA2_REGLES)[0];
                 out.push({ bloc: 4, preg: frase, bona, altres: [bona === 'Cert' ? 'Fals' : 'Cert'], explica });
+                if (hoy() >= SA2_PRIMERS_DES_DE) {
+                    // Un primer i un compost (de tant en tant, el 0 o l'1 en lloc del compost)
+                    const primers = SA2_PRIMERS.filter(x => x[0] >= 2 && !x[1]), altres = SA2_PRIMERS.filter(x => x[0] < 2 || x[1]);
+                    out.push(sa2Primer(shuffle(primers)[0]), sa2Primer(shuffle(altres)[0]));
+                }
                 return shuffle(out);
             }
             function sa2Fitxes() {
@@ -2890,7 +2914,14 @@
                 return shuffle(out);
             }
             // Des del 21/11, les fallades d'abans de triar un número (blocs 1 i 2) ja no tornen: ara surten construïdes
-            const itemsSa2 = () => itemsTria('sa2', sa2Fitxes(), SA2_PER_DIA, f => !sa2Construeix() || f.num || f.bloc >= 3);
+            // Des del 24/11, els 2 primers no es poden quedar fora quan hi ha fallades d'altres dies: van primer a la llista de noves
+            // i després es barregen (les fallades, com sempre, al principi)
+            const itemsSa2 = () => {
+                const noves = sa2Fitxes().sort((x, y) => (y.bloc === 5) - (x.bloc === 5));
+                const r = itemsTria('sa2', noves, SA2_PER_DIA, f => !sa2Construeix() || f.num || f.bloc >= 3);
+                if (leerTria('sa2').fet === hoy()) return r;
+                return [...r.filter(f => !noves.includes(f)), ...shuffle(r.filter(f => noves.includes(f)))];
+            };
             const sa2Pendent = m => dojoNou(m) && hoy() >= SA2_DES_DE && !leerTria('sa2').pausa && itemsSa2().length > 0;
             const conSa2 = m => ({ ...m, bloques: [...m.bloques, { tipo: 'sa2' }] });
 
@@ -4403,6 +4434,7 @@
             window.__dificilActual = () => item && item.dificil ? { texto: item.texto, altra: item.altra, fase: item.fase, esperado: item.esperado } : null;
             window.__dictatActual = () => item && item.tipo === 'dictat' ? item.paraula : null;
             window.__itemsRomans = () => itemsRomans();
+            window.__itemsSa2 = () => itemsSa2();
             window.__itemsTema1 = () => itemsTema1();
             window.__accentActual = () => item && item.tipo === 'accent' ? { paraula: item.paraula, intent: item.intent, ambAccent: item.ambAccent } : null;
             window.__itemsAccent = () => itemsAccent();

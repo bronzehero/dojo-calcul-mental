@@ -781,3 +781,37 @@ test.describe('Des del 24/11: la pregunta de música, en veu', () => {
         await expect(page.locator('#btn-escoltar-tonica')).toBeHidden();
     });
 });
+
+// 24/11 (àudio d'una amiga): a l'examen de mates entren els primers i compostos. Al bloc SA2, 3 + 3 construïts i 2 de primers.
+test.describe('Des del 24/11: SA2 amb primers i compostos', () => {
+    test('surten 3 múltiples, 3 divisors i un primer i un compost (o el 0 / l\'1), amb la bona ben calculada', async ({ page }) => {
+        await preparar(page, '2026-11-24', { sa2: true });
+        const it = await page.evaluate(() => window.__itemsSa2());
+        expect(it.filter(x => x.bloc === 1)).toHaveLength(3);
+        expect(it.filter(x => x.bloc === 2)).toHaveLength(3);
+        const p = it.filter(x => x.bloc === 5);
+        expect(p).toHaveLength(2);
+        for (const x of p) {
+            const n = Number(x.preg.match(/\d+/)[0]);
+            const divisors = [...Array(n + 1).keys()].filter(d => d > 0 && n % d === 0).length;
+            const bona = n < 2 ? 'Ni primer ni compost' : divisors === 2 ? 'Primer' : 'Compost';
+            expect(x.bona).toBe(bona);
+            expect([x.bona, ...x.altres].sort()).toEqual(['Compost', 'Ni primer ni compost', 'Primer']);
+        }
+        expect(p.some(x => x.bona === 'Primer')).toBe(true);
+    });
+    test('amb fallades d\'altres dies, els primers hi continuen sent', async ({ page }) => {
+        const falla = [1, 2, 3, 4].map(i => ({ bloc: 4, preg: `Regla ${i}`, bona: 'Cert', altres: ['Fals'], explica: 'x' }));
+        await preparar(page, '2026-11-24', { sa2: true }, { sa2: { falla } });
+        const it = await page.evaluate(() => window.__itemsSa2());
+        expect(it.slice(0, 4).map(x => x.preg)).toEqual(expect.arrayContaining(['Regla 1', 'Regla 2', 'Regla 3', 'Regla 4'].slice(0, 4)));
+        expect(it.filter(x => x.bloc === 5)).toHaveLength(2);
+    });
+    test('el 23/11, encara 4 i 4 i sense primers', async ({ page }) => {
+        await preparar(page, '2026-11-23', { sa2: true });
+        const it = await page.evaluate(() => window.__itemsSa2());
+        expect(it.filter(x => x.bloc === 1)).toHaveLength(4);
+        expect(it.filter(x => x.bloc === 5)).toHaveLength(0);
+    });
+});
+
