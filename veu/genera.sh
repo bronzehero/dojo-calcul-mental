@@ -63,7 +63,9 @@ def para_decir(t):
 
 LLETRA = r"(?<![\w'’·-])([bcçdfghjklmnpqrstvwxz]|ce|hac|ve|be|te|erra|essa|esses|ema)(?![\w'’·-])"
 # Las que Matxa dijo mal (comprobado con Whisper el 8/11/2026)
-JOANA_SEMPRE = ("Busca-ho al full d'apunts", 'porta hac: he, has', "l'iPad")
+JOANA_SEMPRE = ("Busca-ho al full d'apunts", 'porta hac: he, has', "l'iPad",
+                # 24/11: números al començament que la Matxa diu malament («setze» → «setsa», «per 10» → «per Déu»)
+                '16 és divisible per 10.', '6 és divisor de 16.', '4 × 8 = 32. Què és cert?')
 
 def amb_matxa(t):
     if not os.path.exists(os.path.expanduser('~/.local/share/matxa-tts/venv/bin/python')): return False
@@ -74,7 +76,7 @@ def amb_matxa(t):
     return True
 
 textos = json.load(open('textos.json'))
-claves, per_matxa = [], []
+claves, per_matxa, sense_edge = [], [], []
 for t in textos:
     k = clave(t)
     claves.append(k)
@@ -90,7 +92,8 @@ for t in textos:
             time.sleep(30 * (intento + 1))
         else:
             if os.path.exists(f'{k}.tmp'): os.remove(f'{k}.tmp')
-            raise SystemExit('edge-tts no responde: probar más tarde')
+            # Que la Matxa (en local) faci igualment els seus; al final es diu quins falten
+            sense_edge.append(t)
         time.sleep(2)
 if per_matxa:
     json.dump(per_matxa, open('per-matxa.json', 'w'), ensure_ascii=False)
@@ -102,5 +105,8 @@ for f in os.listdir('.'):
         os.remove(f); print('esborrat:', f)
 json.dump(sorted(k for k in claves if os.path.exists(f'{k}.mp3')), open('index.json', 'w'))
 print(len(claves), 'textos')
+if sense_edge:
+    print('Falten (edge-tts no responde, probar més tard):', *[t[:60] for t in sense_edge], sep='\n  ')
+    raise SystemExit(1)
 PY
 rm -f textos.json

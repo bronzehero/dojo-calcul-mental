@@ -2830,7 +2830,7 @@
                 const explica = n < 2 ? "EP!! El 0 i l'1 no són ni primers ni compostos."
                     : a ? `${n} = ${a} × ${b}: té més divisors que l'1 i ell mateix (el ${a}${b !== a ? ` i el ${b}` : ''}). És compost.`
                     : `${n} només és 1 × ${n}: només té dos divisors, l'1 i el ${n}. És primer.`;
-                return { bloc: 5, preg: `El ${n} és…`, bona, altres: opcions.filter(o => o !== bona), explica: `${explica} ${SA2_PRIMER_REGLA}` };
+                return { bloc: 5, preg: `${[1, 11].includes(n) ? "L'" : 'El '}${n} és primer, compost o cap dels dos?`, bona, altres: opcions.filter(o => o !== bona), explica: `${explica} ${SA2_PRIMER_REGLA}` };
             }
             const sa2Construeix = () => hoy() >= SA2_CONSTRUEIX_DES_DE;
             // L'explicació nova es diu en veu alta el primer dia (clau de veu pròpia), i després un cop per setmana com les altres
@@ -3379,7 +3379,7 @@
             // Papà (24/11): als tests de triar no arriba a llegir la pregunta i endevina; oral, amb ell, les sap.
             // Des del 24/11 la pregunta sona sola, les respostes es poden tocar quan acaba i «Torna-la a escoltar» la repeteix.
             // Cada bloc nou de triar en català s'afegeix aquí (i les preguntes, a __textosVeu).
-            const LLEGIR_PREG_DES_DE = '2026-11-24', LLEGIR_PREG_TIPUS = ['musica'];
+            const LLEGIR_PREG_DES_DE = '2026-11-24', LLEGIR_PREG_TIPUS = ['musica', 'sa2'];
             const llegeixPregunta = tipo => LLEGIR_PREG_TIPUS.includes(tipo) && hoy() >= LLEGIR_PREG_DES_DE;
 
             // FRASES EN ANGLÈS (papà, 17/11): frases curtíssimes (3-5 paraules), només del que ha estudiat.
@@ -4531,6 +4531,10 @@
                 ANGLES_PREGUNTES.forEach(x => t.add(fitxaAngles(x).veu));
                 // Des del 24/11, la pregunta de música en veu
                 [...MUSICA_PREGUNTES, ...MUSICA_PAPER, ...MU_ANYS].forEach(x => t.add(x[1]));
+                // i les de triar de mates (SA2): vocabulari de cada fet de la taula, regles i primers
+                SA2_FETS.forEach(([a, b]) => t.add(`${a} × ${b} = ${a * b}. Què és cert?`));
+                SA2_REGLES.forEach(([frase]) => t.add(frase));
+                SA2_PRIMERS.forEach(x => t.add(sa2Primer(x).preg));
                 for (const aS of [conSa2, m => m]) for (const aT of [conTonica, m => m]) for (const aB of [conBio, m => m])
                     for (const aA of [conAngles, m => m]) for (const aL of [m => m, conLab]) for (const aP of [m => m, conParaules])
                         for (const M of [ENTRENAMENT, CONTROL]) {
