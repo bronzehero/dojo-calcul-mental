@@ -1688,6 +1688,7 @@
                 socials: { nombre: 'Socials per a l\'examen', icono: '🌋', instr: "Socials, per a l'examen de dimarts: el relleu. Llegeixes la pregunta i tries la bona entre tres. Si et va bé, digues la resposta en veu alta abans de tocar-la. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'On es nota més un terratrèmol? ➜ A l\'epicentre', paso: () => 'Socials per a l\'examen' },
                 sa2:     { nombre: 'Múltiples i divisors', icono: '🔢', instr: "Mates del tema nou: múltiples i divisors. Cada pregunta es contesta amb una multiplicació de les taules. Llegeixes la pregunta i tries la bona. Si et va bé, digues la multiplicació en veu alta abans de tocar. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'Quin és divisor de 56? ➜ 7, perquè 7 × 8 = 56', paso: () => 'Múltiples i divisors' },
                 musica:  { nombre: 'Música per a l\'examen', icono: '🎬', instr: "Música i cinema, per a l'examen del divendres 27: els inicis del cinema, les primeres pel·lícules, el vocabulari, les funcions de la música, el Foley, Menken i Newman. Ara la pregunta te la llegeixo jo: escolta-la sencera. Si vols, torna-la a escoltar amb el botó. Quan acabi, llegeix les respostes i tria. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'Qui va fer la primera sessió de cinema? ➜ Els germans Lumière', paso: () => 'Música per a l\'examen' },
+                catdif:  { nombre: 'Català: diftongs, hiat i dièresi', icono: '🗣️', instr: "Català, per a l'examen del Raül: diftongs, hiats i dièresi. La pregunta te la llegeixo jo: escolta-la sencera i, si vols, torna-la a escoltar amb el botó. Diges la paraula fluixet, separant les síl·labes, i tria. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'rei-na ➜ diftong · po-e-ta ➜ hiat · ve-ï-na ➜ dièresi', paso: () => 'Català: diftongs, hiat i dièresi' },
                 castu2:  { nombre: 'Castellà: la unitat 2', icono: '💬', instr: "Castellà, per si hi ha control de la unitat 2: la conversa, l'estil directe i l'indirecte. Llegeixes la pregunta i tries la bona. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: '«—¿Tienes mi libro? —preguntó Leo.» ➜ Leo preguntó si tenía su libro.', paso: () => 'Castellà: la unitat 2' },
                 angles:  { nombre: 'English', icono: '🇬🇧', instr: "Ara, anglès: el que necessites per escriure sobre tu. Llegeix la frase sencera fluixet, que t'escoltis: si sona rara, no és la bona. I tria. Quan contestes, la sentiràs sencera en anglès: escolta-la bé. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'I ___ 12 years old. ➜ am', paso: () => 'English' },
                 frases:  { nombre: 'Frases en anglès', icono: '✍️', instr: "Frases curtes en anglès, de les que ja has estudiat. Si veus 🎧, l'escoltes i l'escrius en anglès. Si veus la frase en català, l'escrius en anglès. Si una paraula no surt, et surt marcada i la tornes a escriure.", voz: "Frases curtes en anglès, de les que ja has estudiat. Si veus els auriculars, l'escoltes i l'escrius en anglès. Si veus la frase en català, l'escrius en anglès. Si una paraula no surt, et surt marcada i la tornes a escriure.", ejemplo: '🎧 «I like music.» ➜ i like music', paso: () => 'Frases en anglès' },
@@ -2758,7 +2759,7 @@
             // ==========================================
             const DOJO_NOU_DES_DE = '2026-11-13';
             const dojoNou = m => [ENTRENAMENT.id, CONTROL.id].includes(m.id) && hoy() >= DOJO_NOU_DES_DE;
-            const BLOCS_EXAMEN = ['tonica', 'sa2', 'angles', 'musica', 'castu2', 'bio', 'socials', 'castella', 'catala', 'tecno', 'tema1'];
+            const BLOCS_EXAMEN = ['tonica', 'sa2', 'angles', 'musica', 'castu2', 'catdif', 'bio', 'socials', 'castella', 'catala', 'tecno', 'tema1'];
 
             // Preguntes de triar amb memòria pròpia (com la bio): les que falla tornen al final del bloc i l'endemà surten primer.
             // Es guarda la pregunta sencera, perquè les de mates es fan cada dia de nou.
@@ -3383,11 +3384,57 @@
                 shuffle(CASTU2_PREGUNTES.filter(p => p[0] === b)).slice(0, CASTU2_PER_DIA[b - 1])).map(fitxaTria), 6);
             const castu2Pendent = m => dojoNou(m) && hoy() >= CASTU2_DES_DE && hoy() <= CASTU2_FINS && !leerTria('castu2').pausa && itemsCastu2().length > 0;
             const conCastu2 = m => ({ ...m, bloques: [...m.bloques, { tipo: 'castu2' }] });
-            const TRIA_TIPUS = ['sa2', 'angles', 'musica', 'castu2'];
+            // CATALÀ: diftongs, hiat i dièresi (papà 24/11: «en el Dojo, todo lo del examen»). Examen el dc 2/12, amb apunts.
+            // Com el model adaptat del Raül (correu del 23/11): diftong o hiat (sense creixent / decreixent), separar
+            // síl·labes, quina porta dièresi i la teoria (completar i cert o fals). Només les seves paraules.
+            const CATDIF_DES_DE = '2026-11-25', CATDIF_FINS = '2026-12-01';
+            const CD_DIFTONG = "DIFTONG: dues vocals juntes que es pronuncien a la MATEIXA síl·laba (una és la i o la u): rei-na, tau-la, ai-gua, peu.";
+            const CD_HIAT = "HIAT: dues vocals juntes que van a síl·labes DIFERENTS: po-e-ta, te-a-tre, pa-ís, ra-ïm.";
+            const CD_DIERESI = "DIÈRESI (¨), damunt de la i o la u: quan no fa diftong amb la vocal d'abans (ra-ïm, ve-ï-na) o quan la u sona (freqüència, lingüística). NO en porten: egoista (-ista) ni país (ja porta accent).";
+            // [paraula, síl·labes, diftong?, separació equivocada (per a «com se separa»)]
+            const CD_PARAULES = [
+                ['peix', 'peix', true], ['peu', 'peu', true], ['nou', 'nou', true],
+                ['reina', 'rei-na', true, 're-i-na'], ['cuina', 'cui-na', true, 'cu-i-na'], ['aigua', 'ai-gua', true, 'a-i-gua'],
+                ['taula', 'tau-la', true, 'ta-u-la'], ['boira', 'boi-ra', true, 'bo-i-ra'], ['noia', 'no-ia', true, 'no-i-a'],
+                ['aire', 'ai-re', true, 'a-i-re'], ['causa', 'cau-sa', true, 'ca-u-sa'],
+                ['raïm', 'ra-ïm', false, 'raïm'], ['país', 'pa-ís', false, 'país'], ['veïna', 've-ï-na', false, 'veï-na'],
+                ['poeta', 'po-e-ta', false, 'poe-ta'], ['suís', 'su-ís', false, 'suís'], ['teatre', 'te-a-tre', false, 'tea-tre'],
+                ['heroïna', 'he-ro-ï-na', false, 'he-roï-na'], ['Maria', 'Ma-ri-a', false, 'Ma-ria'], ['poesia', 'po-e-si-a', false, 'poe-si-a'],
+                ['diari', 'di-a-ri', false, 'dia-ri']
+            ];
+            const cdExplica = (sil, dif) => `${sil}: ${dif ? 'DIFTONG' : 'HIAT'}. ${dif ? CD_DIFTONG : CD_HIAT}`;
+            // Quina porta dièresi (els tres, paraules de debò ben escrites; la bona va a un lloc diferent cada vegada)
+            const CD_AMB = ['veïna', 'raïm', 'Suïssa', 'Lluïsa', 'cafeïna', 'heroïna', 'proteïna', 'agraïment', 'conduïa', 'freqüència', 'lingüística', 'aigües', 'ruïna'];
+            const CD_SENSE = ['casa', 'pilota', 'taula', 'reina', 'egoista', 'país', 'cuina', 'poeta', 'teatre', 'aigua'];
+            const CATDIF_PREGUNTES = [
+                ...CD_PARAULES.map(([w, sil, dif]) => [1, `«${w}»: diftong o hiat?`, dif ? 'Diftong' : 'Hiat', [dif ? 'Hiat' : 'Diftong'], cdExplica(sil, dif)]),
+                ...CD_AMB.map((w, i) => {
+                    const d = [CD_SENSE[i % CD_SENSE.length], CD_SENSE[(i + 3) % CD_SENSE.length]], tres = [...d];
+                    tres.splice(i % 3, 0, w);
+                    return [2, `Quina porta dièresi: ${tres[0]}, ${tres[1]} o ${tres[2]}?`, w, d, CD_DIERESI];
+                }),
+                [3, 'Un diftong és quan dues vocals es pronuncien dins la mateixa…', 'síl·laba', ['paraula', 'lletra'], CD_DIFTONG],
+                [3, 'Un hiat és quan dues vocals es pronuncien en síl·labes…', 'diferents', ['iguals', 'juntes'], CD_HIAT],
+                [3, 'La dièresi són dos puntets que posem damunt de la lletra…', 'i o u', ['a o e', 'e o o'], CD_DIERESI],
+                [3, 'A la paraula «peu», les dues vocals formen un…', 'diftong', ['hiat'], cdExplica('peu', true)],
+                [3, 'A la paraula «país», les vocals formen un…', 'hiat', ['diftong'], cdExplica('pa-ís', false)],
+                [3, 'La dièresi de «veïna» va damunt de la lletra…', 'i', ['e', 'a'], cdExplica('ve-ï-na', false)],
+                [3, 'Les vocals d\'un hiat pertanyen a síl·labes…', 'diferents', ['iguals'], CD_HIAT],
+                [3, 'Cert o fals? La paraula «taula» conté un hiat.', 'Fals', ['Cert'], cdExplica('tau-la', true)],
+                [3, 'Cert o fals? La dièresi pot anar damunt de la i i de la u.', 'Cert', ['Fals'], CD_DIERESI],
+                [3, 'Cert o fals? La paraula «raïm» porta dièresi.', 'Cert', ['Fals'], cdExplica('ra-ïm', false)],
+                ...CD_PARAULES.filter(x => x[3]).map(([w, sil, dif, mal]) => [4, `Com se separa «${w}»?`, sil, [mal], cdExplica(sil, dif)])
+            ];
+            const CATDIF_PER_DIA = [2, 2, 1, 1];
+            const itemsCatdif = () => itemsTria('catdif', [1, 2, 3, 4].flatMap(b =>
+                shuffle(CATDIF_PREGUNTES.filter(p => p[0] === b)).slice(0, CATDIF_PER_DIA[b - 1])).map(fitxaTria), 6);
+            const catdifPendent = m => dojoNou(m) && hoy() >= CATDIF_DES_DE && hoy() <= CATDIF_FINS && !leerTria('catdif').pausa && itemsCatdif().length > 0;
+            const conCatdif = m => ({ ...m, bloques: [...m.bloques, { tipo: 'catdif' }] });
+            const TRIA_TIPUS = ['sa2', 'angles', 'musica', 'castu2', 'catdif'];
             // Papà (24/11): als tests de triar no arriba a llegir la pregunta i endevina; oral, amb ell, les sap.
             // Des del 24/11 la pregunta sona sola, les respostes es poden tocar quan acaba i «Torna-la a escoltar» la repeteix.
             // Cada bloc nou de triar en català s'afegeix aquí (i les preguntes, a __textosVeu).
-            const LLEGIR_PREG_DES_DE = '2026-11-24', LLEGIR_PREG_TIPUS = ['musica', 'sa2'];
+            const LLEGIR_PREG_DES_DE = '2026-11-24', LLEGIR_PREG_TIPUS = ['musica', 'sa2', 'catdif'];
             const llegeixPregunta = tipo => LLEGIR_PREG_TIPUS.includes(tipo) && hoy() >= LLEGIR_PREG_DES_DE;
 
             // FRASES EN ANGLÈS (papà, 17/11): frases curtíssimes (3-5 paraules), només del que ha estudiat.
@@ -4465,7 +4512,8 @@
             window.__itemsMusica = () => itemsMusica().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona, altres: x.altres, any: x.any, explica: x.explica }));
             window.__anotarTria = (clau, it, ok) => anotarTria(clau, it, ok);
             window.__itemsCastu2 = () => itemsCastu2().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona }));
-            window.__preguntesTria = () => ({ musica: [...MUSICA_PREGUNTES, ...MUSICA_PAPER], castu2: CASTU2_PREGUNTES, angles: ANGLES_PREGUNTES });
+            window.__itemsCatdif = () => itemsCatdif().map(x => ({ bloc: x.bloc, preg: x.preg, bona: x.bona, altres: x.altres }));
+            window.__preguntesTria = () => ({ musica: [...MUSICA_PREGUNTES, ...MUSICA_PAPER], castu2: CASTU2_PREGUNTES, catdif: CATDIF_PREGUNTES, angles: ANGLES_PREGUNTES });
             window.__anglesPreguntes = () => ANGLES_PREGUNTES;
             window.__anglesCopies = () => ANGLES_PREGUNTES.map(p => fraseCopiaAngles({ veu: veuAngles(p[5]) }));
             window.__itemsSocials = () => itemsSocials().map(x => ({ bloc: x.bloc, preg: x.preg, ...(x.previa ? { previa: true } : {}) }));
@@ -4475,7 +4523,7 @@
             window.__parensActual = () => item && item.tipo === 'parens' ? { n: item.idx, modo: item.modo, esperado: item.esperado, format: item.format || null, opcions: item.opcions || null } : null;
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
-            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'tonica'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null, veuPreg: item.veuPreg || null } : null;
+            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'catdif', 'tonica'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null, veuPreg: item.veuPreg || null } : null;
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 ROMANS_ESCALA.forEach(e => t.add(e.veu));
@@ -4545,6 +4593,7 @@
                 SA2_FETS.forEach(([a, b]) => t.add(`${a} × ${b} = ${a * b}. Què és cert?`));
                 SA2_REGLES.forEach(([frase]) => t.add(frase));
                 [...SA2_PRIMERS, ...SA2_TRAMPA].forEach(x => t.add(sa2Primer(x).preg));
+                CATDIF_PREGUNTES.forEach(x => t.add(x[1]));
                 for (const aS of [conSa2, m => m]) for (const aT of [conTonica, m => m]) for (const aB of [conBio, m => m])
                     for (const aA of [conAngles, m => m]) for (const aL of [m => m, conLab]) for (const aP of [m => m, conParaules])
                         for (const M of [ENTRENAMENT, CONTROL]) {
@@ -4806,6 +4855,7 @@
                 if (bioPendent(m)) t = conBio(t);
                 if (accentPendent(m)) t = conAccent(t);
                 if (anglesPendent(m)) t = conAngles(t);
+                if (catdifPendent(m)) t = conCatdif(t);
                 if (musicaPendent(m)) t = conMusica(t);
                 // Des del 13/11, el laboratori i les paraules només els dies amb poca feina (menys de 3 blocs d'examen)
                 const pocaFeina = !dojoNou(m) || t.bloques.filter(b => BLOCS_EXAMEN.includes(b.tipo)).length < 3;
@@ -5093,6 +5143,8 @@
                     sesion.fijos = itemsMusica();
                 } else if (b.tipo === 'castu2') {
                     sesion.fijos = itemsCastu2();
+                } else if (b.tipo === 'catdif') {
+                    sesion.fijos = itemsCatdif();
                 } else if (b.tipo === 'frases') {
                     sesion.fijos = itemsFrases();
                 } else if (b.tipo === 'tonica') {
@@ -5569,7 +5621,7 @@
                 teclas = [];
                 oralRespuesta = null;
 
-                const ambPreg = ['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'tonica', 'parens'].includes(item.tipo);
+                const ambPreg = ['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'catdif', 'tonica', 'parens'].includes(item.tipo);
                 const ambOpcions = ambPreg && !!item.opcions;
                 const numerico = ['teclear', 'multi', 'suma', 'resta', 'pas10'].includes(item.tipo) || (['tema1', 'sa2'].includes(item.tipo) && !ambOpcions) ||
                     (item.tipo === 'parens' && !!item.maxXifres);
@@ -5592,7 +5644,7 @@
                     hablar(PAS10_DITS);
                 }
                 opCardEl.classList.toggle('op-tema1-clau', item.modo === 'concepte');
-                opCardEl.classList.toggle('op-cast-text', ['castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'tonica'].includes(item.tipo) && !item.html);
+                opCardEl.classList.toggle('op-cast-text', ['castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'catdif', 'tonica'].includes(item.tipo) && !item.html);
                 opCardEl.classList.toggle('op-cast-dibuix', ['castella', 'tecno'].includes(item.tipo) && !!item.html);
                 document.getElementById('tema1-panel').hidden = !ambOpcions;
                 document.getElementById('tema1-opcions').classList.toggle('sil', item.tipo === 'tonica');
@@ -5638,7 +5690,7 @@
                 keypad.style.display = numerico ? 'grid' : 'none';
                 vfBotones.hidden = item.tipo !== 'vf';
                 oralPanel.hidden = item.tipo !== 'oral';
-                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'tonica', 'parens', 'frases'].includes(item.tipo);
+                document.getElementById('btn-no-ho-se').hidden = !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'catdif', 'tonica', 'parens', 'frases'].includes(item.tipo);
                 if (item.tipo === 'paraules') pintarParaula();
                 if (item.tipo === 'lab') pintarLab();
                 document.getElementById('btn-pista').hidden = item.ayuda !== 'pista';
@@ -5892,7 +5944,7 @@
                 const el = document.getElementById('correction-pista');
                 let txt = '';
                 if (item.tipo === 'pas10' && item.clase === 'nou') txt = trucPas10(item);
-                if (['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'tonica'].includes(item.tipo)) txt = item.explica;
+                if (['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'catdif', 'tonica'].includes(item.tipo)) txt = item.explica;
                 if (item.objetivo) { txt = `Truc: ${fetSetmana().pista}`; hablar(fetSetmana().diccio); }
                 if (item.dificil) { txt = `Truc: ${dificilDe(item).pista}`; hablar(dificilDe(item).diccio); }
                 if (item.contraste) {
@@ -5922,7 +5974,7 @@
             // Tema 1 y castellano, elegir: si no es la buena, la solución explicada (como en las demás, se para en la primera que falla)
             function responderTema1(opcio) {
                 if (item && item.tipo === 'parens') return responderParens(opcio);
-                if (isEvaluating || !item || !['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'tonica'].includes(item.tipo) || !item.opcions) return;
+                if (isEvaluating || !item || !['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'catdif', 'tonica'].includes(item.tipo) || !item.opcions) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 const ok = opcio === item.esperado;
@@ -6348,7 +6400,7 @@
                 if (item && item.tipo === 'frases') return evaluarFrase(null);
                 if (item && item.tipo === 'lab') return evaluarLab(null);
                 if (item && item.tipo === 'parens') return responderParens(null);
-                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'tonica'].includes(item.tipo)) return;
+                if (isEvaluating || !item || !['multi', 'suma', 'resta', 'vf', 'grafia', 'pas10', 'tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'catdif', 'tonica'].includes(item.tipo)) return;
                 isEvaluating = true;
                 const ms = Math.round(performance.now() - tInicio);
                 if (item.tipo === 'catala' && item.intent === 1) return catalaAlFull(null, ms);
@@ -6362,7 +6414,7 @@
                     hablar(CATALA_VEU_PAPA);
                     return;
                 }
-                if (['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'tonica'].includes(item.tipo)) {
+                if (['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'catdif', 'tonica'].includes(item.tipo)) {
                     registrar(item, null, false, ms, { no_lo_se: true, modo: item.modo, ...(item.nivell !== undefined ? { nivell: item.nivell, pas: item.pas } : {}) });
                     if (item.tipo === 'tema1' && item.modo === 'roma') anotarRoma(item.fix, false);
                     if (item.tipo === 'socials') { anotarSocials(item, false); tornaSocials(item); }

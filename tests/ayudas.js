@@ -34,7 +34,7 @@ async function simularSupabase(page, opciones = {}) {
         });
     }
     // Y la música (examen 27/11) y el castellano de la U2 (desde el 18/11)
-    for (const clau of ['musica', 'castu2']) {
+    for (const clau of ['musica', 'castu2', 'catdif']) {
         if (!opciones[clau]) {
             await page.addInitScript(c => {
                 if (!localStorage.getItem('dojo_' + c)) localStorage.setItem('dojo_' + c, JSON.stringify({ pausa: true }));

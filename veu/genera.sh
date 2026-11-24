@@ -54,7 +54,8 @@ def para_decir(t):
     # Noms i paraules angleses de música i cinema (24/11, comprovat amb Whisper): escrits com sonen
     for en, ca in (('Alan Menken', 'Àlan Ménquen'), ('Randy Newman', 'Rendi Niúman'), ('Menken', 'Ménquen'), ('Newman', 'Niúman'),
                    ('Blockbuster', 'Blocbàster'), ('Teaser', 'Tíser'), ('Remake', 'Riméic'), ('Foley', 'Fouli'),
-                   ('Aladdin', 'Aladín'), ('Monstres SA', 'Monstres, essa a')):
+                   ('Aladdin', 'Aladín'), ('Monstres SA', 'Monstres, essa a'),
+                   ('raïm', 'raím'), ('conduïa', 'conduía')):
         t = t.replace(en, ca)
     # Paréntesis como pausas: «(8 + 1):» lo leía como un emoticono («cara trista»)
     t = re.sub(r'\s*[()]\s*', ', ', t)
@@ -70,6 +71,8 @@ JOANA_SEMPRE = ("Busca-ho al full d'apunts", 'porta hac: he, has', "l'iPad",
 def amb_matxa(t):
     if not os.path.exists(os.path.expanduser('~/.local/share/matxa-tts/venv/bin/python')): return False
     if t.startswith('[es] ') or t.startswith('[en] ') or len(t.split()) < 4 or any(x in t for x in JOANA_SEMPRE): return False
+    # Català (diftong, hiat i dièresi): la paraula ha de sonar exacta (ra-ïm, po-e-ta); la Matxa no és prou segura
+    if re.search(r"diftong o hiat\?|Com se separa «|Quina porta dièresi|formen un…|damunt de la lletra|Cert o fals\?", t): return False
     if re.match(r"^[\wà-ü·'-]+\. ", t): return False  # dictado: «cervell. El cervell treballa molt. cervell.»
     if re.search(r"\b(amb|de|la|el|una|dues|sempre|primer|després|davant de)\s+[aeiouàèéíòóú]\b", t): return False
     if re.search(r"(amb|la|una|dues|sempre|primer|després) " + LLETRA, t): return False

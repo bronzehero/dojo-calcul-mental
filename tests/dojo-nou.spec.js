@@ -826,3 +826,54 @@ test.describe('Des del 24/11: SA2 amb primers i compostos', () => {
     });
 });
 
+
+// 24/11 (papà): «en el Dojo, todo lo del examen». Català (examen dc 2/12): diftongs, hiat i dièresi, de la teoria del Raül.
+test.describe('Des del 25/11: català, diftongs, hiat i dièresi', () => {
+    const AMB = { ...TOTS, musica: true, catdif: true };
+    test('el 25/11 surt després de l\'anglès i abans de la música; el 24/11 i el 2/12, no', async ({ page }) => {
+        for (const [dia, hi] of [['2026-11-24', false], ['2026-11-25', true], ['2026-12-01', true], ['2026-12-02', false]]) {
+            await page.evaluate(() => { localStorage.clear(); sessionStorage.clear(); }).catch(() => {});
+            await preparar(page, dia, AMB);
+            await expect.poll(async () => (await pasos(page)).length).toBeGreaterThan(0);
+            const p = (await pasos(page)).join(' | ');
+            expect(p.includes('Català: diftongs, hiat i dièresi'), dia).toBe(hi);
+            if (dia === '2026-11-25') expect(p.indexOf('English')).toBeLessThan(p.indexOf('Català: diftongs'));
+            if (dia === '2026-11-25') expect(p.indexOf('Català: diftongs')).toBeLessThan(p.indexOf('Música per a l\'examen'));
+        }
+    });
+    test('6 al dia (2 diftong o hiat, 2 de dièresi, 1 de teoria, 1 de síl·labes), opcions diferents, i totes amb veu', async ({ page }) => {
+        await preparar(page, '2026-11-25', AMB);
+        const it = await page.evaluate(() => window.__itemsCatdif());
+        expect(it.map(x => x.bloc).sort()).toEqual([1, 1, 2, 2, 3, 4]);
+        const totes = (await page.evaluate(() => window.__preguntesTria())).catdif;
+        expect(totes.length).toBeGreaterThan(40);
+        expect(new Set(totes.map(p => p[1])).size).toBe(totes.length);
+        const textos = await page.evaluate(() => window.__textosVeu());
+        for (const p of totes) {
+            expect(new Set([p[2], ...p[3]]).size, p[1]).toBe(1 + p[3].length);
+            expect(textos, p[1]).toContain(p[1]);
+        }
+        // Com el model del Raül: diftong o hiat, sense creixent / decreixent
+        const t = w => totes.find(p => p[1] === `«${w}»: diftong o hiat?`)[2];
+        expect([t('peu'), t('aigua'), t('noia'), t('poeta'), t('raïm'), t('diari')]).toEqual(['Diftong', 'Diftong', 'Diftong', 'Hiat', 'Hiat', 'Hiat']);
+        expect(totes.some(p => /creixent/.test(p[1] + p[2] + p[3].join()))).toBe(false);
+        // A «quina porta dièresi», la bona porta ï o ü i les altres no; totes surten a la pregunta
+        for (const p of totes.filter(p => p[0] === 2)) {
+            expect(p[2]).toMatch(/[ïü]/);
+            p[3].forEach(x => expect(x).not.toMatch(/[ïü]/));
+            [p[2], ...p[3]].forEach(x => expect(p[1]).toContain(x));
+        }
+        expect(totes.find(p => p[1] === 'Com se separa «poeta»?')[2]).toBe('po-e-ta');
+    });
+    test('la pregunta sona i les respostes s\'obren quan acaba', async ({ page }) => {
+        await preparar(page, '2026-11-25', { catdif: true });
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toContainText('Català');
+        await page.click('#btn-intro-vamos');
+        await expect.poll(() => page.evaluate(() => window.__tema1Actual() && window.__tema1Actual().veuPreg)).toBeTruthy();
+        const a = await page.evaluate(() => window.__tema1Actual());
+        expect(a.veuPreg).toBe(a.texto);
+        await expect(page.locator('#btn-escoltar-tonica')).toBeVisible();
+        await expect(page.locator('#tema1-opcions .tema1-btn').first()).toBeEnabled({ timeout: 12000 });
+    });
+});
