@@ -753,3 +753,31 @@ test.describe('Des del 23/11: anglès sense escriure frases senceres', () => {
         expect(await page.evaluate(() => window.__frasesIguals('I have got brown hair.', "I've got brown hair."))).toBe(true);
     });
 });
+
+// 24/11 (papà): als tests de triar no llegia la pregunta i endevinava. Ara la pregunta sona sola i les respostes s'obren quan acaba.
+test.describe('Des del 24/11: la pregunta de música, en veu', () => {
+    const començar = async page => {
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toContainText('Música');
+        await page.click('#btn-intro-vamos');
+        await expect(page.locator('#tema1-opcions .tema1-btn').first()).toBeVisible();
+    };
+    test('les respostes esperen la pregunta i «Torna-la a escoltar» hi és', async ({ page }) => {
+        await preparar(page, '2026-11-24', { musica: true });
+        await començar(page);
+        const x = await actual(page);
+        expect(x.veuPreg).toBe(x.texto);
+        expect(await page.evaluate(() => window.__textosVeu())).toContain(x.texto);
+        await expect(page.locator('#tema1-opcions .tema1-btn').first()).toBeDisabled();
+        await expect(page.locator('#btn-escoltar-tonica')).toBeVisible();
+        await expect(page.locator('#tema1-opcions .tema1-btn').first()).toBeEnabled({ timeout: 12000 });
+        await page.click(`#tema1-opcions button[data-opcio="${x.esperado}"]`);
+        await expect(page.locator('#btn-escoltar-tonica')).toBeHidden();
+    });
+    test('el 23/11, com abans: es pot triar de seguida i sense botó', async ({ page }) => {
+        await preparar(page, '2026-11-23', { musica: true });
+        await començar(page);
+        await expect(page.locator('#tema1-opcions .tema1-btn').first()).toBeEnabled();
+        await expect(page.locator('#btn-escoltar-tonica')).toBeHidden();
+    });
+});

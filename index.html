@@ -1096,6 +1096,7 @@
         .binari .mes { align-self: flex-end; color: #7c3aed; font-weight: 700; font-size: 0.7em; padding-bottom: 0.15em; }
         .parell small { font-size: 0.6em; color: #7c3aed; font-weight: 700; margin-bottom: 0.2em; white-space: nowrap; }
         .tema1-btn:active { background: #fce7f3; }
+        .tema1-btn:disabled { opacity: 0.5; cursor: default; }
         /* Sèries (setmana de l'examen): les tres primeres figures, amb les boles i quantes en té cada una */
         .serie { display: inline-flex; gap: 0.9em; align-items: flex-end; justify-content: center; flex-wrap: wrap; }
         .serie .fig { display: inline-flex; flex-direction: column; align-items: center; }
@@ -1682,7 +1683,7 @@
                 bio:     { nombre: 'Bio per a l\'examen', icono: '🔬', instr: "Biologia, per a l'examen de dimarts: com treballen els científics. Llegeixes la pregunta i tries la bona entre tres. Si et va bé, digues la resposta en veu alta abans de tocar-la. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'Què és la variable dependent? ➜ El que observem o mesurem', paso: () => 'Bio per a l\'examen' },
                 socials: { nombre: 'Socials per a l\'examen', icono: '🌋', instr: "Socials, per a l'examen de dimarts: el relleu. Llegeixes la pregunta i tries la bona entre tres. Si et va bé, digues la resposta en veu alta abans de tocar-la. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Al teu ritme. Si no ho saps, prem «No ho sé».", ejemplo: 'On es nota més un terratrèmol? ➜ A l\'epicentre', paso: () => 'Socials per a l\'examen' },
                 sa2:     { nombre: 'Múltiples i divisors', icono: '🔢', instr: "Mates del tema nou: múltiples i divisors. Cada pregunta es contesta amb una multiplicació de les taules. Llegeixes la pregunta i tries la bona. Si et va bé, digues la multiplicació en veu alta abans de tocar. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'Quin és divisor de 56? ➜ 7, perquè 7 × 8 = 56', paso: () => 'Múltiples i divisors' },
-                musica:  { nombre: 'Música per a l\'examen', icono: '🎬', instr: "Música i cinema, per a l'examen del divendres 27: els inicis del cinema, les primeres pel·lícules, el vocabulari, les funcions de la música, el Foley, Menken i Newman. Llegeix la pregunta sencera fluixet, que t'escoltis, i les respostes que hi ha just a sota. Després tria. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'Qui va fer la primera sessió de cinema? ➜ Els germans Lumière', paso: () => 'Música per a l\'examen' },
+                musica:  { nombre: 'Música per a l\'examen', icono: '🎬', instr: "Música i cinema, per a l'examen del divendres 27: els inicis del cinema, les primeres pel·lícules, el vocabulari, les funcions de la música, el Foley, Menken i Newman. Ara la pregunta te la llegeixo jo: escolta-la sencera. Si vols, torna-la a escoltar amb el botó. Quan acabi, llegeix les respostes i tria. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'Qui va fer la primera sessió de cinema? ➜ Els germans Lumière', paso: () => 'Música per a l\'examen' },
                 castu2:  { nombre: 'Castellà: la unitat 2', icono: '💬', instr: "Castellà, per si hi ha control de la unitat 2: la conversa, l'estil directe i l'indirecte. Llegeixes la pregunta i tries la bona. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: '«—¿Tienes mi libro? —preguntó Leo.» ➜ Leo preguntó si tenía su libro.', paso: () => 'Castellà: la unitat 2' },
                 angles:  { nombre: 'English', icono: '🇬🇧', instr: "Ara, anglès: el que necessites per escriure sobre tu. Llegeix la frase sencera fluixet, que t'escoltis: si sona rara, no és la bona. I tria. Quan contestes, la sentiràs sencera en anglès: escolta-la bé. Si una no surt, et surt explicada i, al final, la tornaràs a veure. Si no ho saps, prem «No ho sé».", ejemplo: 'I ___ 12 years old. ➜ am', paso: () => 'English' },
                 frases:  { nombre: 'Frases en anglès', icono: '✍️', instr: "Frases curtes en anglès, de les que ja has estudiat. Si veus 🎧, l'escoltes i l'escrius en anglès. Si veus la frase en català, l'escrius en anglès. Si una paraula no surt, et surt marcada i la tornes a escriure.", voz: "Frases curtes en anglès, de les que ja has estudiat. Si veus els auriculars, l'escoltes i l'escrius en anglès. Si veus la frase en català, l'escrius en anglès. Si una paraula no surt, et surt marcada i la tornes a escriure.", ejemplo: '🎧 «I like music.» ➜ i like music', paso: () => 'Frases en anglès' },
@@ -3344,6 +3345,11 @@
             const castu2Pendent = m => dojoNou(m) && hoy() >= CASTU2_DES_DE && hoy() <= CASTU2_FINS && !leerTria('castu2').pausa && itemsCastu2().length > 0;
             const conCastu2 = m => ({ ...m, bloques: [...m.bloques, { tipo: 'castu2' }] });
             const TRIA_TIPUS = ['sa2', 'angles', 'musica', 'castu2'];
+            // Papà (24/11): als tests de triar no arriba a llegir la pregunta i endevina; oral, amb ell, les sap.
+            // Des del 24/11 la pregunta sona sola, les respostes es poden tocar quan acaba i «Torna-la a escoltar» la repeteix.
+            // Cada bloc nou de triar en català s'afegeix aquí (i les preguntes, a __textosVeu).
+            const LLEGIR_PREG_DES_DE = '2026-11-24', LLEGIR_PREG_TIPUS = ['musica'];
+            const llegeixPregunta = tipo => LLEGIR_PREG_TIPUS.includes(tipo) && hoy() >= LLEGIR_PREG_DES_DE;
 
             // FRASES EN ANGLÈS (papà, 17/11): frases curtíssimes (3-5 paraules), només del que ha estudiat.
             // Primer «escolta i escriu» (dictat); quan una li surt bé a la primera, passa a «tradueix» (del català a l'anglès).
@@ -4372,6 +4378,15 @@
                 }
                 vozSistema(texto);
             }
+            // La pregunta en veu (tests de triar, des del 24/11): les respostes s'obren quan acaba de sonar.
+            // Si no hi ha MP3 o no sona, s'obren igualment al cap d'una estona (segons la llargada).
+            function llegirPregunta() {
+                const it = item, ops = [...document.querySelectorAll('#tema1-opcions .tema1-btn')];
+                ops.forEach(b => { b.disabled = true; });
+                const obre = () => { if (item === it) ops.forEach(b => { b.disabled = false; }); };
+                setTimeout(obre, Math.min(9000, 1500 + 70 * it.veuPreg.length));
+                hablar(it.veuPreg).then(() => { if (item === it && veuSonant) veuSonant.onended = obre; });
+            }
             // Dos textos seguidos (inglés y después el truco en catalán): el segundo, cuando acaba el primero
             async function hablarSeguit(textos) {
                 const [primer, ...resta] = textos;
@@ -4418,7 +4433,7 @@
             window.__parensActual = () => item && item.tipo === 'parens' ? { n: item.idx, modo: item.modo, esperado: item.esperado, format: item.format || null, opcions: item.opcions || null } : null;
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
-            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'tonica'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null } : null;
+            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'tonica'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null, veuPreg: item.veuPreg || null } : null;
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 ROMANS_ESCALA.forEach(e => t.add(e.veu));
@@ -4482,6 +4497,8 @@
                 }));
                 // Des del 13/11: múltiples i divisors, tònica, bio i anglès (amb o sense cadascun, i el laboratori i les paraules els dies fluixos)
                 ANGLES_PREGUNTES.forEach(x => t.add(fitxaAngles(x).veu));
+                // Des del 24/11, la pregunta de música en veu
+                [...MUSICA_PREGUNTES, ...MUSICA_PAPER, ...MU_ANYS].forEach(x => t.add(x[1]));
                 for (const aS of [conSa2, m => m]) for (const aT of [conTonica, m => m]) for (const aB of [conBio, m => m])
                     for (const aA of [conAngles, m => m]) for (const aL of [m => m, conLab]) for (const aP of [m => m, conParaules])
                         for (const M of [ENTRENAMENT, CONTROL]) {
@@ -5448,7 +5465,8 @@
                     return { tipo, modo: `bloc${x.bloc}`, texto: x.preg, clave: `${tipo}:${x.preg.slice(0, 40)}`, esperado: x.bona,
                         preg: tipo === 'angles' && (x.bloc === 3 || (x.bloc === 5 && !x.preg.endsWith(':'))) ? 'Com s\'escriu en anglès?'
                             : tipo === 'angles' && x.bloc >= 4 ? 'Quina està bé?' : 'Quina és la bona?',
-                        opcions: shuffle([x.bona, ...x.altres]), solucio: x.bona, explica: x.explica, veu: x.veu, fix: x };
+                        opcions: shuffle([x.bona, ...x.altres]), solucio: x.bona, explica: x.explica, veu: x.veu, fix: x,
+                        veuPreg: llegeixPregunta(tipo) ? x.preg : null, escoltat: 0 };
                 }
                 if (tipo === 'bio') {
                     const x = sesion.fijos[sesion.hechos];
@@ -5532,10 +5550,11 @@
                 opCardEl.classList.toggle('op-cast-dibuix', ['castella', 'tecno'].includes(item.tipo) && !!item.html);
                 document.getElementById('tema1-panel').hidden = !ambOpcions;
                 document.getElementById('tema1-opcions').classList.toggle('sil', item.tipo === 'tonica');
-                document.getElementById('btn-escoltar-tonica').hidden = item.tipo !== 'tonica';
+                document.getElementById('btn-escoltar-tonica').hidden = item.tipo !== 'tonica' && !item.veuPreg;
                 if (ambOpcions) {
                     document.getElementById('tema1-opcions').innerHTML = item.opcions
                         .map(o => `<button class="tema1-btn${item.modo === 'escriure' ? ' roma' : ''}" data-opcio="${escaparHtml(o)}">${escaparHtml(o)}</button>`).join('');
+                    if (item.veuPreg) llegirPregunta();
                 }
                 opCardEl.classList.toggle('op-frase', item.tipo === 'grafia');
                 if (item.tipo === 'grafia') opFactorsEl.innerHTML = htmlFrase(item);
@@ -7449,9 +7468,9 @@
                 if (btn && btn.dataset.xifra) responderXifra(btn.dataset.xifra);
             });
             document.getElementById('btn-escoltar-tonica').addEventListener('click', () => {
-                if (!item || item.tipo !== 'tonica' || isEvaluating) return;
+                if (!item || (item.tipo !== 'tonica' && !item.veuPreg) || isEvaluating) return;
                 item.escoltat++;
-                hablar(item.veu);
+                hablar(item.veuPreg || item.veu);
             });
             document.getElementById('btn-escoltar-xifra').addEventListener('click', () => {
                 if (!item || !['xifra', 'sentir'].includes(item.tipo) || isEvaluating) return;

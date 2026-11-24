@@ -51,6 +51,11 @@ def para_decir(t):
     t = t.replace('«', '').replace('»', '')
     # El nom del grup, a l'anglesa («cat's eye»), no lletrejat en català
     t = t.replace('KATSEYE', 'Cats ai')
+    # Noms i paraules angleses de música i cinema (24/11, comprovat amb Whisper): escrits com sonen
+    for en, ca in (('Alan Menken', 'Àlan Ménquen'), ('Randy Newman', 'Rendi Niúman'), ('Menken', 'Ménquen'), ('Newman', 'Niúman'),
+                   ('Blockbuster', 'Blocbàster'), ('Teaser', 'Tíser'), ('Remake', 'Riméic'), ('Foley', 'Fouli'),
+                   ('Aladdin', 'Aladín'), ('Monstres SA', 'Monstres, essa a')):
+        t = t.replace(en, ca)
     # Paréntesis como pausas: «(8 + 1):» lo leía como un emoticono («cara trista»)
     t = re.sub(r'\s*[()]\s*', ', ', t)
     t = re.sub(r',\s*([:,.])', r'\1', t)
