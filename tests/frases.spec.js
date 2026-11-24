@@ -55,6 +55,14 @@ test.describe('Frases en anglès', () => {
         expect(await iguals('i am tall', "I'm tall.")).toBe(true);
         expect(await iguals("i've got long hare", "I've got long hair.")).toBe(false);
         expect(await iguals("i've got hair", "I've got long hair.")).toBe(false);
+        // 24/11: la I semblava una l i no hi ha majúscules al teclat
+        expect(await iguals("l've got long hair", "I've got long hair.")).toBe(true);
+        expect(await iguals("l'm tall", "I'm tall.")).toBe(true);
+        expect(await iguals("No, l haven't", "No, I haven't.")).toBe(true);
+        expect(await iguals("she's got long hair", "She's got long hair.")).toBe(true);
+        expect(await iguals("lt's long", "It's long.")).toBe(false);
+        // i la I es dibuixa amb travessers perquè no sembli una l
+        expect(await page.evaluate(() => getComputedStyle(document.body).fontFamily)).toContain('IAmbBarres');
         const marcades = async (r, b) => (await page.evaluate(([x, y]) => window.__fraseMarcada(x, y), [r, b])).split('frase-mal').length - 1;
         for (const [r, b] of [["he's got grey hare", "He's got grey hair."], ["she's got short hare", "She's got short hair."],
             ["there's a miror", "There's a mirror."], ["i've got green ais", "I've got green eyes."], ["there aren't any curtins", "There aren't any curtains."]])

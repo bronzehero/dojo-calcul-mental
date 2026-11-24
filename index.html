@@ -12,6 +12,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* 24/11 (papà): a la Baloo 2 la I majúscula i la l són el mateix pal. Veia «I've», buscava el pal al teclat i premia la l.
+           Només la I (U+0049) surt d'una lletra amb travessers; la resta, igual. */
+        @font-face { font-family: 'IAmbBarres'; src: local('Georgia'), local('Times New Roman'), local('DejaVu Serif'), local('Noto Serif'); unicode-range: U+0049; }
+        @font-face { font-family: 'IAmbBarres'; font-weight: 600 900; src: local('Georgia Bold'), local('Georgia-Bold'), local('Times New Roman Bold'), local('DejaVu Serif Bold'), local('Noto Serif Bold'); unicode-range: U+0049; }
         :root {
             --c-pink: #ffafcc;
             --c-pink-dark: #f08080;
@@ -28,7 +32,7 @@
             --c-dark: #2d3142;
             --c-light: #ffffff;
             --c-shadow: rgba(100, 100, 150, 0.15);
-            --font-main: 'Baloo 2', system-ui, -apple-system, cursive, sans-serif;
+            --font-main: 'IAmbBarres', 'Baloo 2', system-ui, -apple-system, cursive, sans-serif;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -3429,7 +3433,9 @@
             const fraseForat = f => { const i = f.en.indexOf(f.forat); return [f.en.slice(0, i), f.en.slice(i + f.forat.length)]; };
             const fraseAmbResposta = (f, r) => { const [a, b] = fraseForat(f); return a + r + b; };
             // Iguals sense mirar majúscules, punts ni apòstrofs rodons; «I've» i «I have» valen igual
+            // 24/11: el teclat no té majúscules i la I semblava una l: «l've», «l'm» o «l» sola valen com la I (en anglès no hi ha «l»)
             const paraulesFrase = t => t.toLowerCase().replace(/[’`]/g, "'").replace(/[.,!?¿¡]/g, ' ')
+                .replace(/(^|\s)l(?=['\s]|$)/g, '$1i')
                 .replace(/'s got\b/g, ' has got').replace(/\bi'm\b/g, 'i am').replace(/'ve\b/g, ' have').replace(/'re\b/g, ' are')
                 .replace(/\b(is|are|has|have|do|does)n't\b/g, '$1 not').replace(/'s\b/g, ' is')
                 .split(/\s+/).filter(Boolean);
