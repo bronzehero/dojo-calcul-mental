@@ -1070,6 +1070,12 @@
         .par-a { color: #2563eb; font-weight: 900; }
         .par-b { color: #e0115f; font-weight: 900; }
         .tema1-preg { font-size: 1.25rem; font-weight: 700; color: #6b21a8; margin-bottom: 6px; }
+        .sa2-taula { margin-top: 10px; }
+        .sa2-taula .titol { font-size: 1rem; font-weight: 700; color: #6b21a8; margin-bottom: 4px; }
+        .sa2-taula .fila { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+        .sa2-taula .fila span { display: flex; flex-direction: column; align-items: center; background: #f5f0ff; border: 1px solid #ddd0f5; border-radius: 8px; padding: 3px 0; }
+        .sa2-taula small { font-size: 1rem; font-weight: 700; color: #7c6a99; }
+        .sa2-taula b { font-size: 1.3rem; color: #3b2a5c; }
         .op-tema1-clau .operation-text { font-size: 2.2rem; letter-spacing: 0.04em; }
         .tema1-buit { display: block; font-size: 1.5rem; letter-spacing: normal; line-height: 1.45; margin-top: 10px; color: #1e293b; }
         .tema1-buit u { text-decoration-thickness: 3px; text-underline-offset: 4px; color: #e0115f; }
@@ -1200,6 +1206,7 @@
                             <span id="op-igual">=</span>
                             <span id="op-answer" class="answer-box empty">?</span>
                         </div>
+                        <div id="sa2-taula" class="sa2-taula" hidden></div>
                         <div id="op-feedback" style="min-height: 28px;"></div>
                     </div>
                     <!-- Passar pel 10: la recta per comptar endavant (del petit al gran, un salt per número) -->
@@ -2931,6 +2938,18 @@
                 if (leerTria('sa2').fet === hoy()) return r;
                 return [...r.filter(f => !noves.includes(f)), ...shuffle(r.filter(f => noves.includes(f)))];
             };
+            // 25/11: del 21 al 25/11, 9/13 → 3/18. Fallen sempre els mateixos (28 = 4 × ?, 54 = 6 × ?, 6 × 8 → «23» després de 2 minuts):
+            // no és el concepte (en paper, amb ajuda, bé), és la taula del 6 i del 7 de memòria, i el Dojo el fa l'últim i cansada.
+            // Papà, 25/11, per provar: entre setmana, sota el múltiple i el divisor surt la fila de la taula per buscar-hi el número;
+            // el cap de setmana (més descansada), sense, de memòria. Es guarda a les dades (detalle.taula) per comparar.
+            const SA2_TAULA_DES_DE = '2026-11-26';
+            function sa2Taula(x) {
+                if (!x.num || hoy() < SA2_TAULA_DES_DE || [0, 6].includes(new Date(`${hoy()}T12:00:00`).getDay())) return null;
+                const n = (x.op.match(/\d+/g) || []).map(Number);
+                return x.bloc === 1 ? n[0] : n[1];
+            }
+            const htmlTaula = t => `<div class="titol">Taula del ${t}</div><div class="fila">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                .map(i => `<span><small>×${i}</small><b>${t * i}</b></span>`).join('')}</div>`;
             const sa2Pendent = m => dojoNou(m) && hoy() >= SA2_DES_DE && !leerTria('sa2').pausa && itemsSa2().length > 0;
             const conSa2 = m => ({ ...m, bloques: [...m.bloques, { tipo: 'sa2' }] });
 
@@ -4527,7 +4546,7 @@
             window.__parensActual = () => item && item.tipo === 'parens' ? { n: item.idx, modo: item.modo, esperado: item.esperado, format: item.format || null, opcions: item.opcions || null } : null;
             window.__xifraActual = () => item && ['xifra', 'sentir'].includes(item.tipo) ? { esperado: item.esperado, opcions: item.opcions.map(o => o.codi), n: item.n } : null;
 
-            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'catdif', 'tonica'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null, veuPreg: item.veuPreg || null } : null;
+            window.__tema1Actual = () => item && ['tema1', 'castella', 'catala', 'tecno', 'socials', 'bio', 'sa2', 'angles', 'musica', 'castu2', 'catdif', 'tonica'].includes(item.tipo) ? { modo: item.modo, texto: item.texto, esperado: item.esperado, opcions: item.opcions || null, veuPreg: item.veuPreg || null, taula: item.taula || null } : null;
             window.__textosVeu = () => {
                 const t = new Set(Object.values(TIPOS).filter(x => x.instr).map(x => x.voz || x.instr));
                 ROMANS_ESCALA.forEach(e => t.add(e.veu));
@@ -5563,7 +5582,7 @@
                     // SA2 des del 21/11: el múltiple i el divisor, construïts amb la taula i escrits amb el teclat
                     if (x.num) return { tipo, modo: `bloc${x.bloc}`, texto: x.op, html: htmlOperacion(x.op), sensIgual: !!x.sensIgual,
                         clave: `${tipo}:${x.preg.slice(0, 40)}`, esperado: x.bona, preg: x.titol, opcions: null, solucio: x.solucio,
-                        explica: x.explica, diu: x.diu, fix: x };
+                        explica: x.explica, diu: x.diu, fix: x, taula: sa2Taula(x) };
                     return { tipo, modo: `bloc${x.bloc}`, texto: x.preg, clave: `${tipo}:${x.preg.slice(0, 40)}`, esperado: x.bona,
                         preg: tipo === 'angles' && (x.bloc === 3 || (x.bloc === 5 && !x.preg.endsWith(':'))) ? 'Com s\'escriu en anglès?'
                             : tipo === 'angles' && x.bloc >= 4 ? 'Quina està bé?' : 'Quina és la bona?',
@@ -5639,6 +5658,9 @@
                 const preg = document.getElementById('tema1-preg');
                 preg.hidden = !ambPreg;
                 preg.textContent = ambPreg ? item.preg : '';
+                const taulaEl = document.getElementById('sa2-taula');
+                taulaEl.hidden = !item.taula;
+                taulaEl.innerHTML = item.taula ? htmlTaula(item.taula) : '';
                 if ((item.tipo === 'tema1' || item.tipo === 'tonica') && item.veu) hablar(item.veu);
                 // Parèntesis: la pregunta en veu quan canvia el tipus (no a cada una)
                 if (item.tipo === 'parens' && sesion.parensModo !== item.modo) { sesion.parensModo = item.modo; hablar(item.preg); }
@@ -5909,6 +5931,7 @@
                 const extra = {};
                 if (girada) extra.girada = true;
                 if (['tema1', 'sa2'].includes(item.tipo)) extra.modo = item.modo;
+                if (item.taula) extra.taula = item.taula;
                 if (item.tipo === 'sa2') { anotarTria('sa2', item, ok); if (!ok) tornaTria(item); }
                 if (item.nivell !== undefined) { extra.nivell = item.nivell; extra.pas = item.pas; }
                 if (item.modo === 'arrel') extra.quadrat = item.quadrat;

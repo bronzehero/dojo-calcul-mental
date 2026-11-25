@@ -818,6 +818,49 @@ test.describe('Des del 24/11: SA2 amb primers i compostos', () => {
         const textos = await page.evaluate(() => window.__textosVeu());
         expect(textos).toContain('El 25 és primer, compost o cap dels dos?');
     });
+    // 25/11 (papà, per provar): entre setmana, la fila de la taula sota el múltiple i el divisor; el cap de setmana, de memòria
+    async function primerNumeric(page) {
+        await page.click('#btn-start-game');
+        await expect(page.locator('#intro-titulo')).toHaveText('Múltiples i divisors');
+        await page.click('#btn-intro-vamos');
+        let anterior = 'null';
+        for (let i = 0; i < 10; i++) {
+            const t = await seguent(page, anterior);
+            if (!t.opcions) return t;
+            await page.click(`#tema1-opcions button[data-opcio="${t.esperado}"]`);
+            await page.waitForTimeout(1000);
+            anterior = JSON.stringify(t);
+        }
+        throw new Error('cap pregunta de teclat');
+    }
+    test('dijous 26/11: sota el múltiple i el divisor, la taula; el número bo hi és, i es guarda a les dades', async ({ page }) => {
+        const envios = await preparar(page, '2026-11-26', { sa2: true });
+        const t = await primerNumeric(page);
+        expect(t.taula).toBeGreaterThan(1);
+        const taula = page.locator('#sa2-taula');
+        await expect(taula).toBeVisible();
+        await expect(taula.locator('.titol')).toHaveText(`Taula del ${t.taula}`);
+        const celes = await taula.locator('.fila b').allTextContents();
+        expect(celes).toHaveLength(10);
+        // múltiple: la resposta és a la fila; divisor: el producte és a la fila i la resposta és el seu ×n
+        const n = t.texto.match(/\d+/g).map(Number);
+        if (t.modo === 'bloc1') expect(celes).toContain(t.esperado);
+        else expect(celes[Number(t.esperado) - 1]).toBe(String(n[0]));
+        await page.keyboard.type(t.esperado);
+        await page.keyboard.press('Enter');
+        await expect.poll(() => envios.filter(e => e.datos.modulo === 'sa2').length).toBeGreaterThan(0);
+        const d = envios.filter(e => e.datos.modulo === 'sa2').pop().datos;
+        expect(d.detalle.taula).toBe(t.taula);
+        expect(await page.locator('#screen-game').innerText()).not.toMatch(PROHIBIDO_EN_PANTALLA);
+    });
+    for (const dia of ['2026-11-28', '2026-11-25']) {
+        test(`${dia === '2026-11-28' ? 'dissabte 28/11' : 'el 25/11'}: sense taula (de memòria)`, async ({ page }) => {
+            await preparar(page, dia, { sa2: true });
+            const t = await primerNumeric(page);
+            expect(t.taula).toBeNull();
+            await expect(page.locator('#sa2-taula')).toBeHidden();
+        });
+    }
     test('el 23/11, encara 4 i 4 i sense primers', async ({ page }) => {
         await preparar(page, '2026-11-23', { sa2: true });
         const it = await page.evaluate(() => window.__itemsSa2());
