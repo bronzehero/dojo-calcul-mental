@@ -37,6 +37,32 @@ test('si el texto tiene MP3, lo pide a veu/ (la Joana) en vez de usar la voz del
     await expect.poll(() => page.evaluate(() => window.__pedidos)).toContain(`veu/${claveVeu(intro)}.mp3`);
 });
 
+test('iPad: si el sonido queda «interrupted» (pantalla bloqueada, notificación), cada toque lo vuelve a encender', async ({ page }) => {
+    await simularSupabase(page);
+    await page.addInitScript(() => {
+        window.__resums = 0;
+        window.__ctxs = [];
+        class AudioFals {
+            constructor() { this.state = 'interrupted'; this.currentTime = 0; this.destination = {}; window.__ctxs.push(this); }
+            resume() { window.__resums++; this.state = 'running'; return Promise.resolve(); }
+            createOscillator() { return { type: '', frequency: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {}, start() {}, stop() {} }; }
+            createGain() { return { gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {} }; }
+        }
+        window.AudioContext = AudioFals;
+    });
+    await page.goto(URL_APP);
+    await page.mouse.click(5, 5);
+    await expect.poll(() => page.evaluate(() => window.__estatAudio())).toBe('running');
+    const abans = await page.evaluate(() => window.__resums);
+    expect(abans).toBeGreaterThan(0);
+    // Torna a quedar interromput a mitja sessió: el següent toc el torna a engegar (abans, només el primer toc i només «suspended»)
+    await page.evaluate(() => { window.__ctxs.forEach(c => { c.state = 'interrupted'; }); });
+    await page.mouse.click(5, 5);
+    await expect.poll(() => page.evaluate(() => window.__estatAudio())).toBe('running');
+    expect(await page.evaluate(() => window.__resums)).toBeGreaterThan(abans);
+    expect(await page.evaluate(() => window.__ctxs.length)).toBe(1);
+});
+
 test('todo lo que dice en voz alta tiene su MP3 (si no, ejecutar veu/genera.sh)', async ({ page }) => {
     const indice = path.join(VEU, 'index.json');
     test.skip(!fs.existsSync(indice), 'todavía no se han generado los MP3');

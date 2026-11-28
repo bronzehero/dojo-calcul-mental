@@ -4390,14 +4390,22 @@
             // SONIDO (Web Audio API) Y VOZ
             // ==========================================
             let audioCtx = null;
+            // 28/11: «a l'anglès no se sent». A l'iPad, si la pantalla es bloqueja o arriba una notificació, el so queda
+            // «interrupted» (no «suspended») i abans no es tornava a engegar: tot callat fins a recarregar.
+            // Ara es torna a engegar sempre que no estigui «running», i a cada toc de pantalla, no només al primer.
+            // I el so surt encara que l'iPad tingui l'interruptor de silenci (sessió d'àudio «playback», Safari 17+).
+            function despertarAudio() {
+                try {
+                    if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback';
+                } catch (e) {}
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state !== 'running') { try { audioCtx.resume().catch(() => {}); } catch (e) {} }
+                return audioCtx;
+            }
+            window.__estatAudio = () => audioCtx ? audioCtx.state : null;
             function playFeedbackSound(isSuccess) {
                 try {
-                    if (!audioCtx) {
-                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    }
-                    if (audioCtx.state === 'suspended') {
-                        audioCtx.resume();
-                    }
+                    despertarAudio();
                     const now = audioCtx.currentTime;
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
@@ -4427,17 +4435,7 @@
 
             // Desbloqueo garantizado de AudioContext en iPad / iOS Safari
             function unlockAudio() {
-                try {
-                    if (!audioCtx) {
-                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    }
-                    if (audioCtx.state === 'suspended') {
-                        audioCtx.resume();
-                    }
-                } catch (e) {}
-                ['touchstart', 'touchend', 'click'].forEach(evt => {
-                    window.removeEventListener(evt, unlockAudio);
-                });
+                try { despertarAudio(); } catch (e) {}
             }
             ['touchstart', 'touchend', 'click'].forEach(evt => {
                 window.addEventListener(evt, unlockAudio, { passive: true });
@@ -4468,8 +4466,7 @@
                 const clau = claveVeu(texto);
                 if (veuDisponibles.has(clau)) {
                     try {
-                        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                        if (audioCtx.state === 'suspended') audioCtx.resume();
+                        despertarAudio();
                         let buf = veuBuffers.get(clau);
                         if (!buf) {
                             const r = await fetch(`veu/${clau}.mp3`);
