@@ -3830,12 +3830,12 @@
             // el domingo 15/11, de memoria las que aún no domina
             const DICTAT2_DES_DE = '2026-11-14', DICTAT2_FINS = '2026-11-15';
             // Tandas: palabras de un examen concreto que solo salen esos días (y esos días, solo ellas, hasta 12 nuevas)
-            const TANDES = { dictat2: [DICTAT2_DES_DE, DICTAT2_FINS], angles: ['2026-11-16', '2026-11-27'] }; // fins a l'examen de la Unit 1 (~26/11): cada dia, les d'anglès
+            const TANDES = { dictat2: [DICTAT2_DES_DE, DICTAT2_FINS], angles: ['2026-11-16', '2026-11-29'] }; // fins a l'examen de la Unit 1 (dilluns 30/11 a les 8; el divendres 27 no es va fer): cada dia, les d'anglès
             const enTanda = (t, d) => d >= TANDES[t][0] && d <= TANDES[t][1];
             const tandaAvui = d => Object.keys(TANDES).some(t => enTanda(t, d));
             // desDe: la palabra entra ese día. repetirEl: ese día vuelve aunque el Dojo la dé por dominada (la falló en papel)
             // 23/11: 37 minuts de Dojo i, al final de Paraules, lletres a l'atzar (straight, brown, braces): no podia més.
-            // Fins a l'examen (27/11), de l'anglès només les paraules del seu email, i 6 al dia com a màxim.
+            // Fins a l'examen (dilluns 30/11), de l'anglès només les paraules del seu email, i 6 al dia com a màxim.
             const PARAULES_EMAIL_DES_DE = '2026-11-24', PARAULES_EMAIL_MAX = 6;
             const PARAULES_EMAIL = ['en-in', 'en-and', 'en-brown', 'en-eyes', 'en-hair', 'en-like', 'en-music', 'en-my', 'en-tall', 'en-green'];
             const nomesEmail = d => enTanda('angles', d) && d >= PARAULES_EMAIL_DES_DE;

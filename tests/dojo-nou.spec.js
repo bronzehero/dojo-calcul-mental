@@ -115,7 +115,10 @@ test.describe('El Dojo des del 13/11', () => {
         const repas = await page.evaluate(() => window.__itemsParaules());
         expect(repas.length).toBeGreaterThan(0);
         expect(repas.every(x => x.id.startsWith('en-'))).toBe(true);
-        await preparar(page, '2026-11-28');
+        // L'examen de la Unit 1 passa del divendres 27 al dilluns 30/11 (8 h): el cap de setmana encara hi són
+        await preparar(page, '2026-11-29');
+        expect((await page.evaluate(() => window.__itemsParaules())).every(x => x.id.startsWith('en-'))).toBe(true);
+        await preparar(page, '2026-11-30');
         expect((await page.evaluate(() => window.__itemsParaules())).some(x => x.id.startsWith('en-'))).toBe(false);
     });
 
